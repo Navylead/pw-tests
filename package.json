@@ -1,0 +1,24 @@
+{
+  "name": "pl",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  
+  "scripts": {
+    "testAll": "npx playwright test --project=chromium --headed --workers=1",
+    "test1": "npx playwright test --project=chromium --headed --workers=1 tests/1_loginTest.spec.js",
+    "test2": "npx playwright test --project=chromium --headed --workers=1 tests/2_uiTest.spec.js",
+    "test4": "npx playwright test --project=chromium --headed --workers=1 tests/4_releaseTest.spec.js", 
+    "session": "npx playwright test tests/0_createSession.spec.js --project=chromium --headed --workers=1"
+  },
+  "keywords": [],
+  "author": "K.D.",
+  "license": "ISC",
+  "devDependencies": {
+    "@playwright/test": "^1.47.2",
+    "@types/node": "^22.5.5"
+  },
+  "dependencies": {
+    "ws": "^8.18.0"
+  }
+}

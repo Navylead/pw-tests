@@ -1,0 +1,10 @@
+{
+    "compilerOptions": {
+      "checkJs": true,   // Включает проверки для JS-файлов
+      "moduleResolution": "node",
+      "target": "es6",
+      "resolveJsonModule": true // Включает обработку json файлов(
+    },
+    "exclude": ["node_modules"]
+  }
+  

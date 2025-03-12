@@ -1,1 +1,1 @@
-# pw-tests
+# playwright-tests
