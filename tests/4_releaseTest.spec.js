@@ -5,6 +5,7 @@ import Editor from "../pages/Editor"
 import { timeout } from "../playwright.config"
 import Dashboard from "../pages/Dashboard"
 import creds from "../auth/creds.json"
+import exp from "constants"
 
 
 test.describe('Релизные тесты', ()=>{
@@ -35,7 +36,7 @@ test.describe('Тесты премиумности', ()=>{
         const getTariffBtn = page.locator('.dialogWrapper_FVcGt button >> text=Получить бесплатную пробную версию')
         await getTariffBtn.waitFor()
 
-        await page.pause()
+        //await page.pause()
     })
 
     test('Скачивание премиум-элемента: ВЕКТОР', async({page})=>{
@@ -57,7 +58,7 @@ test.describe('Тесты премиумности', ()=>{
         const getTariffBtn = page.locator('.dialogWrapper_FVcGt button >> text=Получить бесплатную пробную версию')
         await getTariffBtn.waitFor()
         
-        await page.pause()
+        //await page.pause()
     })
 
     test('Скачивание премиум-элемента: ШРИФТ', async({page})=>{
@@ -79,7 +80,7 @@ test.describe('Тесты премиумности', ()=>{
         const getTariffBtn = page.locator('.dialogWrapper_FVcGt button >> text=Получить бесплатную пробную версию')
         await getTariffBtn.waitFor()
         
-        await page.pause()
+        //await page.pause()
     })
 
     test('Скачивание премиум-элемента: АНИМАЦИЯ', async({page})=>{
@@ -101,7 +102,7 @@ test.describe('Тесты премиумности', ()=>{
         const getTariffBtn = page.locator('.dialogWrapper_FVcGt button >> text=Получить бесплатную пробную версию')
         await getTariffBtn.waitFor()
         
-        await page.pause()
+        //await page.pause()
     })
 
     test.skip('Скачивание премиум-элемента: АНИМАЦИЯ для декоров <<<НЕ РАБОТАЕТ!!!>>>', async({page})=>{
@@ -123,7 +124,7 @@ test.describe('Тесты премиумности', ()=>{
         const getTariffBtn = page.locator('.dialogWrapper_FVcGt button >> text=Получить бесплатную пробную версию')
         await getTariffBtn.waitFor()
         
-        await page.pause()
+        //await page.pause()
     })
 
     test('Скачивание премиум-элемента: ФИГУРА', async({page})=>{
@@ -145,7 +146,7 @@ test.describe('Тесты премиумности', ()=>{
         const getTariffBtn = page.locator('.dialogWrapper_FVcGt button >> text=Получить бесплатную пробную версию')
         await getTariffBtn.waitFor()
         
-        await page.pause()
+        //await page.pause()
     })
 
     test('Скачивание премиум-элемента: ЭЛЕМЕНТ', async({page})=>{
@@ -167,7 +168,7 @@ test.describe('Тесты премиумности', ()=>{
         const getTariffBtn = page.locator('.dialogWrapper_FVcGt button >> text=Получить бесплатную пробную версию')
         await getTariffBtn.waitFor()
         
-        await page.pause()
+        //await page.pause()
     })
 
     test('Скачивание премиум-элемента: ШАБЛОН', async({page})=>{
@@ -189,7 +190,7 @@ test.describe('Тесты премиумности', ()=>{
         const getTariffBtn = page.locator('.dialogWrapper_FVcGt button >> text=Получить бесплатную пробную версию')
         await getTariffBtn.waitFor()
         
-        await page.pause()
+        //await page.pause()
     })
 
     test('Скачивание премиум-элемента: МАСКА', async({page})=>{
@@ -211,7 +212,7 @@ test.describe('Тесты премиумности', ()=>{
         const getTariffBtn = page.locator('.dialogWrapper_FVcGt button >> text=Получить бесплатную пробную версию')
         await getTariffBtn.waitFor()
         
-        await page.pause()
+        //await page.pause()
     })
 
     test('Скачивание премиум-элемента: ФОН', async({page})=>{
@@ -233,7 +234,7 @@ test.describe('Тесты премиумности', ()=>{
         const getTariffBtn = page.locator('.dialogWrapper_FVcGt button >> text=Получить бесплатную пробную версию')
         await getTariffBtn.waitFor()
         
-        await page.pause()
+        //await page.pause()
     })
 
     test('Премиум-функция: ПРОЗРАЧНЫЙ ФОН', async({page})=>{
@@ -246,7 +247,7 @@ test.describe('Тесты премиумности', ()=>{
         const getTariffBtn = page.locator('.dialogWrapper_FVcGt button >> text=Получить бесплатную пробную версию')
         await getTariffBtn.waitFor()
         
-        await page.pause()
+        //await page.pause()
     })
 
     test('Премиум-функция: ОТОБРАЖЕНИЕ ВОДЯНОГО ЗНАКА', async({page})=>{
@@ -259,7 +260,7 @@ test.describe('Тесты премиумности', ()=>{
         const getTariffBtn = page.locator('.dialogWrapper_FVcGt button >> text=Получить бесплатную пробную версию')
         await getTariffBtn.waitFor()
         
-        await page.pause()
+        //await page.pause()
     })
 
     test('Премиум-функция: РАЗМЕР Х', async({page})=>{
@@ -273,7 +274,7 @@ test.describe('Тесты премиумности', ()=>{
         const getTariffBtn = page.locator('.dialogWrapper_FVcGt button >> text=Получить бесплатную пробную версию')
         await getTariffBtn.waitFor()
         
-        await page.pause()
+        //await page.pause()
     })
 
     test('Премиум-функция: ИЗМЕНИТЬ РАЗМЕР ДИЗАЙНА', async({page})=>{
@@ -289,7 +290,7 @@ test.describe('Тесты премиумности', ()=>{
         const getTariffBtn = page.locator('.dialogWrapper_FVcGt button >> text=Получить бесплатную пробную версию')
         await getTariffBtn.waitFor()
         
-        await page.pause()
+        //await page.pause()
     })
 
     test('Премиум-функция: ДЕФОРМАЦИЯ ДЛЯ ФОТО', async({page})=>{
@@ -302,7 +303,7 @@ test.describe('Тесты премиумности', ()=>{
         const getTariffBtn = page.locator('.dialogWrapper_FVcGt button >> text=Получить бесплатную пробную версию')
         await getTariffBtn.waitFor()
         
-        await page.pause()
+        //await page.pause()
     })
 
     test('Премиум-функция: УДАЛИТЬ ФОН ДЛЯ ФОТО', async({page})=>{
@@ -315,7 +316,7 @@ test.describe('Тесты премиумности', ()=>{
         const getTariffBtn = page.locator('.dialogWrapper_FVcGt button >> text=Получить бесплатную пробную версию')
         await getTariffBtn.waitFor()
         
-        await page.pause()
+        //await page.pause()
     })
 
     test('Премиум-функция: ЛАСТИК ДЛЯ ФОТО', async({page})=>{
@@ -328,7 +329,7 @@ test.describe('Тесты премиумности', ()=>{
         const getTariffBtn = page.locator('.dialogWrapper_FVcGt button >> text=Получить бесплатную пробную версию')
         await getTariffBtn.waitFor()
         
-        await page.pause()
+        //await page.pause()
     })
 
     test('Переход на тариф ПРО из ЛК', async({page})=>{
@@ -339,7 +340,7 @@ test.describe('Тесты премиумности', ()=>{
         const getTariffBtn = page.locator('.dialogWrapper_FVcGt button >> text=Получить бесплатную пробную версию')
         await getTariffBtn.waitFor()
         
-        await page.pause()
+        //await page.pause()
     })
 })
 
@@ -370,10 +371,10 @@ test.describe('ОБЩИЕ ПО ЭДИТОРУ', ()=>{
 		const respBody = await lastResp.json()                  // Парсим ответ
         expect(respBody.status).toEqual('DONE')                 // Проверка, что по АПИ приходит стаутс DONE
         // console.log('ДЛИНА МАССИВА - ', responses.length)
-        await page.pause() 
+        //await page.pause() 
     })
 
-    test('Создание дизайна', async ({page})=>{
+    test('Создание дизайна - История Instagram', async ({page})=>{
         const dashboard = new Dashboard(page)
         const editor = new Editor(page)
 
@@ -386,7 +387,7 @@ test.describe('ОБЩИЕ ПО ЭДИТОРУ', ()=>{
         await editor.changeDesignSizeBtn.waitFor()
         await editor.downloadBtn.waitFor()
 
-        await page.pause()
+        //await page.pause()
     })
 
     test('Создание дизайна по своим размерам', async ({page})=>{
@@ -394,6 +395,8 @@ test.describe('ОБЩИЕ ПО ЭДИТОРУ', ()=>{
         const editor = new Editor(page)
 
         await page.goto('/app')
+        const designList = page.locator('.stories-list .v-responsive__content').first()
+        await designList.waitFor()
         await dashboard.createDesignBtn.waitFor()
         await dashboard.createDesignBtn.click()
         const customSizeButton = page.locator('[role="menu"] button >> text=Настраиваемый размер')
@@ -419,7 +422,7 @@ test.describe('ОБЩИЕ ПО ЭДИТОРУ', ()=>{
         expect(designSize.height).toEqual(2222)
         expect(designSize.width).toEqual(2222)
 
-        await page.pause()
+        // await page.pause()
     })
 
     test('Создание WEB-STORY', async ({page, context})=>{
@@ -442,7 +445,7 @@ test.describe('ОБЩИЕ ПО ЭДИТОРУ', ()=>{
         await chooseAlbumButton.isVisible()
         await publishButton.click()
 
-        await newTab.pause()
+        // await newTab.pause()
     })
 
     test('Изменение размера дизайна', async({page})=>{
@@ -469,7 +472,71 @@ test.describe('ОБЩИЕ ПО ЭДИТОРУ', ()=>{
         //const resizeBanner = page.locator('.Vue-Toastification__toast-body >> text=Размер дизайна изменен')
         //await resizeBanner.waitFor()
 
-        await page.pause()
+        //await page.pause()
+    })
+
+    test('Случайный шаблон', async ({page})=>{
+        const editor = new Editor(page)
+        let oldBackground, newBackground
+        await page.goto('/app/designs/892617f4-7acf-4e1b-add3-adfcaa62e753')
+        await editor.changesSavedBtn.waitFor()
+        oldBackground = await editor.canvasBackground.evaluate(el => el.dataset.key) // Атрибут фона ДО 
+        console.log('<<<oldBackground>>>', oldBackground)
+        await editor.randomTemplateBtn.click()                                       // Клик по Случайный Шаблон
+        await page.locator('.loading-blur-screen').waitFor({state: 'detached', timeout:10000})
+        newBackground = await editor.canvasBackground.evaluate(el => el.dataset.key) // Атрибут фона ПОСЛЕ 
+        await expect(oldBackground).not.toEqual(newBackground)
+        console.log('<<<newBackground>>>', newBackground)
+
+        // await page.pause()
+    })
+
+    test('УДАЛЕНИЕ ФОНА У ФОТО АПЛОАД', async({page})=>{
+        const editor = new Editor(page)
+        await page.goto('/app/designs/3ba00c33-3def-4599-b474-b5429c86af82')
+        await editor.changeDesignSizeBtn.waitFor()
+        await editor.decor.locator('img:not([src*="no-bg"])').last().click({force:true})       // клик по декору на холсте
+        await editor.deleteBgBtn.click()                                                       // Клик по Удалению фона
+        await page.locator('.loading-blur-screen').waitFor({state: 'detached', timeout:10000}) // Ожидание завершения процесса
+        const noBgImg = editor.canvas.locator('[src*="no-bg"]')
+        await noBgImg.waitFor({timeout:10000})      // Ждем, пока на холсте не появится фото БЕЗ фона
+        await noBgImg.click({force:true})           // Клик по фото БЕЗ фона
+        await editor.basketBtn.click()              // Удалить это фото
+        await editor.decor.last().click({force:true})
+
+        /// await page.pause()
+    })
+
+    test('УДАЛЕНИЕ ФОНА У ФОТО ИИ', async({page})=>{
+        const editor = new Editor(page)
+        await page.goto('/app/designs/df8778a4-80bc-41c7-9832-a827bc92439b')
+        await editor.changeDesignSizeBtn.waitFor()
+        await editor.decor.locator('img:not([src*="no-bg"])').last().click({force:true})       // клик по декору на холсте
+        await editor.deleteBgBtn.click()                                                       // Клик по Удалению фона
+        await page.locator('.loading-blur-screen').waitFor({state: 'detached', timeout:10000}) // Ожидание завершения процесса
+        const noBgImg = editor.canvas.locator('[src*="no-bg"]')
+        await noBgImg.waitFor({timeout:10000})      // Ждем, пока на холсте не появится фото БЕЗ фона
+        await noBgImg.click({force:true})           // Клик по фото БЕЗ фона
+        await editor.basketBtn.click()              // Удалить это фото
+        await editor.decor.last().click({force:true})
+
+        // await page.pause()
+    })
+
+    test('УДАЛЕНИЕ ФОНА У ФОТО АНСПЛЭШ', async({page})=>{
+        const editor = new Editor(page)
+        await page.goto('/app/designs/c6454766-a526-4c1c-a6e2-35dd47af8812')
+        await editor.changeDesignSizeBtn.waitFor()
+        await editor.decor.locator('img:not([src*="no-bg"])').last().click({force:true})       // клик по декору на холсте
+        await editor.deleteBgBtn.click()                                                       // Клик по Удалению фона
+        await page.locator('.loading-blur-screen').waitFor({state: 'detached', timeout:10000}) // Ожидание завершения процесса
+        const noBgImg = editor.canvas.locator('[src*="no-bg"]')
+        await noBgImg.waitFor({timeout:10000})      // Ждем, пока на холсте не появится фото БЕЗ фона
+        await noBgImg.click({force:true})           // Клик по фото БЕЗ фона
+        await editor.basketBtn.click()              // Удалить это фото
+        await editor.decor.last().click({force:true})
+
+        // await page.pause()
     })
     
 })

@@ -80,10 +80,10 @@ test.describe('Sign in', ()=>{
   const loginPage = new LoginPage(page)
   const dashboard = new Dashboard(page)
   
-  await page.goto('/app/login') // Переход на страницу авторизации    
-  await loginPage.emailInput.fill(creds.email1) // Ввод логина  
+  await page.goto('/app/login')       // Переход на страницу авторизации    
+  await loginPage.emailInput.fill(creds.email1)       // Ввод логина  
   await loginPage.passwordInput.fill(creds.password1) // Ввод пароля  
-  await loginPage.submitBtn.click() // Нажатие на кнопку авторизации
+  await loginPage.submitBtn.click()   // Нажатие на кнопку авторизации
 
   const loginAPI = await page.waitForResponse(res=>
     res.url() === 'https://api.flyvi.io/api/auth/login'

@@ -196,4 +196,95 @@ test.describe('UI', ()=>{
 
         await newTab.pause()
     })
+
+    test('Изменение размера дизайна', async({page})=>{
+        const editor = new Editor(page)
+        let oldWidth, newWidth
+        const randomNumber = Math.floor(100 + Math.random() * 900)
+
+        await page.goto('/app/designs/0c0837e6-e171-4e09-b590-45d3554a4da0')
+        await editor.changesSavedBtn.isVisible()
+        oldWidth = await editor.canvas.evaluate(el=>el.clientWidth)
+        await editor.changeDesignSizeBtn.click()
+        const setSizeButton = page.locator('button >> text=Настраиваемый размер')
+        await setSizeButton.click()
+        const widthInput = page.locator('.change-size-actions input').first()
+        await widthInput.clear()
+        await widthInput.fill('1'+randomNumber)
+        const changeSizeButton = page.locator('.change-size-actions button >> text=Изменить').first()
+        // await changeSizeButton.highlight()
+        await changeSizeButton.click()
+        newWidth = await editor.canvas.evaluate(el => el.clientWidth)
+        await expect(oldWidth).not.toEqual(newWidth)
+        console.log('<<<OLDOLDODODLDLDODLDLOD>>>', oldWidth)
+        console.log('<<<NEWNWNEWNENEWNENWENWNE>>>', newWidth)
+        //const resizeBanner = page.locator('.Vue-Toastification__toast-body >> text=Размер дизайна изменен')
+        //await resizeBanner.waitFor()
+
+        await page.pause()
+    })
+
+    test('Случайный шаблон', async ({page})=>{
+        const editor = new Editor(page)
+        let oldBackground, newBackground
+        await page.goto('/app/designs/892617f4-7acf-4e1b-add3-adfcaa62e753')
+        await editor.changesSavedBtn.waitFor()
+        oldBackground = await editor.canvasBackground.evaluate(el => el.dataset.key) // Атрибут фона ДО 
+        console.log('<<<oldBackground>>>', oldBackground)
+        await editor.randomTemplateBtn.click()                                       // Клик по Случайный Шаблон
+        await page.locator('.loading-blur-screen').waitFor({state: 'detached', timeout:10000})
+        newBackground = await editor.canvasBackground.evaluate(el => el.dataset.key) // Атрибут фона ПОСЛЕ 
+        await expect(oldBackground).not.toEqual(newBackground)
+        console.log('<<<newBackground>>>', newBackground)
+
+        await page.pause()
+    })
+
+    test('УДАЛЕНИЕ ФОНА У ФОТО АПЛОАД', async({page})=>{
+        const editor = new Editor(page)
+        await page.goto('/app/designs/3ba00c33-3def-4599-b474-b5429c86af82')
+        await editor.changeDesignSizeBtn.waitFor()
+        await editor.decor.locator('img:not([src*="no-bg"])').last().click({force:true})       // клик по декору на холсте
+        await editor.deleteBgBtn.click()                                                       // Клик по Удалению фона
+        await page.locator('.loading-blur-screen').waitFor({state: 'detached', timeout:10000}) // Ожидание завершения процесса
+        const noBgImg = editor.canvas.locator('[src*="no-bg"]')
+        await noBgImg.waitFor({timeout:10000})      // Ждем, пока на холсте не появится фото БЕЗ фона
+        await noBgImg.click({force:true})           // Клик по фото БЕЗ фона
+        await editor.basketBtn.click()              // Удалить это фото
+        await editor.decor.last().click({force:true})
+
+        /// await page.pause()
+    })
+
+    test('УДАЛЕНИЕ ФОНА У ФОТО ИИ', async({page})=>{
+        const editor = new Editor(page)
+        await page.goto('/app/designs/df8778a4-80bc-41c7-9832-a827bc92439b')
+        await editor.changeDesignSizeBtn.waitFor()
+        await editor.decor.locator('img:not([src*="no-bg"])').last().click({force:true})       // клик по декору на холсте
+        await editor.deleteBgBtn.click()                                                       // Клик по Удалению фона
+        await page.locator('.loading-blur-screen').waitFor({state: 'detached', timeout:10000}) // Ожидание завершения процесса
+        const noBgImg = editor.canvas.locator('[src*="no-bg"]')
+        await noBgImg.waitFor({timeout:10000})      // Ждем, пока на холсте не появится фото БЕЗ фона
+        await noBgImg.click({force:true})           // Клик по фото БЕЗ фона
+        await editor.basketBtn.click()              // Удалить это фото
+        await editor.decor.last().click({force:true})
+
+        // await page.pause()
+    })
+
+    test('УДАЛЕНИЕ ФОНА У ФОТО АНСПЛЭШ', async({page})=>{
+        const editor = new Editor(page)
+        await page.goto('/app/designs/c6454766-a526-4c1c-a6e2-35dd47af8812')
+        await editor.changeDesignSizeBtn.waitFor()
+        await editor.decor.locator('img:not([src*="no-bg"])').last().click({force:true})       // клик по декору на холсте
+        await editor.deleteBgBtn.click()                                                       // Клик по Удалению фона
+        await page.locator('.loading-blur-screen').waitFor({state: 'detached', timeout:10000}) // Ожидание завершения процесса
+        const noBgImg = editor.canvas.locator('[src*="no-bg"]')
+        await noBgImg.waitFor({timeout:10000})      // Ждем, пока на холсте не появится фото БЕЗ фона
+        await noBgImg.click({force:true})           // Клик по фото БЕЗ фона
+        await editor.basketBtn.click()              // Удалить это фото
+        await editor.decor.last().click({force:true})
+
+        // await page.pause()
+    })
 })
