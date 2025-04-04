@@ -421,6 +421,7 @@ test.describe('ОБЩИЕ ПО ЭДИТОРУ', ()=>{
         })
         expect(designSize.height).toEqual(2222)
         expect(designSize.width).toEqual(2222)
+        
 
         // await page.pause()
     })
