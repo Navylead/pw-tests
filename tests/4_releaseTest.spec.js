@@ -329,7 +329,7 @@ test.describe('Тесты премиумности', ()=>{
         const getTariffBtn = page.locator('.dialogWrapper_FVcGt button >> text=Получить бесплатную пробную версию')
         await getTariffBtn.waitFor()
         
-        //await page.pause()
+        // await page.pause()
     })
 
     test('Переход на тариф ПРО из ЛК', async({page})=>{
@@ -504,7 +504,7 @@ test.describe('ОБЩИЕ ПО ЭДИТОРУ', ()=>{
         await editor.basketBtn.click()              // Удалить это фото
         await editor.decor.last().click({force:true})
 
-        /// await page.pause()
+        // await page.pause()
     })
 
     test('УДАЛЕНИЕ ФОНА У ФОТО ИИ', async({page})=>{

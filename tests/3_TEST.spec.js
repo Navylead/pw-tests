@@ -18,8 +18,8 @@ test.describe('UI', ()=>{
         await expect(editor.downloadBtn).toBeVisible()                      // Отображение кнопки СКАЧАТЬ ДИЗАНЙ
         await page.locator('.flyvi-decors-drawer__menu_wrapper >> text=ИИ-мастерская').click() // Открыть меню ИИ-Генератора
         let tokens = page.locator('.tokens-count_container_count')          // Счётчик токенов для генерации
-        const previewImg1 = page.locator('.images img').nth(0)              // Превьюшка первого фото ИИ
-        const previewImg2 = page.locator('.images img').nth(1)              // Превьюшка второго фото ИИ
+        const previewImg = page.locator('.images img')                      // Превьюшка первого фото ИИ
+        // const previewImg2 = page.locator('.images img').nth(1)          // Превьюшка второго фото ИИ
         const genInput = page.locator('textarea')                           // Инпут для промпта
         const genBtn = page.locator('.neuro-btn >> text=Сгенерировать изображение') // Кнопка генерации ФОТО ИИ
         const AISize = page.locator('.neuro-settings .v-input__control').nth(1)     // Меню выбора размеров
@@ -36,15 +36,25 @@ test.describe('UI', ()=>{
         await page.locator('.styles_item >> text=Энди Уорхол').click()              // Выбор стиля генерируемой картинки
         await expect (genBtn).toBeVisible()                                         // Отображение кнопки начала Генерации
         await genBtn.click()                                                        // Клик по кнопке ГЕНЕРАЦИИ
-        await previewImg1.waitFor({ timeout: 13000 })
-        await previewImg2.waitFor({ timeout: 13000 })
+
+
+
+
+        await previewImg.first().waitFor({ timeout: 13000 })                               // Ожидаем появление превьюшек
+        const countImg1 = await page.$$('.images img')
+        await expect (countImg1.length).toEqual(4)
+        const countImg2 = await page.$$eval('.images img', (img) => img.length)
+        await expect (countImg2).toEqual(4)    
+        // await previewImg2.waitFor({ timeout: 13000 })
         const imgs = page.locator('.images img')
         const img1 = page.locator('.images img').nth(0)
         const img2 = page.locator('.images img').nth(1)
+        const img3 = page.locator('.images img').nth(2)
+        const img4 = page.locator('.images img').nth(3)
         await expect(img1).toBeVisible()            // Проверка, что картинка ИИ опоявилась в меню
         await expect(img2).toBeVisible()            // Проверка, что картинка ИИ опоявилась в меню
         const count = await imgs.count()
-        await expect(count).toBe(2)
+        await expect(count).toBe(4)
         tokens = page.locator('.tokens-count_container_count')
         text = await tokens.innerText()  
         const newTokenCounter = parseInt(text)              // Счётчик токенов после генерации

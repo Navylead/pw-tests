@@ -15,37 +15,45 @@ test.describe('UI', ()=>{
 
     test('ГЕНЕРАЦИЯ ФОТО ИИ', async({page})=>{
         const editor = new Editor(page)
+
         await page.goto('/app/designs/61bb153a-ab29-402c-b5c9-0c303fba998b')
+        const balance = page.waitForResponse('**/api/tokens/balance')      // Апишка баланса токенов
         await expect(editor.downloadBtn).toBeVisible()                      // Отображение кнопки СКАЧАТЬ ДИЗАНЙ
         await page.locator('.flyvi-decors-drawer__menu_wrapper >> text=ИИ-мастерская').click() // Открыть меню ИИ-Генератора
         let tokens = page.locator('.tokens-count_container_count')          // Счётчик токенов для генерации
-        const previewImg1 = page.locator('.images img').nth(0)              // Превьюшка первого фото ИИ
-        const previewImg2 = page.locator('.images img').nth(1)              // Превьюшка второго фото ИИ
+        const previewImg = page.locator('.images img')                      // Превьюшка первого фото ИИ
+        // const previewImg2 = page.locator('.images img').nth(1)           // Превьюшка второго фото ИИ
         const genInput = page.locator('textarea')                           // Инпут для промпта
         const genBtn = page.locator('.neuro-btn >> text=Сгенерировать изображение') // Кнопка генерации ФОТО ИИ
         const AISize = page.locator('.neuro-settings .v-input__control').nth(1)     // Меню выбора размеров
         const AIStyle = page.locator('.neuro-settings .styles')                     // Меню выбора стиля генерации
-        await expect(tokens).toBeVisible()
-        let text = await tokens.innerText()       
-        const tokenCounter = parseInt(text)                                 // Счётчик токенов
-        if(tokenCounter < 1) {
-            throw new Error('<<<НЕДОСТАТОЧНО ТОКЕНОВ>>>')}                  // Вылетает ошибка, если токенов осталось меньше 1
-        await genInput.fill('Большой ядерный взрыв')                        // Ввод промпта
+        const response = await balance
+        const json = await response.json()
+        console.log('<<<<BALANCE>>>', json)
+        if (json.monthly_tokens+json.permanent_tokens < 1) {
+            throw new Error('<<<НЕДОСТАТОЧНО ТОКЕНОВ - АПИ>>>')
+        }        
+        await genInput.fill('Большой ядерный взрыв')                                // Ввод промпта
         await AISize.click()
         await page.locator('.v-list-item__title >> text=9:16 (576 x 1024)').click() // Выбор размера генерируемой картинки
         await AIStyle.click()
         await page.locator('.styles_item >> text=Энди Уорхол').click()              // Выбор стиля генерируемой картинки
+        await expect(tokens).toBeVisible()
+        let text = await tokens.innerText()       
+        const tokenCounter = parseInt(text)                                         // Счётчик токенов
+        if(tokenCounter < 1) {
+            throw new Error('<<<НЕДОСТАТОЧНО ТОКЕНОВ>>>')}                          // Вылетает ошибка, если токенов осталось меньше 1
         await expect (genBtn).toBeVisible()                                         // Отображение кнопки начала Генерации
         await genBtn.click()                                                        // Клик по кнопке ГЕНЕРАЦИИ
-        await previewImg1.waitFor({ timeout: 13000 })
-        await previewImg2.waitFor({ timeout: 13000 })
+        await previewImg.first().waitFor({ state: "visible", timeout: 13000 })      // Ожидаем появление превьюшек
+        const countImg1 = await page.$$('.images img')
+        await expect (countImg1.length).toEqual(4)
+        const countImg2 = await page.$$eval('.images img', (img) => img.length)
+        await expect (countImg2).toEqual(4)  
+        // await previewImg2.waitFor({ timeout: 13000 })
         const imgs = page.locator('.images img')
-        const img1 = page.locator('.images img').nth(0)
-        const img2 = page.locator('.images img').nth(1)
-        await expect(img1).toBeVisible()            // Проверка, что картинка ИИ опоявилась в меню
-        await expect(img2).toBeVisible()            // Проверка, что картинка ИИ опоявилась в меню
         const count = await imgs.count()
-        await expect(count).toBe(2)
+        await expect(count).toBe(4)
         tokens = page.locator('.tokens-count_container_count')
         text = await tokens.innerText()  
         const newTokenCounter = parseInt(text)              // Счётчик токенов после генерации
