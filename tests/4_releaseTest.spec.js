@@ -420,8 +420,7 @@ test.describe('ОБЩИЕ ПО ЭДИТОРУ', ()=>{
                 width: el.clientWidth}
         })
         expect(designSize.height).toEqual(2222)
-        expect(designSize.width).toEqual(2222)
-        
+        expect(designSize.width).toEqual(2222)        
 
         // await page.pause()
     })
