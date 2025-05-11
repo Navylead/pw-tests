@@ -3,9 +3,8 @@ import{test, expect} from "@playwright/test"
 import LoginPage from "../pages/LoginPage"
 import Editor from "../pages/Editor"
 import { timeout } from "../playwright.config"
-import Dashboard from "../pages/Dashboard"
 import creds from "../auth/creds.json"
-import exp from "constants"
+import Dashboard from "../pages/Dashboard"
 
 
 test.describe('Релизные тесты', ()=>{
@@ -537,6 +536,59 @@ test.describe('ОБЩИЕ ПО ЭДИТОРУ', ()=>{
         await editor.decor.last().click({force:true})
 
         // await page.pause()
+    })
+
+    test('ИИ-мастерская. Генерация ФОТО', async({page})=>{
+        const editor = new Editor(page)
+        const dashboard = new Dashboard(page)
+        let oldCount, newCount        
+        await page.goto('/app/image-generator')        
+        await dashboard.tokenCount.waitFor()
+
+        await expect(async ()=>{
+            const tokenText = await dashboard.tokenCount.textContent()
+            oldCount = Number(tokenText)
+            expect(oldCount, '<<<НЕДОСТАТОЧНО ТОКЕНОВ>>>').toBeGreaterThan(0, {timeout:10000})
+        }).toPass()    
+
+        await dashboard.imgPrompt.fill('картонный кот')
+        const styleBtn = page.locator('.ai-generator__main >> text="Без стиля"')
+        await styleBtn.click()
+        const cinemaStyle = page.locator('.styles_items-wrapper >> text="Кинематографический"')
+        await cinemaStyle.click()
+        await dashboard.imgGenerateBtn.click()
+        const newImgs = page.locator('.ai-generator__history div[id*="section"]').nth(0).locator('img[src*="flyvi.io/ai-history"]')
+        await expect(async ()=>{            
+            const imgSize = await newImgs.evaluateAll(imgs =>
+                imgs.every(img => img.naturalHeight > 0))
+        }).toPass()        
+
+        const text2img = page.waitForResponse('**/api/text2img?prompt=*', {timeout:20000})    
+        const response = await text2img
+        const json = await response.json()
+        await expect(json.data.prompt_ru).toEqual('картонный кот')
+        await expect(json.data.images[0].model).toEqual('playground')                  // Модель playground
+        await expect(json.data.images[0].path).toContain('.jpg')
+        await expect(json.data.images[1].model).toEqual('stablecascade')               // Модель stablecascade
+        await expect(json.data.images[1].path).toContain('.jpg')
+        await expect(json.data.images[2].model).toEqual('sd')                          // Модель sd
+        await expect(json.data.images[2].path).toContain('.jpg')
+        await expect(json.data.images[3].model).toEqual('flux')                        // Модель flux
+        await expect(json.data.images[3].path).toContain('.jpg')
+
+        await expect(async ()=>{            
+            const imgSize = await newImgs.evaluateAll(imgs =>
+                imgs.every(img => img.naturalHeight > 0)
+            )
+        }).toPass()
+        // await newImgs.highlight()
+        await expect(async ()=>{
+            const tokenText = await dashboard.tokenCount.textContent()
+            newCount = Number(tokenText)
+            expect(oldCount, '<<<ТОКЕНЫ НЕ ПОТРАТИЛИСЬ>>>').toEqual(newCount+1, {timeout:10000})
+        }).toPass()  
+
+        await page.pause()
     })
     
 })
