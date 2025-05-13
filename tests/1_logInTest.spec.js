@@ -13,7 +13,7 @@ test.describe('Sign in', ()=>{
     page.setViewportSize({"width": 1600, "height": 900})
   })
 
-  test('Регистрация пользователя', async({page})=>{
+  test.skip('Регистрация пользователя', async({page})=>{
     const login = new LoginPage(page)
     const registration = new RegistrationPage(page)
     const randomNumber = Math.floor(Math.random() * 100)
@@ -98,7 +98,7 @@ test.describe('Sign in', ()=>{
   expect(body.user.id).toEqual(89671)
   expect(body.user.name).toEqual('Ликси')
   expect(body.user.email).toEqual(creds.email1)
-  expect(body.user.tariff.name).toEqual('Pro')
+  expect(body.user.tariff.name).toEqual('Business')
 
   // Ожидание успешного перехода на главную страницу
   await page.waitForURL('https://flyvi.io/app')

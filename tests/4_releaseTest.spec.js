@@ -545,11 +545,18 @@ test.describe('ОБЩИЕ ПО ЭДИТОРУ', ()=>{
         await page.goto('/app/image-generator')        
         await dashboard.tokenCount.waitFor()
 
+        const tk = page.locator('.header >> text="Токены"')
+        await tk.highlight()
+        const text2 = await tk.evaluate(text => text.textContent)
+        const text1 = await tk.textContent()
+        await expect(text2).toEqual('Токены')
+        await expect(text).toEqual('Токены')
+
         await expect(async ()=>{
             const tokenText = await dashboard.tokenCount.textContent()
             oldCount = Number(tokenText)
-            expect(oldCount, '<<<НЕДОСТАТОЧНО ТОКЕНОВ>>>').toBeGreaterThan(0, {timeout:10000})
-        }).toPass()    
+            expect(oldCount, '<<<НЕДОСТАТОЧНО ТОКЕНОВ>>>').toBeGreaterThan(0)
+        }).toPass({timeout:10000})    
 
         await dashboard.imgPrompt.fill('картонный кот')
         const styleBtn = page.locator('.ai-generator__main >> text="Без стиля"')
@@ -585,10 +592,42 @@ test.describe('ОБЩИЕ ПО ЭДИТОРУ', ()=>{
         await expect(async ()=>{
             const tokenText = await dashboard.tokenCount.textContent()
             newCount = Number(tokenText)
-            expect(oldCount, '<<<ТОКЕНЫ НЕ ПОТРАТИЛИСЬ>>>').toEqual(newCount+1, {timeout:10000})
-        }).toPass()  
+            expect(oldCount, '<<<ТОКЕНЫ НЕ ПОТРАТИЛИСЬ>>>').toEqual(newCount+1)
+        }).toPass({timeout:10000})  
 
-        await page.pause()
+        // await page.pause()
+    })
+
+    test('ИИ-мастерская', async ({page, context})=>{
+        const editor = new Editor(page)
+        const dashboard = new Dashboard(page)
+        // Переход в ИИ-мастерскую
+        await page.goto('/app/image-generator')
+        await dashboard.tokenCount.waitFor()
+        // Выбираем первую сгенерированную картинку и кликаем по ней
+        const imgHistory = page.locator('img[src*="/ai-history/"]').nth(0)
+        await imgHistory.waitFor()
+        const imgLink = await imgHistory.evaluate(img => img.getAttribute('src'))
+        await imgHistory.click()
+        // Проверяем, что ссылка на фото в истории и в открывшемся попапе одинаковые
+        const imgPreview = await page.locator('.dialog-wrapper img[src*="/ai-history/"]')
+        const imgPreviewLink = await imgPreview.evaluate(img => img.getAttribute('src'))
+        await expect(imgPreviewLink).toEqual(imgLink)
+        // Кликаем по кнопке "Использовать в дизайне"
+        const createDesignFromBtn = page.locator('.dialog-wrapper button >> text=Использовать в дизайне')
+        const [newTab] = await Promise.all([
+            context.waitForEvent('page'),
+            createDesignFromBtn.click() // Клик по кнопке
+        ])
+        // Ждём перехода на другую вкалдку и проверяем, что есть фото на холсте
+        await newTab.waitForURL('**/designs/*', {timeout:10000})
+        const downloadBtn = newTab.locator('.header button >> text=Скачать')
+        await downloadBtn.waitFor()
+        const canvasImg = newTab.locator('.story-box-inner__wrapper img')  
+        await canvasImg.waitFor()
+        console.log('<<<LINK>>>', canvasImgLink)       
+
+        // await page.pause()
     })
     
 })
