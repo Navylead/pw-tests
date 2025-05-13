@@ -466,12 +466,12 @@ test.describe('ОБЩИЕ ПО ЭДИТОРУ', ()=>{
         await changeSizeButton.click()
         newWidth = await editor.canvas.evaluate(el => el.clientWidth)
         await expect(oldWidth).not.toEqual(newWidth)
-        console.log('<<<OLDOLDODODLDLDODLDLOD>>>', oldWidth)
-        console.log('<<<NEWNWNEWNENEWNENWENWNE>>>', newWidth)
-        //const resizeBanner = page.locator('.Vue-Toastification__toast-body >> text=Размер дизайна изменен')
-        //await resizeBanner.waitFor()
+        // console.log('<<<OLDOLDODODLDLDODLDLOD>>>', oldWidth)
+        // console.log('<<<NEWNWNEWNENEWNENWENWNE>>>', newWidth)
+        // const resizeBanner = page.locator('.Vue-Toastification__toast-body >> text=Размер дизайна изменен')
+        // await resizeBanner.waitFor()
 
-        //await page.pause()
+        // await page.pause()
     })
 
     test('Случайный шаблон', async ({page})=>{
@@ -480,12 +480,12 @@ test.describe('ОБЩИЕ ПО ЭДИТОРУ', ()=>{
         await page.goto('/app/designs/892617f4-7acf-4e1b-add3-adfcaa62e753')
         await editor.changesSavedBtn.waitFor()
         oldBackground = await editor.canvasBackground.evaluate(el => el.dataset.key) // Атрибут фона ДО 
-        console.log('<<<oldBackground>>>', oldBackground)
+        // console.log('<<<oldBackground>>>', oldBackground)
         await editor.randomTemplateBtn.click()                                       // Клик по Случайный Шаблон
         await page.locator('.loading-blur-screen').waitFor({state: 'detached', timeout:10000})
         newBackground = await editor.canvasBackground.evaluate(el => el.dataset.key) // Атрибут фона ПОСЛЕ 
         await expect(oldBackground).not.toEqual(newBackground)
-        console.log('<<<newBackground>>>', newBackground)
+        // console.log('<<<newBackground>>>', newBackground)
 
         // await page.pause()
     })
