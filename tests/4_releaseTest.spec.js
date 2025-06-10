@@ -487,7 +487,7 @@ test.describe('ОБЩИЕ ПО ЭДИТОРУ', ()=>{
         await expect(oldBackground).not.toEqual(newBackground)
         // console.log('<<<newBackground>>>', newBackground)
 
-        // await page.pause()
+        await page.pause()
     })
 
     test('УДАЛЕНИЕ ФОНА У ФОТО АПЛОАД', async({page})=>{
@@ -545,12 +545,12 @@ test.describe('ОБЩИЕ ПО ЭДИТОРУ', ()=>{
         await page.goto('/app/image-generator')        
         await dashboard.tokenCount.waitFor()
 
-        const tk = page.locator('.header >> text="Токены"')
+        const tk = page.locator('.header .span-text >> text=Токены')
         await tk.highlight()
         const text2 = await tk.evaluate(text => text.textContent)
         const text1 = await tk.textContent()
-        await expect(text2).toEqual('Токены')
-        await expect(text).toEqual('Токены')
+        await expect(text2.trim()).toEqual('Токены')
+        await expect(text1.trim()).toEqual('Токены')
 
         await expect(async ()=>{
             const tokenText = await dashboard.tokenCount.textContent()
@@ -598,7 +598,7 @@ test.describe('ОБЩИЕ ПО ЭДИТОРУ', ()=>{
         // await page.pause()
     })
 
-    test('ИИ-мастерская', async ({page, context})=>{
+    test('ИИ-мастерская. Открыть фото в дизайне', async ({page, context})=>{
         const editor = new Editor(page)
         const dashboard = new Dashboard(page)
         // Переход в ИИ-мастерскую
