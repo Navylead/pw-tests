@@ -625,10 +625,9 @@ test.describe('ОБЩИЕ ПО ЭДИТОРУ', ()=>{
         await downloadBtn.waitFor()
         const canvasImg = newTab.locator('.story-box-inner__wrapper img')  
         await canvasImg.waitFor()
-        console.log('<<<LINK>>>', canvasImgLink)       
+        // console.log('<<<LINK>>>', canvasImgLink)       
 
         // await page.pause()
-    })
-    
+    })    
 })
 })
