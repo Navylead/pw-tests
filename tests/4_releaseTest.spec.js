@@ -16,6 +16,27 @@ test.describe('Тесты премиумности', ()=>{
 
     test.use({ storageState: 'auth/auth3.json' });                    // <<<ФАЙЛ С СОХРАНЁННОЙ СЕССИЕЙ>>>
 
+    test('Отображение ВОДЯНОГО ЗНАКА', async({page})=>{
+        const dashboard = new Dashboard(page)
+        await page.goto('/app/image-generator')
+        // Проверяем, что токенов меньше 10
+        await expect(async()=>{
+            const tokenCountNumber = Number(await dashboard.tokenCount.textContent())
+            expect(tokenCountNumber).toBeGreaterThan(0)
+            expect(tokenCountNumber).toBeLessThan(10)
+        }).toPass({timeout: 10000})
+        // Ждём отображения кнопки смены тарифа на ПРО
+        await dashboard.changeToProBtn.waitFor()
+        // Водяные знаки на картинках в последнем блоке
+        const waterMark = page.locator('.ai-generator__history [id*="section"]').first().locator('img[alt="watermark"]')
+        // Проверяем, что количество водяных знаков равно 4
+        await expect(waterMark).toHaveCount(4)
+        // await waterMark.highlight()
+        await waterMark.first().waitFor()
+
+        // await page.pause()
+    })
+
     test('Скачивание премиум-элемента: ИКОНКА', async({page})=>{
         const editor = new Editor(page)
         await page.goto('/app/designs/a9d4defc-7041-452a-91c4-9c9569eceea6')

@@ -5,7 +5,8 @@ class Dashboard {
         this.createDesignBtn = page.locator('.site-header button:has-text("Создать дизайн")')   // Кнопка Создать Дизайн
         this.tokenCount = page.locator('.header .tokens-count_container_count')                 // Счётчик токенов
         this.imgPrompt = page.locator('.ai-generator textarea')                                 // Инпут генерации фото
-        this.imgGenerateBtn = page.locator('.ai-generator button >> text=Сгенерировать изображение')   // Кнопка генерации фото
+        this.imgGenerateBtn = page.locator('.ai-generator button >> text=Сгенерировать изображение')       // Кнопка генерации фото
+        this.changeToProBtn = page.locator('.drawer-account >> text=Попробовать Flyvi Pro бесплатно')      // Кнопка перехода на тариф PRO
     }
 }
 export default Dashboard;
