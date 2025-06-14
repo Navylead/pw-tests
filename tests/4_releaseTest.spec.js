@@ -19,11 +19,11 @@ test.describe('Тесты премиумности', ()=>{
     test('Отображение ВОДЯНОГО ЗНАКА', async({page})=>{
         const dashboard = new Dashboard(page)
         await page.goto('/app/image-generator')
-        // Проверяем, что токенов меньше 10
+        // Проверяем, что количество токенов соответствует условиям отображения водяного знака
         await expect(async()=>{
             const tokenCountNumber = Number(await dashboard.tokenCount.textContent())
-            expect(tokenCountNumber).toBeGreaterThan(0)
-            expect(tokenCountNumber).toBeLessThan(10)
+            expect(tokenCountNumber, "<<<Недостаточно токенов>>>").toBeGreaterThan(0)
+            expect(tokenCountNumber, "<<<Токенов больше 9>>>").toBeLessThan(10)
         }).toPass({timeout: 10000})
         // Ждём отображения кнопки смены тарифа на ПРО
         await dashboard.changeToProBtn.waitFor()
@@ -35,6 +35,31 @@ test.describe('Тесты премиумности', ()=>{
         await waterMark.first().waitFor()
 
         // await page.pause()
+    })
+
+    test('Использование ии-редактора на бесплатном тарифе', async({page})=>{
+        const dashboard = new Dashboard(page)
+        const editor = new Editor(page)
+        await page.goto('/app/designs/453089c9-dfc6-4b9b-90b3-36b02f721c68')
+        await editor.changesSavedBtn.waitFor()
+        // Кликаем по фото на холсте
+        await editor.decor.waitFor({timeout:10000})
+        await editor.decor.click()
+        // Переходим в меню ии-редактора
+        await editor.aiEditorBtn.click()
+        const waterMark = page.locator('.ai-editor .premium-label')
+        await expect(waterMark).toHaveCount(6)
+        // await waterMark.highlight()
+        const colorization = page.locator('.ai-editor >> text=Колоризация')
+        await colorization.click()
+        const banner = page.locator('.dialog-box')
+        await banner.waitFor()
+        await banner.locator('button >> text=Получить бесплатную пробную версию').waitFor()
+
+        
+        
+        
+        await page.pause()
     })
 
     test('Скачивание премиум-элемента: ИКОНКА', async({page})=>{

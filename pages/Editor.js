@@ -12,6 +12,7 @@ class Editor {
         this.randomTemplateBtn = page.locator('#decorsDrawer button >> text=Случайный шаблон')        // Кнопка Случайного шаблона
         this.deleteBgBtn = page.locator('button >> text=Удалить фон')                                 // Кнопка Удалить Фон
         this.basketBtn = page.locator('#editorToolbar .defaultPanel_oVC9j button').nth(3)             // Кнопка Корзина
+        this.aiEditorBtn = page.locator('.design-main-toolbar button >> text=ИИ-редактор')            // Кнопка ИИ-редактора
     }
 }
 export default Editor;
