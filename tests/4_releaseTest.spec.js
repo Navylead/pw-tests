@@ -47,19 +47,19 @@ test.describe('Тесты премиумности', ()=>{
         await editor.decor.click()
         // Переходим в меню ии-редактора
         await editor.aiEditorBtn.click()
+        // Проверяем, что на функциях в меню отображает иконка премиума
         const waterMark = page.locator('.ai-editor .premium-label')
         await expect(waterMark).toHaveCount(6)
         // await waterMark.highlight()
+        // Кликаем по кнопке Колоризации
         const colorization = page.locator('.ai-editor >> text=Колоризация')
         await colorization.click()
+        // Проверяем, что отображается баннер перехода на платную подписку
         const banner = page.locator('.dialog-box')
         await banner.waitFor()
-        await banner.locator('button >> text=Получить бесплатную пробную версию').waitFor()
-
+        await banner.locator('button >> text=Получить бесплатную пробную версию').waitFor()        
         
-        
-        
-        await page.pause()
+        // await page.pause()
     })
 
     test('Скачивание премиум-элемента: ИКОНКА', async({page})=>{
