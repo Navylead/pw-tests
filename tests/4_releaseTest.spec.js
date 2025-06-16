@@ -16,7 +16,51 @@ test.describe('Тесты премиумности', ()=>{
 
     test.use({ storageState: 'auth/auth3.json' });                    // <<<ФАЙЛ С СОХРАНЁННОЙ СЕССИЕЙ>>>
 
-    test('Отображение ВОДЯНОГО ЗНАКА', async({page})=>{
+    test('Отображение попапа платной подписки при ГЕНЕРАЦИИ ФОТО на бесплатном тарифе', async ({page})=>{
+        const dashboard = new Dashboard(page)
+        await page.goto('/app/image-generator')
+        // Проверяем, что количество токенов соответствует условиям отображения водяного знака
+        await expect(async()=>{
+            const tokenCountNumber = Number(await dashboard.tokenCount.textContent())
+            expect(tokenCountNumber, "<<<Недостаточно токенов>>>").toBeGreaterThan(0)
+            expect(tokenCountNumber, "<<<Токенов больше 9>>>").toBeLessThan(10)
+        }).toPass({timeout: 10000})
+        // Ждём отображения кнопки смены тарифа на ПРО
+        await dashboard.changeToProBtn.waitFor()
+        // Вводим промпт и запускаем генерацию фото
+        const textInput = page.locator('.textarea_bottom textarea')
+        await textInput.fill('Рандомное изображение')
+        await dashboard.imgGenerateBtn.click()
+        // Проверяем, что появляется попап платной подписки
+        const banner = page.locator('.dialog-box')
+        await banner.waitFor()
+        await banner.locator('button >> text=Получить бесплатную пробную версию').waitFor()   
+
+        // await page.pause()
+    })
+
+    test('Отображение попапа платной подписки при использовании ии-мастерской на бесплатном тарифе', async ({page})=>{
+        const dashboard = new Dashboard(page)
+        await page.goto('/app/image-generator')
+        // Проверяем, что количество токенов соответствует условиям отображения водяного знака
+        await expect(async()=>{
+            const tokenCountNumber = Number(await dashboard.tokenCount.textContent())
+            expect(tokenCountNumber, "<<<Недостаточно токенов>>>").toBeGreaterThan(0)
+            expect(tokenCountNumber, "<<<Токенов больше 9>>>").toBeLessThan(10)
+        }).toPass({timeout: 10000})
+        // Ждём отображения кнопки смены тарифа на ПРО
+        await dashboard.changeToProBtn.waitFor()
+        await dashboard.aiImage.click()
+        const colorizationBtn = page.locator('.dialog-wrapper >> text=Колоризация')
+        await colorizationBtn.click()
+        // Проверяем, что отображается баннер перехода на платную подписку
+        await dashboard.proBanner.waitFor()
+        await dashboard.proBanner.locator('button >> text=Получить бесплатную пробную версию').waitFor()
+        
+        // await page.pause()
+    })
+
+    test('Отображение ВОДЯНОГО ЗНАКА на бесплатном тарифе', async({page})=>{
         const dashboard = new Dashboard(page)
         await page.goto('/app/image-generator')
         // Проверяем, что количество токенов соответствует условиям отображения водяного знака
@@ -54,8 +98,8 @@ test.describe('Тесты премиумности', ()=>{
         // Кликаем по кнопке Колоризации
         const colorization = page.locator('.ai-editor >> text=Колоризация')
         await colorization.click()
-        // Проверяем, что отображается баннер перехода на платную подписку
         const banner = page.locator('.dialog-box')
+        // Проверяем, что отображается баннер перехода на платную подписку
         await banner.waitFor()
         await banner.locator('button >> text=Получить бесплатную пробную версию').waitFor()        
         
