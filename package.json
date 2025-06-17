@@ -11,6 +11,7 @@
     "test4":    "npx playwright test --project=chromium --workers=1 --headed tests/4_releaseTest.spec.js",
     "test4_headless":    "npx playwright test --project=chromium --workers=1 tests/4_releaseTest.spec.js",
     "test5":    "npx playwright test --project=chromium  tests/5_apiTest.spec.js",
+    "test6":    "npx playwright test --project=chromium --workers=1 --headed tests/6_e2e.spec.js",
     "session":  "npx playwright test tests/0_createSession.spec.js --project=chromium --workers=4"
   },
   "keywords": [],
