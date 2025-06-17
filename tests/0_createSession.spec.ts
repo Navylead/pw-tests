@@ -14,8 +14,8 @@ test('Создание сессии для lixexog926*', async ({page}) => {
 
   await page.goto('/ru')
   await mainPage.logInBtn.click()
-  await loginPage.emailInput.type(creds.email1)
-  await loginPage.passwordInput.type(creds.password1)
+  await loginPage.emailInput.fill(creds.email1)
+  await loginPage.passwordInput.fill(creds.password1)
   await loginPage.submitBtn.click()
   await dashboard.createDesignBtn.waitFor({timeout:15000})
   await page.waitForURL('/app')
@@ -32,8 +32,8 @@ test('Создание сессии для xedibe9662*', async ({page}) => {
 
   await page.goto('/ru')
   await mainPage.logInBtn.click()
-  await loginPage.emailInput.type(creds.email3)
-  await loginPage.passwordInput.type(creds.password3)
+  await loginPage.emailInput.fill(creds.email3)
+  await loginPage.passwordInput.fill(creds.password3)
   await loginPage.submitBtn.click()
   await dashboard.createDesignBtn.waitFor({timeout:15000})
   await page.waitForURL('/app')
@@ -50,8 +50,8 @@ test('Создание сессии для brekinbeetle*', async ({page}) => {
 
   await page.goto('/ru')
   await mainPage.logInBtn.click()
-  await loginPage.emailInput.type(creds.email2)
-  await loginPage.passwordInput.type(creds.password2)
+  await loginPage.emailInput.fill(creds.email2)
+  await loginPage.passwordInput.fill(creds.password2)
   await loginPage.submitBtn.click()
   await dashboard.createDesignBtn.waitFor({timeout:15000})
   await page.waitForURL('/app')

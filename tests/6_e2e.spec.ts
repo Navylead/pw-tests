@@ -15,11 +15,9 @@ test.describe('Сквозные тесты', ()=>{
         const loginPage = new LoginPage(page)
         const dashboard = new Dashboard(page)
         const editor = new Editor(page)
-        await page.goto('/app/login')                       // Переход на страницу авторизации    
-        await loginPage.emailInput.fill(creds.email1)       // Ввод логина  
-        await loginPage.passwordInput.fill(creds.password1) // Ввод пароля  
-        await loginPage.submitBtn.click()                   // Нажатие на кнопку авторизации
-        await dashboard.createDesignBtn.waitFor({timeout:15000})
+        // Переход на страницу авторизации       
+        
+        await loginPage.login(creds.email1, creds.password1)
         // Создаём дизайн по кастомным размерам
         const customSizeDesignBtn = page.locator('.v-main >> text=Задать свой размер')
         await customSizeDesignBtn.click()
