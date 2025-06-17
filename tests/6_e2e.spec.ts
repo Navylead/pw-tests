@@ -1,11 +1,10 @@
 // @ts-check
 import{test, expect} from "@playwright/test"
-import LoginPage from "../pages/LoginPage"
-import Editor from "../pages/Editor"
-import Dashboard from "../pages/Dashboard"
+import {LoginPage} from "../pages/LoginPage"
+import {Editor} from "../pages/Editor"
+import {Dashboard} from "../pages/Dashboard"
 import RegistrationPage from "../pages/RegistrationPage"
 import creds from '../auth/creds.json'
-import { timeout } from "../playwright.config"
 
 test.describe('Сквозные тесты', ()=>{
     test.beforeEach(async({page})=>{

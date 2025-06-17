@@ -1,11 +1,20 @@
+import { Page, Locator } from '@playwright/test';
 import { expect } from "@playwright/test"
-import Dashboard from "./Dashboard"
-import MainPage from "./MainPage"
+import { Dashboard } from "./Dashboard"
+import { MainPage } from "./MainPage"
 import creds from '../auth/creds.json'
 
 
-class LoginPage {
-    constructor(page){
+export class LoginPage {
+    readonly page: Page
+    readonly emailInput: Locator
+    readonly passwordInput: Locator
+    readonly submitBtn: Locator
+    readonly beginWorkBtn: Locator
+    readonly restoreBtn: Locator
+    readonly nameInput: Locator
+
+    constructor(page: Page){
         this.page = page
         
         this.emailInput = page.locator('input[name="email"]')                             // Инпут электоронной почты
@@ -16,19 +25,16 @@ class LoginPage {
         this.nameInput = page.locator('input#name')                                       // Инпут имени
     }
 
-    async login() {
+    async login(email: string, password: string) {
         const dashboard = new Dashboard(this.page)
         const mainPage = new MainPage(this.page)
         await this.page.goto('/ru')
         await mainPage.logInBtn.click()
-        await this.emailInput.type(creds.email1)
-        await this.passwordInput.type(creds.password1)
+        await this.emailInput.fill(email)
+        await this.passwordInput.fill(password)
         await this.submitBtn.click()
         await dashboard.createDesignBtn.waitFor({timeout:15000})
         await this.page.waitForURL('/app')
         //await this.page.context().storageState({ path: 'auth.json' });
     }
 }
-
-
-export default LoginPage;

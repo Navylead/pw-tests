@@ -1,8 +1,8 @@
 // @ts-check
-import{test, expect} from "@playwright/test"
-import LoginPage from "../pages/LoginPage"
-import Editor from "../pages/Editor"
-import Dashboard from "../pages/Dashboard"
+import {test, expect} from "@playwright/test"
+import {LoginPage} from "../pages/LoginPage"
+import {Editor} from "../pages/Editor"
+import {Dashboard} from "../pages/Dashboard"
 import RegistrationPage from "../pages/RegistrationPage"
 import creds from '../auth/creds.json'
 
@@ -17,9 +17,9 @@ test.describe('Sign in', ()=>{
     const login = new LoginPage(page)
     const registration = new RegistrationPage(page)
     const randomNumber = Math.floor(Math.random() * 100)
-    const name = 'testdelete'
-    const email = `testdelete${randomNumber}@gmail.com`
-    const password = '8888888888'
+    const name: string = 'testdelete'
+    const email: string = `testdelete${randomNumber}@gmail.com`
+    const password: string = '8888888888'
 
     await page.goto('/app/login')
     await page.waitForURL('/app/login')
@@ -36,7 +36,7 @@ test.describe('Sign in', ()=>{
     await registration.beginWorkBtn.click()                     // Кнопка Начать Работу
 
     const req = await reqPromise
-    const reqBody = await JSON.parse(req.postData())
+    const reqBody = await JSON.parse(req.postData() ?? '{}')
     expect(reqBody.email).toEqual(email)
     expect(reqBody.password).toEqual(password)
 

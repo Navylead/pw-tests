@@ -1,10 +1,10 @@
 // @ts-nocheck
-import{test, expect} from "@playwright/test"
-import LoginPage from "../pages/LoginPage"
-import Editor from "../pages/Editor"
+import {test, expect} from "@playwright/test"
+import {LoginPage} from "../pages/LoginPage"
+import {Editor} from "../pages/Editor"
 import { timeout } from "../playwright.config"
 import creds from "../auth/creds.json"
-import Dashboard from "../pages/Dashboard"
+import {Dashboard} from "../pages/Dashboard"
 import fs from 'fs';
 
 test.describe('ТЕСТЫ АПИ', ()=>{

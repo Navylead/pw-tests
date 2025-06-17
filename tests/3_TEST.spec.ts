@@ -1,9 +1,9 @@
 // @ts-check
 import{test, expect} from "@playwright/test"
-import LoginPage from "../pages/LoginPage"
-import Editor from "../pages/Editor"
-import Dashboard from "../pages/Dashboard"
-import MainPage from "../pages/MainPage"
+import {LoginPage} from "../pages/LoginPage"
+import {Editor} from "../pages/Editor"
+import {Dashboard} from "../pages/Dashboard"
+import {MainPage} from "../pages/MainPage"
 
 test.describe('UI', ()=>{
     test.beforeEach(async({page})=>{

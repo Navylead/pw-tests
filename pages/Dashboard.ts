@@ -1,5 +1,17 @@
-class Dashboard {
-    constructor(page){
+import { Page, Locator } from '@playwright/test';
+
+export class Dashboard {
+    readonly page: Page;
+    readonly userLogo: Locator
+    readonly createDesignBtn: Locator
+    readonly tokenCount: Locator
+    readonly imgPrompt: Locator
+    readonly imgGenerateBtn: Locator
+    readonly changeToProBtn: Locator
+    readonly aiImage: Locator
+    readonly proBanner: Locator
+
+    constructor(page: Page){
         this.page = page
         this.userLogo = page.locator('.site-header .profile-name:has-text("Л")')                // Лого юзера
         this.createDesignBtn = page.locator('.site-header button:has-text("Создать дизайн")')   // Кнопка Создать Дизайн
@@ -11,4 +23,3 @@ class Dashboard {
         this.proBanner = page.locator('.dialog-box')                                                    // Банер ПРО-подписки в ии-мастерской
     }
 }
-export default Dashboard;

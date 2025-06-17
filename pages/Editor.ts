@@ -1,7 +1,21 @@
-class Editor {
-    constructor(page){
-        this.page = page
-        
+import { Page, Locator } from '@playwright/test';
+
+export class Editor {
+    readonly page: Page
+    readonly decor: Locator
+    readonly canvas: Locator
+    readonly canvasBackground: Locator
+    readonly downloadBtn: Locator
+    readonly changesSavedBtn: Locator
+    readonly continueBtn: Locator
+    readonly changeDesignSizeBtn: Locator
+    readonly randomTemplateBtn: Locator
+    readonly deleteBgBtn: Locator
+    readonly basketBtn: Locator
+    readonly aiEditorBtn: Locator
+
+    constructor(page: Page){
+        this.page = page        
         this.decor = page.locator('.story-box-inner__wrapper .decor-layer')                 // Любой декор на холсте
         this.canvas = page.locator('.story-box-inner__wrapper')                             // Холст
         this.canvasBackground = page.locator('.flyvi-decor-background-wrapper')             // Бэкграунд холста
@@ -15,4 +29,3 @@ class Editor {
         this.aiEditorBtn = page.locator('.design-main-toolbar button >> text=ИИ-редактор')            // Кнопка ИИ-редактора
     }
 }
-export default Editor;

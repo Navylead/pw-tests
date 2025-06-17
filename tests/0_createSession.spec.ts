@@ -1,9 +1,9 @@
 // @ts-check
-import{test, expect} from "@playwright/test"
-import LoginPage from "../pages/LoginPage"
-import Editor from "../pages/Editor"
-import Dashboard from "../pages/Dashboard"
-import MainPage from "../pages/MainPage"
+import {test, expect} from "@playwright/test"
+import {LoginPage} from "../pages/LoginPage"
+import {Editor} from "../pages/Editor"
+import {Dashboard} from "../pages/Dashboard"
+import {MainPage} from "../pages/MainPage"
 import creds from '../auth/creds.json'
 
 test('Создание сессии для lixexog926*', async ({page}) => {

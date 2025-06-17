@@ -1,12 +1,17 @@
+import { Page, Locator } from '@playwright/test';
 import { expect } from "@playwright/test"
-import Dashboard from "./Dashboard"
-import MainPage from "./MainPage"
-import { timeout } from "../playwright.config"
+import {Dashboard} from "./Dashboard"
+import {MainPage} from "./MainPage"
 
-class RegistrationPage {
+export class RegistrationPage {
+    readonly page: Page
+    readonly emailInput: Locator
+    readonly passwordInput: Locator
+    readonly beginWorkBtn: Locator
+    readonly nameInput: Locator
+    readonly checkBoxTermOfUse: Locator
 
-    constructor(page){
-
+    constructor(page: Page){
         this.page = page
         this.emailInput = page.locator('[placeholder="Введите адрес электронной почты"]')   // Инпут электоронной почты
         this.passwordInput = page.locator('[placeholder="Создайте пароль"]')                // Инпут пароля

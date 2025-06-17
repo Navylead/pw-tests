@@ -3,23 +3,23 @@
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
-  
   "scripts": {
-    "testAll":  "npx playwright test --project=chromium --headed --workers=1",
-    "test1":    "npx playwright test --project=chromium --headed --workers=1 tests/1_loginTest.spec.js",
-    "test2":    "npx playwright test --project=chromium --headed --workers=1 tests/2_uiTest.spec.js",
-    "test4":    "npx playwright test --project=chromium --workers=1 --headed tests/4_releaseTest.spec.js",
-    "test4_headless":    "npx playwright test --project=chromium --workers=1 tests/4_releaseTest.spec.js",
-    "test5":    "npx playwright test --project=chromium  tests/5_apiTest.spec.js",
-    "test6":    "npx playwright test --project=chromium --workers=1 --headed tests/6_e2e.spec.js",
-    "session":  "npx playwright test tests/0_createSession.spec.js --project=chromium --workers=4"
+    "testAll": "npx playwright test --project=chromium --headed --workers=1",
+    "test1": "npx playwright test --project=chromium --headed --workers=1 tests/1_loginTest.spec.ts",
+    "test2": "npx playwright test --project=chromium --headed --workers=1 tests/2_uiTest.spec.ts",
+    "test4": "npx playwright test --project=chromium --workers=1 --headed tests/4_releaseTest.spec.ts",
+    "test4_headless": "npx playwright test --project=chromium --workers=1 tests/4_releaseTest.spec.ts",
+    "test5": "npx playwright test --project=chromium  tests/5_apiTest.spec.ts",
+    "test6": "npx playwright test --project=chromium --workers=1 --headed tests/6_e2e.spec.ts",
+    "session": "npx playwright test tests/0_createSession.spec.ts --project=chromium --workers=4"
   },
   "keywords": [],
   "author": "K.D.",
   "license": "ISC",
   "devDependencies": {
     "@playwright/test": "^1.47.2",
-    "@types/node": "^22.5.5"
+    "@types/node": "^22.5.5",
+    "typescript": "^5.8.3"
   },
   "dependencies": {
     "ws": "^8.18.0"
