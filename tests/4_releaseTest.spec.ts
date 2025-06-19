@@ -14,7 +14,7 @@ test.describe('Тесты премиумности', ()=>{
         page.setViewportSize({"width": 1600, "height": 900})
     })
 
-    test.use({ storageState: 'auth/auth3.json' });                    // <<<ФАЙЛ С СОХРАНЁННОЙ СЕССИЕЙ>>>
+    test.use({ storageState: 'auth/auth3.json' });                    // <<<ФАЙЛ С СОХРАНЁННОЙ СЕССИЕЙ FREE>>>
 
     test('Отображение попапа платной подписки при ГЕНЕРАЦИИ ФОТО на бесплатном тарифе', async ({page})=>{
         const dashboard = new Dashboard(page)
@@ -431,13 +431,37 @@ test.describe('Тесты премиумности', ()=>{
         
         //await page.pause()
     })
+
+    test('Редактирование БРЕНДБУКА на бесплатном тарифе', async ({page})=>{
+        await page.goto('/app/brand')
+        const brandbook = page.locator('.flyvi-card:has-text("ТЕСТОВЫЙ")')
+        await brandbook.waitFor({timeout:10000})
+        const brandbookEdit = brandbook.locator('button').first()
+        await brandbookEdit.click()
+        const brandbookSections = page.locator('.editSettings_r2nx6')
+        const proBanner = page.locator('.dialogWrapper_FVcGt')
+        await brandbookSections.locator('.wrapper_vhtAy:has-text("Логотипы") .add_U92dh:has-text("Добавить")').click()
+        await proBanner.waitFor()
+        await proBanner.locator('.close-icon').click()
+        await brandbookSections.locator('.wrapper_vhtAy:has-text("Элементы") .add_U92dh:has-text("Добавить")').click()
+        await proBanner.waitFor()
+        await proBanner.locator('.close-icon').click()
+        await brandbookSections.locator('.wrapper_vhtAy:has-text("Фоны") .add_U92dh:has-text("Добавить")').click()
+        await proBanner.waitFor()
+        await proBanner.locator('.close-icon').click()
+        await brandbookSections.locator('.wrapper_vhtAy:has-text("Шрифты") .add_U92dh:has-text("Добавить")').click()
+        await proBanner.waitFor()
+        await proBanner.locator('.close-icon').click()
+
+        // await page.pause()
+    })
 })
 
 test.describe('ОБЩИЕ ПО ЭДИТОРУ', ()=>{
     test.beforeEach(async({page})=>{
         page.setViewportSize({"width": 1600, "height": 900})
     })
-    test.use({ storageState: 'auth/auth1.json' });                    // <<<ФАЙЛ С СОХРАНЁННОЙ СЕССИЕЙ>>>
+    test.use({ storageState: 'auth/auth1.json' });                    // <<<ФАЙЛ С СОХРАНЁННОЙ СЕССИЕЙ PRO>>>
 
     test('Скачивание дизайна JPG', async ({page})=>{
         const editor = new Editor(page)
@@ -718,6 +742,148 @@ test.describe('ОБЩИЕ ПО ЭДИТОРУ', ()=>{
         // console.log('<<<LINK>>>', canvasImgLink)       
 
         // await page.pause()
-    })    
+    })
+    
+    test('ИИ-редактор. Колоризация изображения', async({page})=>{
+        const editor = new Editor(page)
+        let oldCount: number, newCount: number
+        await page.goto('/app/designs/b458253d-90a5-4523-8af0-dc19001f9ad7')
+        await editor.changesSavedBtn.waitFor()
+        // Кликаем по первому фото в дизайне
+        await editor.decor.first().locator('img[src*="/decors-types/"]').click({force:true})
+        // Кликаем по кнопке ИИ-редактора в тулбаре
+        await editor.aiEditorBtn.click()
+        // Проверяем, что баланс токенов больше 0
+        const apiToken = await page.waitForResponse('**/api/tokens/balance')
+        const apiJson = await apiToken.json()
+        oldCount = apiJson.monthly_tokens + apiJson.permanent_tokens
+        await expect(oldCount).toBeGreaterThan(0)
+        // Применяем редактирование
+        await page.locator('text=Колоризация').click()
+        const loader = page.locator('.story-editor .preloader')
+        await loader.waitFor()
+        await expect(loader).toBeHidden({timeout:10000})
+        // Проверяем, что отображается изменённое изображение
+        const newImg = page.locator('.story-box-inner__wrapper img[src*="/decors/ai-text2img/"]')
+        await newImg.waitFor()
+        // Проверяем, что токены потратились
+        await expect(async()=>{
+            const tokens = await editor.tokensCountAiEditor
+            newCount = Number(await tokens.textContent())
+            expect(newCount).toEqual(oldCount-1)
+        }).toPass({timeout:10000})        
+        
+        // await page.pause()
+    })
+
+    test('ИИ-редактор. Улучшение изображения', async({page})=>{
+        const editor = new Editor(page)
+        let oldCount: number, newCount: number
+        await page.goto('/app/designs/a438f148-0a3e-447c-96f4-759d8d9ac428')
+        await editor.changesSavedBtn.waitFor()
+        // Кликаем по первому фото в дизайне
+        await editor.decor.first().locator('img[src*="/decors-types/unsplash/"]').click({force:true})
+        // Кликаем по кнопке ИИ-редактора в тулбаре
+        await editor.aiEditorBtn.click()
+        // Проверяем, что баланс токенов больше 0
+        const apiToken = await page.waitForResponse('**/api/tokens/balance')
+        const apiJson = await apiToken.json()
+        oldCount = apiJson.monthly_tokens + apiJson.permanent_tokens
+        await expect(oldCount).toBeGreaterThan(0)
+        // Применяем редактирование
+        await page.locator('text=Улучшить изображение').click()
+        const loader = page.locator('.story-editor .preloader')
+        await loader.waitFor()
+        await expect(loader).toBeHidden({timeout:10000})
+        // Проверяем, что отображается изменённое изображение
+        const newImg = page.locator('.story-box-inner__wrapper img[src*="/decors/unsplash/"]')
+        await newImg.waitFor({timeout:12000})
+        // Проверяем, что токены потратились
+        await expect(async()=>{
+            const tokens = await editor.tokensCountAiEditor
+            newCount = Number(await tokens.textContent())
+            expect(newCount).toEqual(oldCount-1)
+        }).toPass({timeout:10000})        
+        
+        await page.pause()
+    })
+
+    test('ИИ-редактор. Удаление фона', async({page})=>{
+        const editor = new Editor(page)
+        let oldCount: number, newCount: number
+        await page.goto('/app/designs/f3948fa8-225d-40bd-9a4e-75b320f7e868')
+        await editor.changesSavedBtn.waitFor()
+        // Кликаем по первому фото в дизайне
+        await editor.decor.first().locator('img[src*="/decors-types/uploads-images/"]').click({force:true})
+        // Кликаем по кнопке ИИ-редактора в тулбаре
+        await editor.aiEditorBtn.click()
+        // Проверяем, что баланс токенов больше 0
+        const apiToken = await page.waitForResponse('**/api/tokens/balance')
+        const apiJson = await apiToken.json()
+        oldCount = apiJson.monthly_tokens + apiJson.permanent_tokens
+        await expect(oldCount).toBeGreaterThan(0)
+        // Применяем редактирование
+        await page.locator('.ai-editor__main_choose-styles_list_item:has-text("Удалить фон")').click()
+        const loader = page.locator('.story-editor .preloader')
+        await loader.waitFor()
+        await expect(loader).toBeHidden({timeout:10000})
+        const noBgPreview = page.locator('text=Без фона')
+        await noBgPreview.click()
+        // Проверяем, что отображается изменённое изображение
+        const newImg = page.locator('.story-box-inner__wrapper img[src*="-no-bg"]')
+        await newImg.waitFor({timeout:15000})
+        // Проверяем, что токены потратились
+        await editor.aiEditorBtn.click()
+        await expect(async()=>{
+            const tokens = await editor.tokensCountAiEditor
+            newCount = Number(await tokens.textContent())
+            expect(newCount).toEqual(oldCount-1)
+        }).toPass({timeout:10000})        
+        
+        // await page.pause()
+    })
+
+    test('ИИ-редактор. Дорисовка изображения', async({page})=>{
+        const editor = new Editor(page)
+        let oldCount: number, newCount: number
+        await page.goto('/app/designs/7d0d1e26-74b2-4776-9094-666549d6e286')
+        await editor.changesSavedBtn.waitFor()
+        // Кликаем по первому фото в дизайне
+        await editor.decor.first().locator('img[src*="/decors-types/ai"]').click({force:true})
+        // Кликаем по кнопке ИИ-редактора в тулбаре
+        await editor.aiEditorBtn.click()
+        // Проверяем, что баланс токенов больше 0
+        const apiToken = await page.waitForResponse('**/api/tokens/balance')
+        const apiJson = await apiToken.json()
+        oldCount = apiJson.monthly_tokens + apiJson.permanent_tokens
+        await expect(oldCount).toBeGreaterThan(0)
+        // Применяем редактирование
+        await page.locator('.ai-editor__main_choose-styles_list_item:has-text("Дорисовать изображение")').click()
+        // Выбираем формат дорисовки 16:9
+        const format169 = page.locator('.ai-editor_menu__format:has(div[style="aspect-ratio: 9 / 16;"])')
+        await format169.click()
+        // Выполняем дорисовку
+        const startBtn = page.getByRole('button', {name:"Дорисовать изображение"})
+        await startBtn.click()
+        const loader = page.locator('.ai-editor__main_canvas .preloader')
+        await loader.waitFor()
+        await expect(loader).toBeHidden({timeout:10000})
+        // Клик по ПРИМЕНИТЬ
+        const acceptBtn = page.locator('text=Применить')
+        await acceptBtn.click()
+        // Проверяем, что отображается изменённое изображение
+        const newImg = page.locator('.story-box-inner__wrapper img[src*="/decors/ai-text2img/"]')
+        await newImg.waitFor({timeout:15000})
+        // Проверяем, что токены потратились
+        await editor.decor.click()
+        await editor.aiEditorBtn.click()
+        await expect(async()=>{
+            const tokens = await editor.tokensCountAiEditor
+            newCount = Number(await tokens.textContent())
+            expect(newCount).toEqual(oldCount-1)
+        }).toPass({timeout:10000})        
+        
+        // await page.pause()
+    })
 })
 })

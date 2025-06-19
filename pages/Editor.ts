@@ -13,6 +13,7 @@ export class Editor {
     readonly deleteBgBtn: Locator
     readonly basketBtn: Locator
     readonly aiEditorBtn: Locator
+    readonly tokensCountAiEditor: Locator
 
     constructor(page: Page){
         this.page = page        
@@ -27,5 +28,7 @@ export class Editor {
         this.deleteBgBtn = page.locator('button >> text=Удалить фон')                                 // Кнопка Удалить Фон
         this.basketBtn = page.locator('#editorToolbar .defaultPanel_oVC9j button').nth(3)             // Кнопка Корзина
         this.aiEditorBtn = page.locator('.design-main-toolbar button >> text=ИИ-редактор')            // Кнопка ИИ-редактора
+        this.tokensCountAiEditor = page.locator('.tokens .tokens-count_container_count')              // Счётчик токенов в ИИ-редакторе
+
     }
 }
