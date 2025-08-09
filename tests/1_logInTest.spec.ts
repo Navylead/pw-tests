@@ -7,10 +7,48 @@ import RegistrationPage from "../pages/RegistrationPage"
 import creds from '../auth/creds.json'
 
 
-test.describe('Sign in', ()=>{
-
+test.describe.only('Registration', ()=>{
   test.beforeEach(async({page})=>{
     page.setViewportSize({"width": 1600, "height": 900})
+  })
+
+  test('Регистрация с моком', async({page})=>{
+    const dashboard = new Dashboard(page)
+    await page.route('**/api/auth/register', async (route, request)=>{
+      // const requestBody = await request.postDataJSON()
+      // Дополнительно можно проверить тело запроса
+      // expect(requestBody.email).toContain('@')
+      // expect(requestBody.password.length).toBeGreaterThan(5)
+
+      await route.fulfill({
+        status: 201,
+        body: JSON.stringify({
+          message: "Ваш аккаунт был создан."
+      })
+      })
+    })
+
+    const mockName = 'mock_user'
+    const mockEmail = 'testmock@gmail.com'
+    const register = new RegistrationPage(page)
+    // Переход на страницу регистрации
+    await page.goto('/app/login?mode=signUp')
+    await register.registrationBtn.waitFor()
+    await register.registrationBtn.click()
+    await register.nameInput.waitFor()
+    // Заполнение инпутов и регистрация
+    await register.nameInput.fill(mockName)
+    await register.emailInput.fill(mockEmail)
+    await register.passwordInput.fill('0123456789')
+    await register.checkBoxTermOfUse.click()
+    await register.beginWorkBtn.click()
+    // Отображение попапа успешной регистрации
+    const registrationDonePopap = page.locator('.auth-form__wrapper')
+    const registrationDoneBtn = registrationDonePopap.locator('button:has-text("Хорошо")')
+    await registrationDonePopap.waitFor() // Попап
+    await registrationDoneBtn.waitFor()   // Кнопка    
+
+    // await page.pause()
   })
 
   test.skip('Регистрация пользователя', async({page})=>{
@@ -47,7 +85,8 @@ test.describe('Sign in', ()=>{
     await page.waitForURL('/app/login')
     await page.locator('[class="dialog-wrapper dialog-wrapper__success"] h2 >> text=Ещё немного!').isVisible()
     await page.locator('[class="dialog-wrapper dialog-wrapper__success"] button >> text=Хорошо').isVisible()
-    await page.pause()
+
+    // await page.pause()
   })
 
   test('Регистрация использующимся EMAIL', async ({page})=>{
@@ -73,7 +112,14 @@ test.describe('Sign in', ()=>{
     const errorMessage = page.locator('div >> text=Данный email уже зарегистрирован')
     await errorMessage.waitFor()
 
-    await page.pause()
+    // await page.pause()
+  })
+})
+
+test.describe('Sign in', ()=>{
+
+  test.beforeEach(async({page})=>{
+    page.setViewportSize({"width": 1600, "height": 900})
   })
 
   test('АВТОРИЗАЦИЯ корректными кредами', async({page})=>{

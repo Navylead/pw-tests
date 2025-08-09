@@ -786,24 +786,24 @@ test.describe('ОБЩИЕ ПО ЭДИТОРУ', ()=>{
         // Кликаем по кнопке ИИ-редактора в тулбаре
         await editor.aiEditorBtn.click()
         // Проверяем, что баланс токенов больше 0
-        const apiToken = await page.waitForResponse('**/api/tokens/balance')
-        const apiJson = await apiToken.json()
-        oldCount = apiJson.monthly_tokens + apiJson.permanent_tokens
+        oldCount = await editor.getTokenCountApi()
         await expect(oldCount).toBeGreaterThan(0)
         // Применяем редактирование
         await page.locator('text=Улучшить изображение').click()
         const loader = page.locator('.story-editor .preloader')
         await loader.waitFor()
         await expect(loader).toBeHidden({timeout:10000})
+
+        newCount = await editor.getTokenCountApi()
         // Проверяем, что отображается изменённое изображение
         const newImg = page.locator('.story-box-inner__wrapper img[src*="/decors/unsplash/"]')
         await newImg.waitFor({timeout:12000})
         // Проверяем, что токены потратились
-        await expect(async()=>{
-            const tokens = await editor.tokensCountAiEditor
-            newCount = Number(await tokens.textContent())
-            expect(newCount).toEqual(oldCount-1)
-        }).toPass({timeout:10000})        
+        //await expect(async()=>{
+            //const tokens = await editor.tokensCountAiEditor
+            //newCount = Number(await tokens.textContent())
+        await expect(newCount).toEqual(oldCount-1)
+        //}).toPass({timeout:10000})        
         
         await page.pause()
     })
@@ -853,9 +853,7 @@ test.describe('ОБЩИЕ ПО ЭДИТОРУ', ()=>{
         // Кликаем по кнопке ИИ-редактора в тулбаре
         await editor.aiEditorBtn.click()
         // Проверяем, что баланс токенов больше 0
-        const apiToken = await page.waitForResponse('**/api/tokens/balance')
-        const apiJson = await apiToken.json()
-        oldCount = apiJson.monthly_tokens + apiJson.permanent_tokens
+        oldCount = await editor.getTokenCountApi()
         await expect(oldCount).toBeGreaterThan(0)
         // Применяем редактирование
         await page.locator('.ai-editor__main_choose-styles_list_item:has-text("Дорисовать изображение")').click()
@@ -871,18 +869,16 @@ test.describe('ОБЩИЕ ПО ЭДИТОРУ', ()=>{
         // Клик по ПРИМЕНИТЬ
         const acceptBtn = page.locator('text=Применить')
         await acceptBtn.click()
-        // Проверяем, что отображается изменённое изображение
+        // Проверяем, что отображается изменённое изображение в дизайне
         const newImg = page.locator('.story-box-inner__wrapper img[src*="/decors/ai-text2img/"]')
         await newImg.waitFor({timeout:15000})
         // Проверяем, что токены потратились
         await editor.decor.click()
-        await editor.aiEditorBtn.click()
-        await expect(async()=>{
-            const tokens = await editor.tokensCountAiEditor
-            newCount = Number(await tokens.textContent())
-            expect(newCount).toEqual(oldCount-1)
-        }).toPass({timeout:10000})        
-        
+        await editor.aiEditorBtn.click()  
+        newCount = await editor.getTokenCountApi()
+        // console.log(oldCount)
+        // console.log(newCount)         
+        await expect(newCount).toEqual(oldCount-1)        
         // await page.pause()
     })
 })

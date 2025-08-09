@@ -31,4 +31,18 @@ export class Editor {
         this.tokensCountAiEditor = page.locator('.tokens .tokens-count_container_count')              // Счётчик токенов в ИИ-редакторе
 
     }
+
+    // Получение количества токенов
+    getTokenCount = async () =>{
+        await this.tokensCountAiEditor.waitFor()
+        const text = await this.tokensCountAiEditor.textContent()
+        return Number(text)
+    }
+
+    // Получение количества токенов через АПИ
+    getTokenCountApi = async () =>{
+        const apiToken = await this.page.waitForResponse('**/api/tokens/balance')
+        const apiJson = await apiToken.json()
+        return apiJson.monthly_tokens + apiJson.permanent_tokens
+    }
 }
