@@ -1,7 +1,7 @@
 // @ts-nocheck
 import{test, expect} from "@playwright/test"
 import LoginPage from "../pages/LoginPage"
-import Editor from "../pages/Editor"
+import { Editor } from "../pages/Editor"
 import { timeout } from "../playwright.config"
 import Dashboard from "../pages/Dashboard"
 
@@ -9,30 +9,24 @@ test.describe('UI', ()=>{
     test.beforeEach(async({page})=>{
         page.setViewportSize({"width": 1600, "height": 900})
     })
-
     test.use({ storageState: 'auth/auth1.json' });                    // <<<ФАЙЛ С СОХРАНЁННОЙ СЕССИЕЙ>>>
-
 
     test('ГЕНЕРАЦИЯ ФОТО ИИ', async({page})=>{
         const editor = new Editor(page)
-
-        await page.goto('/app/designs/61bb153a-ab29-402c-b5c9-0c303fba998b')
-        const balance = page.waitForResponse('**/api/tokens/balance')      // Апишка баланса токенов
-        await expect(editor.downloadBtn).toBeVisible()                      // Отображение кнопки СКАЧАТЬ ДИЗАНЙ
+        await page.goto('/app/designs/61bb153a-ab29-402c-b5c9-0c303fba998b')        
+        await expect(editor.downloadBtn).toBeVisible()                            // Отображение кнопки СКАЧАТЬ ДИЗАНЙ
         await page.locator('.flyvi-decors-drawer__menu_wrapper >> text=ИИ-мастерская').click() // Открыть меню ИИ-Генератора
+        const balanceResponse = await page.waitForResponse('**/api/tokens/balance')       // Апишка баланса токенов
+        const balance = await balanceResponse.json()
+        // console.log('<<<<BALANCE>>>', balance)
+        await expect(balance.monthly_tokens+balance.permanent_tokens, '<<<НЕДОСТАТОЧНО ТОКЕНОВ - АПИ>>>').toBeGreaterThan(0) 
         let tokens = page.locator('.tokens-count_container_count')          // Счётчик токенов для генерации
         const previewImg = page.locator('.images img')                      // Превьюшка первого фото ИИ
         // const previewImg2 = page.locator('.images img').nth(1)           // Превьюшка второго фото ИИ
         const genInput = page.locator('textarea')                           // Инпут для промпта
         const genBtn = page.locator('.neuro-btn >> text=Сгенерировать изображение') // Кнопка генерации ФОТО ИИ
         const AISize = page.locator('.neuro-settings .v-input__control').nth(1)     // Меню выбора размеров
-        const AIStyle = page.locator('.neuro-settings .styles')                     // Меню выбора стиля генерации
-        const response = await balance
-        const json = await response.json()
-        console.log('<<<<BALANCE>>>', json)
-        if (json.monthly_tokens+json.permanent_tokens < 1) {
-            throw new Error('<<<НЕДОСТАТОЧНО ТОКЕНОВ - АПИ>>>')
-        }        
+        const AIStyle = page.locator('.neuro-settings .styles')                     // Меню выбора стиля генерации           
         await genInput.fill('Большой ядерный взрыв')                                // Ввод промпта
         await AISize.click()
         await page.locator('.v-list-item__title >> text=9:16 (576 x 1024)').click() // Выбор размера генерируемой картинки
@@ -58,7 +52,7 @@ test.describe('UI', ()=>{
         text = await tokens.innerText()  
         const newTokenCounter = parseInt(text)              // Счётчик токенов после генерации
         await expect(newTokenCounter).toBe(tokenCounter-1)  // Проверка, что токены потратились
-        await page.pause()
+        // await page.pause()
     })
 
     test.skip('пустой 2', async ({page})=>{
@@ -106,7 +100,7 @@ test.describe('UI', ()=>{
             expect(response).toBeDefined();
             expect(response.action).toEqual('updateDecorFields')
         }).toPass({ timeout: 6000 })
-        await page.pause()
+        // await page.pause()
     })
 
     test('Скачивание дизайна JPG', async ({page})=>{

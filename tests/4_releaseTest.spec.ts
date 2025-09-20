@@ -14,17 +14,38 @@ test.describe('Тесты премиумности', ()=>{
         page.setViewportSize({"width": 1600, "height": 900})
     })
 
-    test.use({ storageState: 'auth/auth3.json' });                    // <<<ФАЙЛ С СОХРАНЁННОЙ СЕССИЕЙ FREE>>>
+    test.use({ storageState: 'auth/auth3.json' });                    // <<<ФАЙЛ С СОХРАНЁННОЙ СЕССИЕЙ ТАРИФА СТАРТ - xedibe*>>>
+
+    test('Проверка тарифа в ЛК', async ({page})=>{
+        const dashboard = new Dashboard(page)
+        await page.goto('/app')
+        // Проверяем, что на Дашборде отображается тариф Старт
+        const dashboardTariff = await page.locator('.drawer-account__tariff-name').textContent()
+        expect(dashboardTariff.trim()).toEqual('БЕСПЛАТНО')
+        // Переход в настройки ЛК
+        await dashboard.userLogo.waitFor()
+        await dashboard.userLogo.click()
+        await page.locator('text=Мой профиль').click()
+        await page.waitForURL('/app/user/profile')
+        // Переход на вкладку Подписка
+        const subscriptionBtn = page.locator('text=Подписка')
+        await subscriptionBtn.waitFor()
+        await subscriptionBtn.click()
+        // Проверяем, что отображается тариф Старт
+        const tariff = await page.locator('.col_oXhib:has-text("Тарифы") [class="cardTitle_hYN+x"]').first()        
+        const tariffName = await tariff.textContent()
+        expect(tariffName.trim()).toEqual('Старт')
+
+        // await page.pause()
+    })
 
     test('Отображение попапа платной подписки при ГЕНЕРАЦИИ ФОТО на бесплатном тарифе', async ({page})=>{
         const dashboard = new Dashboard(page)
         await page.goto('/app/image-generator')
         // Проверяем, что количество токенов соответствует условиям отображения водяного знака
-        await expect(async()=>{
-            const tokenCountNumber = Number(await dashboard.tokenCount.textContent())
-            expect(tokenCountNumber, "<<<Недостаточно токенов>>>").toBeGreaterThan(0)
-            expect(tokenCountNumber, "<<<Токенов больше 9>>>").toBeLessThan(10)
-        }).toPass({timeout: 10000})
+        const balance = await dashboard.getTokenCount()        
+        expect(balance, '<<<НЕДОСТАТОЧНО ТОКЕНОВ>>>').toBeGreaterThan(0)
+        expect(balance, '<<<ТОКЕНОВ БОЛЬШЕ 4>>>').toBeLessThan(5)
         // Ждём отображения кнопки смены тарифа на ПРО
         await dashboard.changeToProBtn.waitFor()
         // Вводим промпт и запускаем генерацию фото
@@ -43,11 +64,9 @@ test.describe('Тесты премиумности', ()=>{
         const dashboard = new Dashboard(page)
         await page.goto('/app/image-generator')
         // Проверяем, что количество токенов соответствует условиям отображения водяного знака
-        await expect(async()=>{
-            const tokenCountNumber = Number(await dashboard.tokenCount.textContent())
-            expect(tokenCountNumber, "<<<Недостаточно токенов>>>").toBeGreaterThan(0)
-            expect(tokenCountNumber, "<<<Токенов больше 9>>>").toBeLessThan(10)
-        }).toPass({timeout: 10000})
+        const balance = await dashboard.getTokenCount()        
+        expect(balance, '<<<НЕДОСТАТОЧНО ТОКЕНОВ>>>').toBeGreaterThan(0)
+        expect(balance, '<<<ТОКЕНОВ БОЛЬШЕ 4>>>').toBeLessThan(5)
         // Ждём отображения кнопки смены тарифа на ПРО
         await dashboard.changeToProBtn.waitFor()
         await dashboard.aiImage.click()
@@ -64,11 +83,9 @@ test.describe('Тесты премиумности', ()=>{
         const dashboard = new Dashboard(page)
         await page.goto('/app/image-generator')
         // Проверяем, что количество токенов соответствует условиям отображения водяного знака
-        await expect(async()=>{
-            const tokenCountNumber = Number(await dashboard.tokenCount.textContent())
-            expect(tokenCountNumber, "<<<Недостаточно токенов>>>").toBeGreaterThan(0)
-            expect(tokenCountNumber, "<<<Токенов больше 9>>>").toBeLessThan(10)
-        }).toPass({timeout: 10000})
+        const balance = await dashboard.getTokenCount()        
+        expect(balance, '<<<НЕДОСТАТОЧНО ТОКЕНОВ>>>').toBeGreaterThan(0)
+        expect(balance, '<<<ТОКЕНОВ БОЛЬШЕ 4>>>').toBeLessThan(5)
         // Ждём отображения кнопки смены тарифа на ПРО
         await dashboard.changeToProBtn.waitFor()
         // Водяные знаки на картинках в последнем блоке
@@ -93,7 +110,7 @@ test.describe('Тесты премиумности', ()=>{
         await editor.aiEditorBtn.click()
         // Проверяем, что на функциях в меню отображает иконка премиума
         const waterMark = page.locator('.ai-editor .premium-label')
-        await expect(waterMark).toHaveCount(6)
+        await expect(waterMark).toHaveCount(10)
         // await waterMark.highlight()
         // Кликаем по кнопке Колоризации
         const colorization = page.locator('.ai-editor >> text=Колоризация')
@@ -352,7 +369,7 @@ test.describe('Тесты премиумности', ()=>{
         //await page.pause()
     })
 
-    test('Премиум-функция: РАЗМЕР Х', async({page})=>{
+    test('Премиум-функция: СКЕЙЛ ДИЗАЙНА ПРИ СКАЧИВАНИИ', async({page})=>{
         const editor = new Editor(page)
         await page.goto('/app/designs/bfa1beaf-4a61-44b1-9596-4cf4cac3b25d')
         await editor.changesSavedBtn.waitFor()
@@ -385,14 +402,18 @@ test.describe('Тесты премиумности', ()=>{
     test('Премиум-функция: ДЕФОРМАЦИЯ ДЛЯ ФОТО', async({page})=>{
         const editor = new Editor(page)
         await page.goto('/app/designs/bfa1beaf-4a61-44b1-9596-4cf4cac3b25d')
+        // Ждём загрузку дизайна
         await editor.changesSavedBtn.waitFor()
+        // Кликаем по декору
         await editor.decor.click()
-        const deformationButton = page.locator('#editorToolbar button').getByText('Деформация')
-        await deformationButton.click()
+        // Кликаем по кнопке Деформации
+        await editor.deformationBtn.waitFor()        
+        await editor.deformationBtn.click()
+        // Ждём отображения попапа преиум-подписки        
         const getTariffBtn = page.locator('.dialogWrapper_FVcGt button >> text=Получить бесплатную пробную версию')
         await getTariffBtn.waitFor()
         
-        //await page.pause()
+        // await page.pause()
     })
 
     test('Премиум-функция: УДАЛИТЬ ФОН ДЛЯ ФОТО', async({page})=>{
@@ -411,10 +432,14 @@ test.describe('Тесты премиумности', ()=>{
     test('Премиум-функция: ЛАСТИК ДЛЯ ФОТО', async({page})=>{
         const editor = new Editor(page)
         await page.goto('/app/designs/bfa1beaf-4a61-44b1-9596-4cf4cac3b25d')
+        // Ожидаем загрузку дизайна
         await editor.changesSavedBtn.waitFor()
+        // Кликаем по декору
         await editor.decor.click()
-        const deformationButton = page.locator('#editorToolbar button').getByText('Стереть')
-        await deformationButton.click()
+        // Кликаем по кнопке Ластика
+        await editor.eraserBtn.waitFor()        
+        await editor.eraserBtn.click()
+        // Ждём отображение попапа премиума
         const getTariffBtn = page.locator('.dialogWrapper_FVcGt button >> text=Получить бесплатную пробную версию')
         await getTariffBtn.waitFor()
         
@@ -427,31 +452,84 @@ test.describe('Тесты премиумности', ()=>{
         const drawer = page.locator('text=Попробовать Flyvi Pro')
         await drawer.click()        
         const getTariffBtn = page.locator('.dialogWrapper_FVcGt button >> text=Получить бесплатную пробную версию')
-        await getTariffBtn.waitFor()
+        await getTariffBtn.waitFor()        
         
         //await page.pause()
     })
 
     test('Редактирование БРЕНДБУКА на бесплатном тарифе', async ({page})=>{
+        const editor = new Editor(page)
         await page.goto('/app/brand')
-        const brandbook = page.locator('.flyvi-card:has-text("ТЕСТОВЫЙ")')
-        await brandbook.waitFor({timeout:10000})
-        const brandbookEdit = brandbook.locator('button').first()
-        await brandbookEdit.click()
-        const brandbookSections = page.locator('.editSettings_r2nx6')
-        const proBanner = page.locator('.dialogWrapper_FVcGt')
-        await brandbookSections.locator('.wrapper_vhtAy:has-text("Логотипы") .add_U92dh:has-text("Добавить")').click()
-        await proBanner.waitFor()
-        await proBanner.locator('.close-icon').click()
-        await brandbookSections.locator('.wrapper_vhtAy:has-text("Элементы") .add_U92dh:has-text("Добавить")').click()
-        await proBanner.waitFor()
-        await proBanner.locator('.close-icon').click()
-        await brandbookSections.locator('.wrapper_vhtAy:has-text("Фоны") .add_U92dh:has-text("Добавить")').click()
-        await proBanner.waitFor()
-        await proBanner.locator('.close-icon').click()
-        await brandbookSections.locator('.wrapper_vhtAy:has-text("Шрифты") .add_U92dh:has-text("Добавить")').click()
-        await proBanner.waitFor()
-        await proBanner.locator('.close-icon').click()
+        // Кликаем по Брендбуку в списке
+        const brandbook = page.locator('.brand-list-item:has-text("ПРЕМИУМ")')
+        await brandbook.waitFor()
+        await brandbook.click()
+        // Кликаем в меню редактирования брендбука по кнопке "Сохранить изменения"
+        const saveChangesBtn = page.locator('.header-brand-save-btn').getByText('Сохранить изменения')
+        await saveChangesBtn.waitFor()
+        await saveChangesBtn.click()
+        // Ждём отображение попапа премиума
+        await editor.proBanner.waitFor()      
+
+        // await page.pause()
+    })
+
+    test('Скачивание премиум-элемента: ЛОГО из Брендбука', async ({page})=>{
+        const editor = new Editor(page)
+        await page.goto('/app/designs/a9d4defc-7041-452a-91c4-9c9569eceea6')
+        // Выбираем страницу на скачивание
+        await editor.choosePageToDownload(11)
+        // Ждём отображение попапа премиума
+        await editor.proBanner.waitFor()  
+
+        // await page.pause()
+    })
+
+    test('Скачивание премиум-элемента: ЭЛЕМЕНТ из Брендбука', async ({page})=>{
+        const editor = new Editor(page)
+        await page.goto('/app/designs/a9d4defc-7041-452a-91c4-9c9569eceea6')
+        // Выбираем страницу на скачивание
+        await editor.choosePageToDownload(12)
+        // Ждём отображение попапа премиума
+        await editor.proBanner.waitFor()
+            
+        // await page.pause()
+    })
+
+    test('Скачивание премиум-элемента: ФОН из Брендбука', async ({page})=>{
+        const editor = new Editor(page)
+        await page.goto('/app/designs/a9d4defc-7041-452a-91c4-9c9569eceea6')
+        // Выбираем страницу на скачивание
+        await editor.choosePageToDownload(13)
+        // Ждём отображение попапа премиума
+        await editor.proBanner.waitFor()
+
+        // await page.pause()
+    })
+
+    test('Скачивание премиум-элемента: СЕТ из Брендбука', async ({page})=>{
+        const editor = new Editor(page)
+        await page.goto('/app/designs/a9d4defc-7041-452a-91c4-9c9569eceea6')
+        // Выбираем страницу на скачивание
+        await editor.choosePageToDownload(14)
+        // Ждём отображение попапа премиума
+        await editor.proBanner.waitFor()
+
+        // await page.pause()
+    })
+
+    test('Добавление премиум-элемента в дизайн: Лого', async ({page})=>{
+        const editor = new Editor(page)
+        await page.goto('/app/designs/a9d4defc-7041-452a-91c4-9c9569eceea6')
+        // Переход в Брендбук
+        await page.locator('text=Брендбук').click()
+        // Ожидание загрузки медиа в брендбуке и клик по первому элементу
+        const brandbookMedia = page.locator('.flyvi-decors-drawer__list.flyvi-decors-drawer__list_open .logos-list-item-content:has(img[src*="/decors-types/uploads-images/brands-custom/"])').first()
+        //await brandbookMedia.highlight()
+        await brandbookMedia.waitFor({state: "visible", timeout: 10000})
+        await brandbookMedia.click()
+        // Ждём отображение попапа премиума
+        await editor.proBanner.waitFor()
 
         // await page.pause()
     })
@@ -879,6 +957,50 @@ test.describe('ОБЩИЕ ПО ЭДИТОРУ', ()=>{
         // console.log(oldCount)
         // console.log(newCount)         
         await expect(newCount).toEqual(oldCount-1)        
+        // await page.pause()
+    })
+
+    test('ДАШБОРД. Создание дизайна с превышением максимально допустимого размера ШИРИНЫ', async({page})=>{
+        const dashboard = new Dashboard(page)
+        // Переход в Дашборд
+        await page.goto('/app')
+        await dashboard.createDesignBtn.waitFor()
+        // Клик по кнопке "Задать свой размер"
+        await page.locator('text=Задать свой размер').click()
+        const widthInput = await page.locator('.resize-dialog input').first()
+        const createDesignBtn = page.locator('.resize-dialog').getByRole('button', {name: "Создать дизайн"})
+        // Ввод в инпут ШИРИНЫ значения больше допустимого
+        await widthInput.clear()
+        await widthInput.fill('3001')
+        // Клик по кнопке "Создать дизайн"
+        await createDesignBtn.click()
+        // Проверка, что появился баннер с ошибкой
+        const errorBanner = page.locator('.Vue-Toastification__container.top-right:has-text("Ширина дизайна должна быть")')
+        await errorBanner.waitFor()
+        await createDesignBtn.waitFor()
+
+        // await page.pause()
+    })
+
+    test('ДАШБОРД. Создание дизайна с превышением максимально допустимого размера ВЫСОТЫ', async({page})=>{
+        const dashboard = new Dashboard(page)
+        // Переход в Дашборд
+        await page.goto('/app')
+        await dashboard.createDesignBtn.waitFor()
+        // Клик по кнопке "Задать свой размер"
+        await page.locator('text=Задать свой размер').click()
+        const widthInput = await page.locator('.resize-dialog input').nth(1)
+        const createDesignBtn = page.locator('.resize-dialog').getByRole('button', {name: "Создать дизайн"})
+        // Ввод в инпут ВЫСОТЫ значения больше допустимого
+        await widthInput.clear()
+        await widthInput.fill('3001')
+        // Клик по кнопке "Создать дизайн"
+        await createDesignBtn.click()
+        // Проверка, что появился баннер с ошибкой
+        const errorBanner = page.locator('.Vue-Toastification__container.top-right:has-text("Высота дизайна должна быть")')
+        await errorBanner.waitFor()
+        await createDesignBtn.waitFor()
+
         // await page.pause()
     })
 })

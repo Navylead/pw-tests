@@ -7,13 +7,13 @@ import RegistrationPage from "../pages/RegistrationPage"
 import creds from '../auth/creds.json'
 
 
-test.describe.only('Registration', ()=>{
+test.describe('Registration', ()=>{
   test.beforeEach(async({page})=>{
     page.setViewportSize({"width": 1600, "height": 900})
   })
 
-  test('Регистрация с моком', async({page})=>{
-    const dashboard = new Dashboard(page)
+  test('Регистрация по паролю с моком', async({page})=>{
+    const register = new RegistrationPage(page)
     await page.route('**/api/auth/register', async (route, request)=>{
       // const requestBody = await request.postDataJSON()
       // Дополнительно можно проверить тело запроса
@@ -27,21 +27,11 @@ test.describe.only('Registration', ()=>{
       })
       })
     })
-
-    const mockName = 'mock_user'
-    const mockEmail = 'testmock@gmail.com'
-    const register = new RegistrationPage(page)
-    // Переход на страницу регистрации
-    await page.goto('/app/login?mode=signUp')
-    await register.registrationBtn.waitFor()
-    await register.registrationBtn.click()
-    await register.nameInput.waitFor()
-    // Заполнение инпутов и регистрация
-    await register.nameInput.fill(mockName)
-    await register.emailInput.fill(mockEmail)
-    await register.passwordInput.fill('0123456789')
-    await register.checkBoxTermOfUse.click()
-    await register.beginWorkBtn.click()
+    const mockName: string = 'mock_user'
+    const mockEmail: string = 'testmock@gmail.com'
+    const password: string = '0123456789'
+    // Регистрация
+    await register.register(mockName, mockEmail, password)
     // Отображение попапа успешной регистрации
     const registrationDonePopap = page.locator('.auth-form__wrapper')
     const registrationDoneBtn = registrationDonePopap.locator('button:has-text("Хорошо")')
@@ -51,27 +41,22 @@ test.describe.only('Registration', ()=>{
     // await page.pause()
   })
 
+  test.skip('Регистрация по коду с моком', async ({page})=>{
+    
+    // await page.pause()
+  })
+
   test.skip('Регистрация пользователя', async({page})=>{
-    const login = new LoginPage(page)
-    const registration = new RegistrationPage(page)
+    const register = new RegistrationPage(page)
     const randomNumber = Math.floor(Math.random() * 100)
     const name: string = 'testdelete'
     const email: string = `testdelete${randomNumber}@gmail.com`
     const password: string = '8888888888'
-
-    await page.goto('/app/login')
-    await page.waitForURL('/app/login')
+    
     const reqPromise = page.waitForRequest('https://api.flyvi.io/api/auth/register')
     const respPromise = page.waitForResponse('https://api.flyvi.io/api/auth/register')  
-    const goToRegistrationBtn = page.locator('.auth-form__header a >> text=Зарегистрируйтесь') // Перейти на страницу Регистрации
-    await goToRegistrationBtn.click()
-    const registrationByEmail = page.locator('.dialog-wrapper button >> text=Зарегистрироваться')
-    await registrationByEmail.click()
-    await registration.nameInput.fill(name)                     // Инпут Имя
-    await registration.emailInput.fill(email)                   // Инпут почты
-    await registration.passwordInput.fill(password)             // Инпут Пароля
-    await registration.checkBoxTermOfUse.click()                // Чекбокс №1
-    await registration.beginWorkBtn.click()                     // Кнопка Начать Работу
+    // Регистрация
+    await register.register(name, email, password)
 
     const req = await reqPromise
     const reqBody = await JSON.parse(req.postData() ?? '{}')
@@ -81,8 +66,6 @@ test.describe.only('Registration', ()=>{
     const resp = await respPromise					
     const respBody = await resp.json()
     expect(respBody.message).toEqual("Ваш аккаунт был создан.")
-
-    await page.waitForURL('/app/login')
     await page.locator('[class="dialog-wrapper dialog-wrapper__success"] h2 >> text=Ещё немного!').isVisible()
     await page.locator('[class="dialog-wrapper dialog-wrapper__success"] button >> text=Хорошо').isVisible()
 
@@ -90,26 +73,16 @@ test.describe.only('Registration', ()=>{
   })
 
   test('Регистрация использующимся EMAIL', async ({page})=>{
-    const login = new LoginPage(page)
-    const registration = new RegistrationPage(page)
-  
-    await page.goto('/app/login')
-    await page.waitForURL('/app/login')
-    const goToRegistrationBtn = page.locator('.auth-form__header a >> text=Зарегистрируйтесь') // Перейти на страницу Регистрации
-    await goToRegistrationBtn.click()
-    const registrationByEmail = page.locator('.dialog-wrapper button >> text=Зарегистрироваться')
-    await registrationByEmail.click()
-    await registration.nameInput.fill('any_name')
-    await registration.emailInput.fill(creds.email1)
-    await registration.passwordInput.fill('0123123123')
-    await registration.checkBoxTermOfUse.click()
-    await registration.beginWorkBtn.click()
-
+    const register = new RegistrationPage(page)
+    const name: string = 'testdelete'
+    const email: string = creds.email1
+    const password: string = '8888888888'  
+    // Регистрация
+    await register.register(name, email, password)
     const response = await page.waitForResponse('**/api/auth/register')
     const jsonResponse = await response.json()
-    expect(jsonResponse.errors.email[0]).toEqual('Данный email уже зарегистрирован');
-
-    const errorMessage = page.locator('div >> text=Данный email уже зарегистрирован')
+    expect(jsonResponse.errors.email[0]).toEqual('Данный email уже зарегистрирован')
+    const errorMessage = page.getByText('Данный email уже зарегистрирован')
     await errorMessage.waitFor()
 
     // await page.pause()
@@ -125,32 +98,20 @@ test.describe('Sign in', ()=>{
   test('АВТОРИЗАЦИЯ корректными кредами', async({page})=>{
   const loginPage = new LoginPage(page)
   const dashboard = new Dashboard(page)
-  
-  await page.goto('/app/login')       // Переход на страницу авторизации    
-  await loginPage.emailInput.fill(creds.email1)       // Ввод логина  
-  await loginPage.passwordInput.fill(creds.password1) // Ввод пароля  
-  await loginPage.submitBtn.click()   // Нажатие на кнопку авторизации
-
-  const loginAPI = await page.waitForResponse(res=>
-    res.url() === 'https://api.flyvi.io/api/auth/login'
-  )
-  const token = await loginAPI.json()
-  expect(token.access_token).not.toEqual('')
-  //fs.writeFileSync('token.json', token.access_token)        <<Запись токена в файл>>
-  const meAPI = await page.waitForResponse(res=>
-    res.url() === 'https://api.flyvi.io/api/auth/me'
-  )
-  const body = await meAPI.json()
-  expect(body.user.id).toEqual(89671)
-  expect(body.user.name).toEqual('Ликси')
-  expect(body.user.email).toEqual(creds.email1)
-  expect(body.user.tariff.name).toEqual('Business')
-
+  // Авторизация
+  await loginPage.login(creds.email1, creds.password1)   
+  // Проверка ответов АПИ для "login" "me"
+  expect(loginPage.loginResponse.access_token).not.toEqual('')
+  // fs.writeFileSync('token.json', token.access_token)        <<Запись токена в файл>>  
+  expect(loginPage.meResponse.user.id).toEqual(89671)
+  expect(loginPage.meResponse.user.name).toEqual('Ликси')
+  expect(loginPage.meResponse.user.email).toEqual(creds.email1)
+  expect(loginPage.meResponse.user.tariff.name).toEqual('Business')
   // Ожидание успешного перехода на главную страницу
   await page.waitForURL('https://flyvi.io/app')
   // Проверка, что авторизация была успешной (например, отображение кнопки СОЗДАТЬ ДИЗАЙН)
   await dashboard.createDesignBtn.waitFor()
-  await page.pause()
+  // await page.pause()
 })
 
 test('Восстановить пароль', async ({page})=>{
@@ -167,32 +128,36 @@ test('Восстановить пароль', async ({page})=>{
   )
   const message = await response.json()
   expect(message.message).toEqual('На email выслано письмо для сброса пароля.')
-  await page.pause()
+  // await page.pause()
 })
 
 test('АВТОРИЗАЦИЯ. Пустые поля', async ({page})=>{
   const loginPage = new LoginPage(page)
   await page.goto('/app/login')
+  await loginPage.loginByPasswordBtn.waitFor()
+  await loginPage.loginByPasswordBtn.click()
   await loginPage.submitBtn.click()
   const message1 = page.locator('.v-messages__message').nth(0)
   await expect(message1).toHaveText('E-mail не может быть пустым')
   await expect(message1).toBeVisible()
   const message2 = page.locator('.v-messages__message').nth(1)
-  //await expect(message2).toBeVisible()
-  await page.pause()
+  // await expect(message2).toBeVisible()
+  // await page.pause()
 })
 
 test('АВТОРИЗАЦИЯ. Неверные креды', async ({page})=>{
   const loginPage = new LoginPage(page)
   const wrongCreds = ['lolololo@laluxy.com', '9876543210']
   await page.goto('/app/login')
+  await loginPage.loginByPasswordBtn.waitFor()
+  await loginPage.loginByPasswordBtn.click()
   await loginPage.emailInput.fill(wrongCreds[0])
   await loginPage.passwordInput.fill(wrongCreds[1])
   await loginPage.submitBtn.click()
   const errorMessage = page.locator('.error-messages')
   await expect(errorMessage).toHaveText('Email или пароль введены некорректно.')
   await expect(errorMessage).toBeVisible()
-  await page.pause()
+  // await page.pause()
 })
 })
 

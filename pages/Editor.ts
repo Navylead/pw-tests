@@ -14,6 +14,9 @@ export class Editor {
     readonly basketBtn: Locator
     readonly aiEditorBtn: Locator
     readonly tokensCountAiEditor: Locator
+    readonly deformationBtn: Locator
+    readonly eraserBtn: Locator
+    readonly proBanner: Locator
 
     constructor(page: Page){
         this.page = page        
@@ -26,9 +29,12 @@ export class Editor {
         this.changeDesignSizeBtn = page.locator('#editorHeader button >> text=Изменить размер')       // Кнопка редактирования размера дизайна
         this.randomTemplateBtn = page.locator('#decorsDrawer button >> text=Случайный шаблон')        // Кнопка Случайного шаблона
         this.deleteBgBtn = page.locator('button >> text=Удалить фон')                                 // Кнопка Удалить Фон
-        this.basketBtn = page.locator('#editorToolbar .defaultPanel_oVC9j button').nth(3)             // Кнопка Корзина
-        this.aiEditorBtn = page.locator('.design-main-toolbar button >> text=ИИ-редактор')            // Кнопка ИИ-редактора
-        this.tokensCountAiEditor = page.locator('.tokens .tokens-count_container_count')              // Счётчик токенов в ИИ-редакторе
+        this.deformationBtn = page.locator('#editorToolbar button:has(g[mask="url(#mask0_17110_5152)"])') // Кнопка Деформации
+        this.eraserBtn = page.locator('#editorToolbar button:has([d="M4.50001 8L11 14.5"])')              // Кнопка Ластика
+        this.basketBtn = page.locator('#editorToolbar .defaultPanel_oVC9j button').nth(3)                 // Кнопка Корзина
+        this.aiEditorBtn = page.locator('#editorToolbar button:has-text("Редактировать")')                // Кнопка ИИ-редактора
+        this.tokensCountAiEditor = page.locator('.tokens .tokens-count_container_count')                  // Счётчик токенов в ИИ-редакторе
+        this.proBanner = page.locator('.dialogWrapper_FVcGt button:has-text("Получить бесплатную пробную версию")') // Баннер тарифа ПРО
 
     }
 
@@ -44,5 +50,20 @@ export class Editor {
         const apiToken = await this.page.waitForResponse('**/api/tokens/balance')
         const apiJson = await apiToken.json()
         return apiJson.monthly_tokens + apiJson.permanent_tokens
+    }
+
+    // Выбор страницы на скачивание
+    choosePageToDownload = async (pageNumber: Number) =>{
+        await this.downloadBtn.click()
+        const allPagesMenu = this.page.locator('button >> text=Все страницы')
+        await allPagesMenu.click()
+        const allPages = this.page.locator('[role="menu"]').nth(1).locator('button >> text=Все страницы')
+        await allPages.click()
+        const currentPage = this.page.locator('[role="menu"]').nth(1).locator(`button:has-text("${pageNumber}")`)
+        await currentPage.click()
+        const doneBtn = this.page.locator('[role="menu"]').nth(1).locator('button').getByText('Готово')
+        await doneBtn.click()
+        const downloadBtn = this.page.locator('.site-story-download__menu').getByRole('button', {name: 'Скачать'})
+        await downloadBtn.click()
     }
 }

@@ -13,13 +13,17 @@ export class LoginPage {
     readonly beginWorkBtn: Locator
     readonly restoreBtn: Locator
     readonly nameInput: Locator
+    readonly loginByPasswordBtn: Locator
+    loginResponse: any
+    meResponse: any
 
     constructor(page: Page){
         this.page = page
         
         this.emailInput = page.locator('input[name="email"]')                             // Инпут электоронной почты
         this.passwordInput = page.locator('input[name="password"]')                       // Инпут пароля
-        this.submitBtn = page.getByRole('button',{name: 'Войти'}).nth(2)                  // Кнопка ВОЙТИ
+        this.submitBtn = page.locator('button[type="submit"]:has-text("Войти")')          // Кнопка ВОЙТИ
+        this.loginByPasswordBtn = page.getByRole('button', {name: 'Войти по паролю'})     // Кнопка входа по паролю
         this.beginWorkBtn = page.locator('button >> text=Начать работу')                  // Кнопка НАЧАТЬ РАБОТУ
         this.restoreBtn = page.locator('.accent--text', {hasText: 'Забыли пароль?'})      // Кнопка ЗАБЫЛИ ПАРОЛЬ?
         this.nameInput = page.locator('input#name')                                       // Инпут имени
@@ -28,11 +32,23 @@ export class LoginPage {
     async login(email: string, password: string) {
         const dashboard = new Dashboard(this.page)
         const mainPage = new MainPage(this.page)
+        // Переход на Мейн
         await this.page.goto('/ru')
+        // Клик по кнопке "Войти"
         await mainPage.logInBtn.click()
+        // Заполнение полей авторизации
+        await this.loginByPasswordBtn.click()
         await this.emailInput.fill(email)
         await this.passwordInput.fill(password)
-        await this.submitBtn.click()
+        // Перехват ответов АПИ "login" и "me"
+        const [responseLogin, responseMe] = await Promise.all([
+            this.page.waitForResponse('**/api/auth/login'),
+            this.page.waitForResponse('**/api/auth/me'),
+            this.submitBtn.click()
+        ])
+        this.loginResponse = await responseLogin.json()
+        this.meResponse = await responseMe.json()
+        // Првоерка отображения кнопки создания дизайна в Дашборде
         await dashboard.createDesignBtn.waitFor({timeout:15000})
         await this.page.waitForURL('/app')
         //await this.page.context().storageState({ path: 'auth.json' });
