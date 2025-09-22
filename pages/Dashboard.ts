@@ -10,6 +10,7 @@ export class Dashboard {
     readonly changeToProBtn: Locator
     readonly aiImage: Locator
     readonly proBanner: Locator
+    readonly templateSearch: Locator
 
     constructor(page: Page){
         this.page = page
@@ -21,6 +22,7 @@ export class Dashboard {
         this.changeToProBtn = page.locator('.drawer-account >> text=Попробовать Flyvi Pro бесплатно')   // Кнопка перехода на тариф PRO
         this.aiImage = page.locator('.ai-generator img[src*="ai-history"]').first()                     // Сгенерированное фото в ии-мастерской
         this.proBanner = page.locator('.dialog-box')                                                    // Банер ПРО-подписки в ии-мастерской
+        this.templateSearch = page.locator('[id="templates-search"]')                           // Инпут поиска по шаблонам
     }
 
     // Получение количества токенов через АПИ

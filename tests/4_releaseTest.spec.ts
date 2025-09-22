@@ -5,6 +5,7 @@ import {Editor} from "../pages/Editor"
 import { timeout } from "../playwright.config"
 import creds from "../auth/creds.json"
 import {Dashboard} from "../pages/Dashboard"
+import { MainPage } from "../pages/MainPage"
 
 
 test.describe('Релизные тесты', ()=>{
@@ -1000,6 +1001,94 @@ test.describe('ОБЩИЕ ПО ЭДИТОРУ', ()=>{
         const errorBanner = page.locator('.Vue-Toastification__container.top-right:has-text("Высота дизайна должна быть")')
         await errorBanner.waitFor()
         await createDesignBtn.waitFor()
+
+        // await page.pause()
+    })
+
+    test('ДАШБОРД. Создание дизайна с ШИРИНОЙ меньше допустимого значения', async({page})=>{
+        const dashboard = new Dashboard(page)
+        // Переход в Дашборд
+        await page.goto('/app')
+        await dashboard.createDesignBtn.waitFor()
+        // Клик по кнопке "Задать свой размер"
+        await page.locator('text=Задать свой размер').click()
+        const widthInput = await page.locator('.resize-dialog input').first()
+        const createDesignBtn = page.locator('.resize-dialog').getByRole('button', {name: "Создать дизайн"})
+        // Ввод в инпут ШИРИНЫ значения меньше допустимого
+        await widthInput.clear()
+        await widthInput.fill('49')
+        // Клик по кнопке "Создать дизайн"
+        await createDesignBtn.click()
+        // Проверка, что появился баннер с ошибкой
+        const errorBanner = page.locator('.Vue-Toastification__container.top-right:has-text("Ширина дизайна должна быть")')
+        await errorBanner.waitFor()
+        await createDesignBtn.waitFor()
+
+        // await page.pause()
+    })
+
+    test('ДАШБОРД. Создание дизайна с ВЫСОТОЙ меньше допустимого значения', async({page})=>{
+        const dashboard = new Dashboard(page)
+        // Переход в Дашборд
+        await page.goto('/app')
+        await dashboard.createDesignBtn.waitFor()
+        // Клик по кнопке "Задать свой размер"
+        await page.locator('text=Задать свой размер').click()
+        const widthInput = await page.locator('.resize-dialog input').nth(1)
+        const createDesignBtn = page.locator('.resize-dialog').getByRole('button', {name: "Создать дизайн"})
+        // Ввод в инпут ВЫСОТЫ значения меньше допустимого
+        await widthInput.clear()
+        await widthInput.fill('49')
+        // Клик по кнопке "Создать дизайн"
+        await createDesignBtn.click()
+        // Проверка, что появился баннер с ошибкой
+        const errorBanner = page.locator('.Vue-Toastification__container.top-right:has-text("Высота дизайна должна быть")')
+        await errorBanner.waitFor()
+        await createDesignBtn.waitFor()
+
+        // await page.pause()
+    })
+
+    test('Дашборд. Поиск по шаблонам', async({page})=>{
+        const dashboard = new Dashboard(page)
+        const prompt = '14 февраля'
+        // Переход в Дашборд
+        await page.goto('/app')
+        // Поиск по шаблонам
+        await dashboard.templateSearch.waitFor()
+        await dashboard.templateSearch.fill(prompt)
+        await page.keyboard.press('Enter')
+        // Проверка, что по запросу нашлись шаблоны
+        const searchResult = page.locator('.header_8GPuj')
+        await searchResult.waitFor()
+        const searchResultPrompt = await searchResult.locator('h2').textContent()
+        const searchResultCount = await searchResult.locator('p').evaluate(el=> parseInt(el.textContent, 10))    
+        // console.log('TEXT', searchResultPrompt);
+        // console.log('NUMBER', searchResultCount);
+        expect(searchResultPrompt).toContain(prompt)
+        expect(searchResultCount).toBeGreaterThan(0)
+
+        // await page.pause()
+    })
+
+    test('Мэйн. Поиск по шаблонам', async({page})=>{        
+        const main = new MainPage(page)
+        const prompt = '14 февраля'
+        // Переход в Дашборд
+        await page.goto('/ru/templates')
+        // Поиск по шаблонам
+        await main.templateSearch.waitFor()
+        await main.templateSearch.fill(prompt)
+        await page.keyboard.press('Enter')
+        // Проверка, что по запросу нашлись шаблоны
+        const searchResult = page.locator('._1gypXs')
+        await searchResult.waitFor()
+        const searchResultPrompt = await searchResult.locator('h2').textContent()
+        const searchResultCount = await searchResult.locator('p').evaluate(el=> parseInt(el.textContent, 10))    
+        // console.log('TEXT', searchResultPrompt);
+        // console.log('NUMBER', searchResultCount);
+        expect(searchResultPrompt).toContain(prompt)
+        expect(searchResultCount).toBeGreaterThan(0)
 
         // await page.pause()
     })
