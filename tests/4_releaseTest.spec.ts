@@ -542,6 +542,50 @@ test.describe('ОБЩИЕ ПО ЭДИТОРУ', ()=>{
     })
     test.use({ storageState: 'auth/auth1.json' });                    // <<<ФАЙЛ С СОХРАНЁННОЙ СЕССИЕЙ PRO>>>
 
+    test('Эдитор. Генерация фото ИИ', async({page})=>{
+        const editor = new Editor(page)
+        await page.goto('/app/designs/61bb153a-ab29-402c-b5c9-0c303fba998b')        
+        await expect(editor.downloadBtn).toBeVisible()                            // Отображение кнопки СКАЧАТЬ ДИЗАНЙ
+        await page.locator('.flyvi-decors-drawer__menu_wrapper >> text=ИИ-мастерская').click() // Открыть меню ИИ-Генератора
+        const balanceResponse = await page.waitForResponse('**/api/tokens/balance')       // Апишка баланса токенов
+        const balance = await balanceResponse.json()
+        // console.log('<<<<BALANCE>>>', balance)
+        await expect(balance.monthly_tokens+balance.permanent_tokens, '<<<НЕДОСТАТОЧНО ТОКЕНОВ - АПИ>>>').toBeGreaterThan(0) 
+        let tokens = page.locator('.tokens-count_container_count')          // Счётчик токенов для генерации
+        const previewImg = page.locator('.images img')                      // Превьюшка первого фото ИИ
+        // const previewImg2 = page.locator('.images img').nth(1)           // Превьюшка второго фото ИИ
+        const genInput = page.locator('textarea')                           // Инпут для промпта
+        const genBtn = page.locator('.neuro-btn >> text=Сгенерировать изображение') // Кнопка генерации ФОТО ИИ
+        const AISize = page.locator('.neuro-settings .v-input__control').nth(1)     // Меню выбора размеров
+        const AIStyle = page.locator('.neuro-settings .styles')                     // Меню выбора стиля генерации           
+        await genInput.fill('Большой ядерный взрыв')                                // Ввод промпта
+        await AISize.click()
+        await page.locator('.v-list-item__title >> text=9:16 (576 x 1024)').click() // Выбор размера генерируемой картинки
+        await AIStyle.click()
+        await page.locator('.styles_item >> text=Энди Уорхол').click()              // Выбор стиля генерируемой картинки
+        await expect(tokens).toBeVisible()
+        let text = await tokens.innerText()       
+        const tokenCounter = parseInt(text)                                         // Счётчик токенов
+        if(tokenCounter < 1) {
+            throw new Error('<<<НЕДОСТАТОЧНО ТОКЕНОВ>>>')}                          // Вылетает ошибка, если токенов осталось меньше 1
+        await expect (genBtn).toBeVisible()                                         // Отображение кнопки начала Генерации
+        await genBtn.click()                                                        // Клик по кнопке ГЕНЕРАЦИИ
+        await previewImg.first().waitFor({ state: "visible", timeout: 13000 })      // Ожидаем появление превьюшек
+        const countImg1 = await page.$$('.images img')
+        await expect (countImg1.length).toEqual(4)
+        const countImg2 = await page.$$eval('.images img', (img) => img.length)
+        await expect (countImg2).toEqual(4)  
+        // await previewImg2.waitFor({ timeout: 13000 })
+        const imgs = page.locator('.images img')
+        const count = await imgs.count()
+        await expect(count).toBe(4)
+        tokens = page.locator('.tokens-count_container_count')
+        text = await tokens.innerText()  
+        const newTokenCounter = parseInt(text)              // Счётчик токенов после генерации
+        await expect(newTokenCounter).toBe(tokenCounter-1)  // Проверка, что токены потратились
+        // await page.pause()
+    })
+
     test('Скачивание дизайна JPG', async ({page})=>{
         const editor = new Editor(page)
 
@@ -1084,12 +1128,116 @@ test.describe('ОБЩИЕ ПО ЭДИТОРУ', ()=>{
         const searchResult = page.locator('._1gypXs')
         await searchResult.waitFor()
         const searchResultPrompt = await searchResult.locator('h2').textContent()
-        const searchResultCount = await searchResult.locator('p').evaluate(el=> parseInt(el.textContent, 10))    
-        // console.log('TEXT', searchResultPrompt);
-        // console.log('NUMBER', searchResultCount);
+        const searchResultCount = await searchResult.locator('p').evaluate(el=> parseInt(el.textContent, 10))
         expect(searchResultPrompt).toContain(prompt)
         expect(searchResultCount).toBeGreaterThan(0)
 
+        // await page.pause()
+    })
+
+    test('Эдитор. Поиск по шаблонам', async ({page})=>{
+        const editor = new Editor(page)
+        // Переход в дизайн
+        await page.goto('/app/designs/61bb153a-ab29-402c-b5c9-0c303fba998b')
+        await editor.changesSavedBtn.waitFor()
+        // Ождиание подгрузки шаблонов в левом меню
+        const templatesList = await page.locator('.content_iAKDM [style*="decors-types/templates/"]')
+        expect(templatesList.nth(0)).toBeVisible({timeout: 10000})        
+        // Поиск по шаблонам
+        const templatesInput = page.getByPlaceholder('Поиск шаблонов')
+        await templatesInput.waitFor()
+        await templatesInput.fill('еда')
+        await page.keyboard.press('Enter')
+        // Проверка, что появились результаты поиска
+        await page.locator('.title_xLixx').first().waitFor({state: "hidden"})
+        const templatesSearch = page.locator('.list_XCx5H [style*="decors-types/templates/"]')
+        await templatesSearch.first().waitFor()
+        const templatesCount = await templatesSearch.count()
+        expect(templatesCount).toBeGreaterThan(0)        
+        
+        // await page.pause()
+    })
+
+    test('Эдитор. Поиск по Фото', async ({page})=>{
+        const editor = new Editor(page)
+        // Переход в дизайн
+        await page.goto('/app/designs/61bb153a-ab29-402c-b5c9-0c303fba998b')
+        await editor.changesSavedBtn.waitFor()
+        await page.locator('[id="decorsDrawer"]').locator('text="Медиа"').click()
+        // Ождиание подгрузки фото в левом меню
+        const folderHeader = page.locator('.title_xLixx:has-text("Недавно использованные")')
+        await folderHeader.waitFor()
+        const photoList = await page.locator('.content_iAKDM [id="item_ELEMENT-0"]:has([style*="decors-types/unsplash/"])')
+        await photoList.nth(0).waitFor()   
+        // Поиск по фото
+        const photoInput = page.getByPlaceholder('Поиск фотографий')
+        await photoInput.waitFor()
+        await photoInput.fill('мама')
+        await page.keyboard.press('Enter')
+        // Проверка, что появились результаты поиска
+        await page.locator('.title_xLixx').first().waitFor({state: "hidden"})
+        const photoSearch = page.locator('[class="preview_AWmZ1"] .v-responsive__content')
+        await photoSearch.first().waitFor()
+        const photoCount = await photoSearch.count()        
+        // Найденных элементов больше 0
+        expect(photoCount).toBeGreaterThan(0)        
+        
+        // await page.pause()
+    })
+
+    test('Эдитор. Поиск по Видео', async ({page})=>{
+        const editor = new Editor(page)
+        // Переход в дизайн
+        await page.goto('/app/designs/61bb153a-ab29-402c-b5c9-0c303fba998b')
+        await editor.changesSavedBtn.waitFor()
+        await page.locator('[id="decorsDrawer"]').locator('text="Медиа"').click()
+        await page.locator('[class="tabs-wrapper"] button:has-text("Видео")').click()        
+        // Ождиание подгрузки видео в левом меню
+        const folderHeader = page.locator('[class="title_xLixx"]').first().getByText('Природа')
+        await folderHeader.waitFor()
+        const pexelList = await page.locator('.category_Wh3UH .v-responsive__content')        
+        await pexelList.nth(0).waitFor()   
+        // Поиск по видео
+        const pexelInput = page.getByPlaceholder('Поиск видео')
+        await pexelInput.waitFor()
+        await pexelInput.fill('мама')
+        await page.keyboard.press('Enter')
+        // Проверка, что появились результаты поиска
+        await page.locator('.title_xLixx').first().waitFor({state: "hidden"})
+        const pexelSearch = page.locator('[class="preview_AWmZ1"] .v-responsive__content')
+        await pexelSearch.first().waitFor()
+        const pexelCount = await pexelSearch.count()        
+        // Найденных элементов больше 0
+        expect(pexelCount).toBeGreaterThan(0)        
+        
+        // await page.pause()
+    })
+
+    test('Эдитор. Поиск по Аудио', async ({page})=>{
+        const editor = new Editor(page)
+        // Переход в дизайн
+        await page.goto('/app/designs/61bb153a-ab29-402c-b5c9-0c303fba998b')
+        await editor.changesSavedBtn.waitFor()
+        await page.locator('[id="decorsDrawer"]').locator('text="Медиа"').click()
+        await page.locator('[class="tabs-wrapper"] button:has-text("Аудио")').click()        
+        // Ождиание подгрузки аудио в левом меню
+        const folderHeader = page.locator('[class="list_on0km"]').getByText('Природа')
+        await folderHeader.waitFor()
+        const audioCover = await page.locator('[class="list_on0km"] img[src*="/cover_preview"]')        
+        await audioCover.first().waitFor()   
+        // Поиск по аудио
+        const audioInput = page.getByPlaceholder('Поиск аудио')
+        await audioInput.waitFor()
+        await audioInput.fill('магия')
+        await page.keyboard.press('Enter')
+        // Проверка, что появились результаты поиска
+        await page.locator('.title_xLixx').first().waitFor({state: "hidden"})        
+        const audioSearch = page.locator('[class="audioList_Uw3TR"] .album-cover:has(img[src*="/cover_preview"])')
+        await audioSearch.first().waitFor()
+        const audioCount = await audioSearch.count()        
+        // Найденных элементов больше 0
+        expect(audioCount).toBeGreaterThan(0)        
+        
         // await page.pause()
     })
 })
