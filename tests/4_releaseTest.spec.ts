@@ -731,14 +731,15 @@ test.describe('ОБЩИЕ ПО ЭДИТОРУ', ()=>{
         const editor = new Editor(page)
         await page.goto('/app/designs/3ba00c33-3def-4599-b474-b5429c86af82')
         await editor.changeDesignSizeBtn.waitFor()
-        await editor.decor.locator('img:not([src*="no-bg"])').last().click({force:true})       // клик по декору на холсте
-        await editor.deleteBgBtn.click()                                                       // Клик по Удалению фона
+        await editor.decor.locator('img[src*="uploads"]').click({force:true})                  // Клик по декору на холсте
+        await editor.deleteBgBtn.click()                                                       // Удаляем фон
         await page.locator('.loading-blur-screen').waitFor({state: 'detached', timeout:10000}) // Ожидание завершения процесса
         const noBgImg = editor.canvas.locator('[src*="no-bg"]')
-        await noBgImg.waitFor({timeout:10000})      // Ждем, пока на холсте не появится фото БЕЗ фона
-        await noBgImg.click({force:true})           // Клик по фото БЕЗ фона
-        await editor.basketBtn.click()              // Удалить это фото
-        await editor.decor.last().click({force:true})
+        await noBgImg.waitFor({timeout:10000})                                                 // Ждем, пока на холсте не появится фото БЕЗ фона
+        const originalImg = page.locator('text="Оригинал"') 
+        await originalImg.click()                                                              // Возвращаем оригинал фото
+        const icon = page.locator('img[src*="icon8-icons"]')
+        await icon.click()                                                                     // Кликаем по иконке на холсте
 
         // await page.pause()
     })
@@ -747,14 +748,15 @@ test.describe('ОБЩИЕ ПО ЭДИТОРУ', ()=>{
         const editor = new Editor(page)
         await page.goto('/app/designs/df8778a4-80bc-41c7-9832-a827bc92439b')
         await editor.changeDesignSizeBtn.waitFor()
-        await editor.decor.locator('img:not([src*="no-bg"])').last().click({force:true})       // клик по декору на холсте
-        await editor.deleteBgBtn.click()                                                       // Клик по Удалению фона
+        await editor.decor.locator('img[src*="ai-text2img"]').click({force:true})              // Клик по декору на холсте
+        await editor.deleteBgBtn.click()                                                       // Удаляем фон
         await page.locator('.loading-blur-screen').waitFor({state: 'detached', timeout:10000}) // Ожидание завершения процесса
         const noBgImg = editor.canvas.locator('[src*="no-bg"]')
-        await noBgImg.waitFor({timeout:10000})      // Ждем, пока на холсте не появится фото БЕЗ фона
-        await noBgImg.click({force:true})           // Клик по фото БЕЗ фона
-        await editor.basketBtn.click()              // Удалить это фото
-        await editor.decor.last().click({force:true})
+        await noBgImg.waitFor({timeout:10000})                                                 // Ждем, пока на холсте не появится фото БЕЗ фона
+        const originalImg = page.locator('text="Оригинал"') 
+        await originalImg.click()                                                              // Возвращаем оригинал фото
+        const icon = page.locator('img[src*="icon8-icons"]')
+        await icon.click()                                                                     // Кликаем по иконке на холсте
 
         // await page.pause()
     })
@@ -763,14 +765,15 @@ test.describe('ОБЩИЕ ПО ЭДИТОРУ', ()=>{
         const editor = new Editor(page)
         await page.goto('/app/designs/c6454766-a526-4c1c-a6e2-35dd47af8812')
         await editor.changeDesignSizeBtn.waitFor()
-        await editor.decor.locator('img:not([src*="no-bg"])').last().click({force:true})       // клик по декору на холсте
-        await editor.deleteBgBtn.click()                                                       // Клик по Удалению фона
+        await editor.decor.locator('img[src*="unsplash"]').click({force:true})                 // Клик по декору на холсте
+        await editor.deleteBgBtn.click()                                                       // Удаляем фон
         await page.locator('.loading-blur-screen').waitFor({state: 'detached', timeout:10000}) // Ожидание завершения процесса
         const noBgImg = editor.canvas.locator('[src*="no-bg"]')
-        await noBgImg.waitFor({timeout:10000})      // Ждем, пока на холсте не появится фото БЕЗ фона
-        await noBgImg.click({force:true})           // Клик по фото БЕЗ фона
-        await editor.basketBtn.click()              // Удалить это фото
-        await editor.decor.last().click({force:true})
+        await noBgImg.waitFor({timeout:10000})                                                 // Ждем, пока на холсте не появится фото БЕЗ фона
+        const originalImg = page.locator('text="Оригинал"') 
+        await originalImg.click()                                                              // Возвращаем оригинал фото
+        const icon = page.locator('img[src*="icon8-icons"]')
+        await icon.click()                                                                     // Кликаем по иконке на холсте
 
         // await page.pause()
     })
@@ -1237,6 +1240,39 @@ test.describe('ОБЩИЕ ПО ЭДИТОРУ', ()=>{
         const audioCount = await audioSearch.count()        
         // Найденных элементов больше 0
         expect(audioCount).toBeGreaterThan(0)        
+        
+        // await page.pause()
+    })
+
+    test('Эдитор. Поиск по Элементам', async ({page})=>{
+        const editor = new Editor(page)
+        // Переход в дизайн
+        await page.goto('/app/designs/61bb153a-ab29-402c-b5c9-0c303fba998b')
+        await editor.changesSavedBtn.waitFor()
+        await page.locator('[id="decorsDrawer"]').locator('text="Элементы"').click()               
+        // Ождиание подгрузки элементов в левом меню
+        const folderHeader = page.locator('[class="category_Wh3UH"]').getByText('Фигуры и линии')
+        await folderHeader.waitFor()        
+        const figureCover = await page.locator('[class="category_Wh3UH"]').first().locator('[class="preview_GXe+p"]')        
+        await figureCover.first().waitFor()         
+        // Поиск по элементам
+        const elementInput = page.getByPlaceholder('Поиск медиа')
+        await elementInput.waitFor()
+        await elementInput.fill('огонь')        
+        // Проверка, что появились результаты поиска
+        await folderHeader.waitFor({state: "hidden"})  
+        const gifFolder = page.locator('[class="category_Wh3UH"]:has-text("Гифки")')
+        await gifFolder.waitFor()
+        const gif = gifFolder.locator('.v-responsive__content')
+        for (let i = 0; i < 3; i++){
+            await expect(gif.nth(i)).toBeVisible()
+        }
+        await page.pause()
+        const elementSearch = page.locator('[class="audioList_Uw3TR"] .album-cover:has(img[src*="/cover_preview"])')
+        await elementSearch.first().waitFor()
+        const elementCount = await elementSearch.count()        
+        // Найденных элементов больше 0
+        expect(elementCount).toBeGreaterThan(0)        
         
         // await page.pause()
     })
