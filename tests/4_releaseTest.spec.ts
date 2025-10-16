@@ -1260,19 +1260,35 @@ test.describe('ОБЩИЕ ПО ЭДИТОРУ', ()=>{
         await elementInput.waitFor()
         await elementInput.fill('огонь')        
         // Проверка, что появились результаты поиска
-        await folderHeader.waitFor({state: "hidden"})  
+        await folderHeader.waitFor({state: "hidden"}) 
+        // Проверка найденных GIF 
         const gifFolder = page.locator('[class="category_Wh3UH"]:has-text("Гифки")')
         await gifFolder.waitFor()
         const gif = gifFolder.locator('.v-responsive__content')
         for (let i = 0; i < 3; i++){
             await expect(gif.nth(i)).toBeVisible()
+        }        
+        // Проверка найденных Элементов 
+        const elementsFolder = page.locator('[class="category_Wh3UH"]:has-text("Элементы")')
+        await elementsFolder.waitFor()
+        const elements = elementsFolder.locator('.v-responsive__content')
+        for (let i = 0; i < 3; i++){
+            await expect(elements.nth(i)).toBeVisible()
         }
-        await page.pause()
-        const elementSearch = page.locator('[class="audioList_Uw3TR"] .album-cover:has(img[src*="/cover_preview"])')
-        await elementSearch.first().waitFor()
-        const elementCount = await elementSearch.count()        
-        // Найденных элементов больше 0
-        expect(elementCount).toBeGreaterThan(0)        
+        // Проверка найденных Иконок 
+        const iconsFolder = page.locator('[class="category_Wh3UH"]:has-text("Элементы")')
+        await iconsFolder.waitFor()
+        const icons = iconsFolder.locator('.v-responsive__content')
+        for (let i = 0; i < 3; i++){
+            await expect(icons.nth(i)).toBeVisible()
+        }
+        // Проверка найденных Иллюстраций 
+        const vectorsFolder = page.locator('[class="category_Wh3UH"]:has-text("Элементы")')
+        await vectorsFolder.waitFor()
+        const vectors = vectorsFolder.locator('.v-responsive__content')
+        for (let i = 0; i < 3; i++){
+            await expect(vectors.nth(i)).toBeVisible()
+        }             
         
         // await page.pause()
     })
