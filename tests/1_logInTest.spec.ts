@@ -5,6 +5,7 @@ import {Editor} from "../pages/Editor"
 import {Dashboard} from "../pages/Dashboard"
 import RegistrationPage from "../pages/RegistrationPage"
 import creds from '../auth/creds.json'
+import auth1 from '../auth/auth1.json'
 
 
 test.describe('Registration', ()=>{
@@ -14,12 +15,7 @@ test.describe('Registration', ()=>{
 
   test('Регистрация по паролю с моком', async({page})=>{
     const register = new RegistrationPage(page)
-    await page.route('**/api/auth/register', async (route, request)=>{
-      // const requestBody = await request.postDataJSON()
-      // Дополнительно можно проверить тело запроса
-      // expect(requestBody.email).toContain('@')
-      // expect(requestBody.password.length).toBeGreaterThan(5)
-
+    await page.route('**/api/auth/register', async route =>{
       await route.fulfill({
         status: 201,
         body: JSON.stringify({
@@ -41,8 +37,57 @@ test.describe('Registration', ()=>{
     // await page.pause()
   })
 
-  test.skip('Регистрация по коду с моком', async ({page})=>{
-    
+  test('Регистрация по коду с моком', async ({page})=>{
+    const register = new RegistrationPage(page)
+    const dashboard = new Dashboard(page)
+    // Мокируем ответ АПИ регистрации
+    await page.route('**/api/register/code', async route => {
+      await route.fulfill({
+        status: 201,
+        contentType: 'application/json',
+        body: JSON.stringify({
+          message: "Ваш аккаунт был создан." 
+        })
+      })
+    })
+    // Мокируем ответ АПИ верификации
+    await page.route('**/api/verify/code', async route => {
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({
+          access_token: auth1.origins[0].localStorage[11].value.slice(7),
+          token_type: "Bearer"
+        })
+      })
+    })
+
+    // Регистрация по коду
+    let mockEmail: string = 'string128128@mail.ru', mockName: string = 'ПО КОДУ'
+    await page.goto('/app/login')
+    await page.locator('text=Зарегистрируйтесь').click()
+    await page.locator('[placeholder="Введите полное имя"]').fill(mockName)
+    await page.locator('[placeholder="Введите адрес электронной почты"]').fill(mockEmail)
+    const [registerResponse] = await Promise.all([
+      page.waitForResponse('**/api/register/code'),
+      register.registrationByCodeBtn.click()          
+    ])
+    // const registerMessage = await response.json()
+    // console.log(registerMessage);
+    const codeInputs = page.locator('.dialog_code')
+    await expect(codeInputs).toBeVisible()
+    for(let i = 0; i < 4; i++) {
+      await codeInputs.locator('input').nth(i).fill('9')
+    }
+    await register.checkBoxTermOfUse.click()
+    const [verifyResponse] = await Promise.all([
+      page.waitForResponse('**/api/verify/code'),
+      register.registrationBtn.click()
+    ])
+    // const verifyMessage = await verifyResponse.json()
+    // console.log(verifyMessage);
+    await dashboard.createDesignBtn.waitFor()
+
     // await page.pause()
   })
 

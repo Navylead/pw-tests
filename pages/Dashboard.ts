@@ -11,11 +11,12 @@ export class Dashboard {
     readonly aiImage: Locator
     readonly proBanner: Locator
     readonly templateSearch: Locator
+    readonly designSearchInput: Locator
 
     constructor(page: Page){
         this.page = page
         this.userLogo = page.locator('.site-header .profile')                                   // Лого юзера
-        this.createDesignBtn = page.locator('.site-header button:has-text("Создать дизайн")')   // Кнопка Создать Дизайн
+        this.createDesignBtn = page.locator('button:has-text("Создать дизайн")')                // Кнопка Создать Дизайн
         this.tokenCount = page.locator('.header .tokens-count_container_count')                 // Счётчик токенов
         this.imgPrompt = page.locator('.ai-generator textarea')                                 // Инпут генерации фото
         this.imgGenerateBtn = page.locator('.ai-generator button >> text=Сгенерировать изображение')    // Кнопка генерации фото
@@ -23,6 +24,7 @@ export class Dashboard {
         this.aiImage = page.locator('.ai-generator img[src*="ai-history"]').first()                     // Сгенерированное фото в ии-мастерской
         this.proBanner = page.locator('.dialog-box')                                                    // Банер ПРО-подписки в ии-мастерской
         this.templateSearch = page.locator('[id="templates-search"]')                           // Инпут поиска по шаблонам
+        this.designSearchInput = page.locator('.story-filter input').first()                    // Инпут поиска по Дизайнам
     }
 
     // Получение количества токенов через АПИ

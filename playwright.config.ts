@@ -1,5 +1,6 @@
 // @ts-check
-const { defineConfig, devices } = require('@playwright/test');
+//const { defineConfig, devices } = require('@playwright/test');
+import { defineConfig,  devices} from "@playwright/test";
 
 /**
  * Read environment variables from file.
@@ -23,7 +24,7 @@ module.exports = defineConfig({
   /* Reporter to use. See https://playwright.dev/docs/test-reporters */
   reporter: 'line',
   /* Shared settings for all the projects below. See https://playwright.dev/docs/api/class-testoptions. */
-  timeout: 60000, // Общий ТАЙМАУТ теста
+  timeout: 30000, // Общий ТАЙМАУТ теста
   use: {
     actionTimeout: 7000, // Устанавливает таймаут 10 секунд для каждой операции (например, клика)
     navigationTimeout: 30000, // Таймаут 30 секунд для переходов на страницы

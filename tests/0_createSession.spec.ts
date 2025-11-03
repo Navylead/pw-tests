@@ -6,7 +6,7 @@ import {Dashboard} from "../pages/Dashboard"
 import {MainPage} from "../pages/MainPage"
 import creds from '../auth/creds.json'
 
-test('Создание сессии для lixexog926*', async ({page}) => {
+test('ПРОД - Создание сессии для lixexog926*', async ({page}) => {
   // Переход на страницу авторизации
   const loginPage = new LoginPage(page)
   await loginPage.login(creds.email1, creds.password1)
@@ -14,7 +14,7 @@ test('Создание сессии для lixexog926*', async ({page}) => {
   await page.context().storageState({ path: 'auth/auth1.json' });  
 })
 
-test('Создание сессии для xedibe9662*', async ({page}) => {
+test('ПРОД - Создание сессии для xedibe9662*', async ({page}) => {
   // Переход на страницу авторизации
   const loginPage = new LoginPage(page)
   await loginPage.login(creds.email3, creds.password3)
@@ -22,7 +22,7 @@ test('Создание сессии для xedibe9662*', async ({page}) => {
   await page.context().storageState({ path: 'auth/auth3.json' });  
 })
 
-test('Создание сессии для brekinbeetle*', async ({page}) => {
+test('ПРОД - Создание сессии для brekinbeetle*', async ({page}) => {
   // Переход на страницу авторизации
   const loginPage = new LoginPage(page)
   await loginPage.login(creds.email2, creds.password2)

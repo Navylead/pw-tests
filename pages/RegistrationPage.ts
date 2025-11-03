@@ -12,6 +12,7 @@ export class RegistrationPage {
     readonly checkBoxTermOfUse: Locator
     readonly registrationBtn: Locator
     readonly registrationByPasswordBtn: Locator
+    readonly registrationByCodeBtn: Locator
 
     constructor(page: Page){
         this.page = page
@@ -21,7 +22,8 @@ export class RegistrationPage {
         this.nameInput = page.locator('input#name')                                                 // Инпут имени
         this.checkBoxTermOfUse = page.locator('.dialog-form div.v-input--selection-controls__ripple').first() // Чекбокс №1
         this.registrationBtn = page.locator('button:has-text("Зарегистрироваться")')                // Кнопка регистрации
-        this.registrationByPasswordBtn = page.getByRole('button', {name: 'Регистрация по паролю'})  // Кнопка регистрации по паролю
+        this.registrationByPasswordBtn = page.getByRole('button', {name: 'Регистрация по паролю'})  // Кнопка регистрации по ПАРОЛЮ
+        this.registrationByCodeBtn = page.getByRole('button', {name: 'Получить код подтверждения'}) // Кнопка регистрации по КОДУ
     }
 
     async register(name: string, email: string, password: string) {
