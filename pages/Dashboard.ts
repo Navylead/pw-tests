@@ -18,10 +18,10 @@ export class Dashboard {
         this.userLogo = page.locator('.site-header .profile')                                   // Лого юзера
         this.createDesignBtn = page.locator('button:has-text("Создать дизайн")')                // Кнопка Создать Дизайн
         this.tokenCount = page.locator('.header .tokens-count_container_count')                 // Счётчик токенов
-        this.imgPrompt = page.locator('.ai-generator textarea')                                 // Инпут генерации фото
-        this.imgGenerateBtn = page.locator('.ai-generator button >> text=Сгенерировать изображение')    // Кнопка генерации фото
+        this.imgPrompt = page.locator('.ai-generator__main textarea')                                   // Инпут генерации фото
+        this.imgGenerateBtn = page.locator('.ai-generator__main button >> text=Сгенерировать изображение')    // Кнопка генерации фото
         this.changeToProBtn = page.locator('.drawer-account >> text=Попробовать Flyvi Pro бесплатно')   // Кнопка перехода на тариф PRO
-        this.aiImage = page.locator('.ai-generator img[src*="ai-history"]').first()                     // Сгенерированное фото в ии-мастерской
+        this.aiImage = page.locator('[class="ai-generator__history"] img[src*="ai-history"]').first()   // Сгенерированное фото в ии-мастерской
         this.proBanner = page.locator('.dialog-box')                                                    // Банер ПРО-подписки в ии-мастерской
         this.templateSearch = page.locator('[id="templates-search"]')                           // Инпут поиска по шаблонам
         this.designSearchInput = page.locator('.story-filter input').first()                    // Инпут поиска по Дизайнам

@@ -473,7 +473,7 @@ test.describe('Тесты премиумности', ()=>{
         // Ждём отображение попапа премиума
         await editor.proBanner.waitFor()      
 
-        // await page.pause()
+        await page.pause()
     })
 
     test('Скачивание премиум-элемента: ЛОГО из Брендбука', async ({page})=>{
@@ -578,6 +578,25 @@ test.describe('Тесты премиумности', ()=>{
         await editor.proBanner.waitFor()
 
         // await page.pause()
+    })
+
+    test('Загрузка фото в редактор сверх лимита', async({page})=>{
+        const editor = new Editor(page)
+        await page.goto('/app/designs/bfa1beaf-4a61-44b1-9596-4cf4cac3b25d')
+        await editor.downloadBtn.waitFor()
+        // Переходим во вкладку Загрузки
+        await page.locator('text="Загрузки"').click()
+        // Кликаем по кнопке "Загрузить медиа"
+        const [fileChooser] = await Promise.all([
+            page.waitForEvent('filechooser'),
+            await editor.uploadMedia.click()
+        ])
+        // Загружаем своё фото
+        await fileChooser.setFiles('tests/resources/test1.jpg')        
+        // Ждём появления попапа премиум-загрузки
+        editor.proBanner.waitFor()
+
+        await page.pause()
     })
 })
 
@@ -957,7 +976,7 @@ test.describe('ОБЩИЕ ПО ЭДИТОРУ', ()=>{
             expect(newCount).toEqual(oldCount-1)
         }).toPass({timeout:10000})
 
-        // await page.pause()
+        await page.pause()
     })
 
     test('ИИ-редактор. Улучшение изображения', async({page})=>{
@@ -1184,7 +1203,7 @@ test.describe('ОБЩИЕ ПО ЭДИТОРУ', ()=>{
         expect(searchResultPrompt).toContain(prompt)
         expect(searchResultCount).toBeGreaterThan(0)
 
-        // await page.pause()
+        await page.pause()
     })
 
     test('Мэйн. Поиск по шаблонам', async({page})=>{        
@@ -1230,7 +1249,7 @@ test.describe('ОБЩИЕ ПО ЭДИТОРУ', ()=>{
         // await notFoundMessage.waitFor({state: "hidden"})
         await expect(notFoundMessage, '<<<Ничего не найдено!!!>>>').not.toBeVisible()
         
-        // await page.pause()
+        await page.pause()
     })
 
     test('Эдитор. Поиск по Фото', async ({page})=>{
@@ -1268,14 +1287,14 @@ test.describe('ОБЩИЕ ПО ЭДИТОРУ', ()=>{
         await page.locator('[id="decorsDrawer"]').locator('text="Медиа"').click()
         await page.locator('[class="tabs-wrapper"] button:has-text("Видео")').click()        
         // Ождиание подгрузки видео в левом меню
-        const folderHeader = page.locator('[class="title_xLixx"]').first().getByText('Природа')
+        const folderHeader = page.locator('[class="title_xLixx"]').getByText('Природа').nth(0)
         await folderHeader.waitFor()
         const pexelList = await page.locator('.category_Wh3UH .v-responsive__content')        
         await pexelList.nth(0).waitFor()   
         // Поиск по видео
         const pexelInput = page.getByPlaceholder('Поиск видео')
         await pexelInput.waitFor()
-        await pexelInput.fill('мама')
+        await pexelInput.fill('катер')
         await page.keyboard.press('Enter')
         // Проверка, что появились результаты поиска
         await page.locator('.title_xLixx').first().waitFor({state: "hidden"})
@@ -1285,7 +1304,7 @@ test.describe('ОБЩИЕ ПО ЭДИТОРУ', ()=>{
         // Найденных элементов больше 0
         expect(pexelCount).toBeGreaterThan(0)        
         
-        // await page.pause()
+        await page.pause()
     })
 
     test('Эдитор. Поиск по Аудио', async ({page})=>{

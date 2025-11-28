@@ -17,6 +17,7 @@ export class Editor {
     readonly deformationBtn: Locator
     readonly eraserBtn: Locator
     readonly proBanner: Locator
+    readonly uploadMedia: Locator
 
     constructor(page: Page){
         this.page = page        
@@ -35,6 +36,7 @@ export class Editor {
         this.aiEditorBtn = page.locator('#editorToolbar button:has-text("Редактировать")')                // Кнопка ИИ-редактора
         this.tokensCountAiEditor = page.locator('.tokens .tokens-count_container_count')                  // Счётчик токенов в ИИ-редакторе
         this.proBanner = page.locator('.dialogWrapper_FVcGt button:has-text("Получить бесплатную пробную версию")') // Баннер тарифа ПРО
+        this.uploadMedia = page.locator('button').getByText('Загрузить медиа')
 
     }
 

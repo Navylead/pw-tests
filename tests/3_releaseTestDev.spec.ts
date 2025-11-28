@@ -58,7 +58,7 @@ test.describe('Тесты премиумности', ()=>{
         await banner.waitFor()
         await banner.locator('button >> text=Получить бесплатную пробную версию').waitFor()   
 
-        // await page.pause()
+        await page.pause()
     })
 
     test('Отображение попапа платной подписки при использовании ии-мастерской на бесплатном тарифе', async ({page})=>{
@@ -586,6 +586,25 @@ test.describe('Тесты премиумности', ()=>{
         await brandbookFolder.locator('circle[fill="#FE8743"]').waitFor()
 
         // await page.pause()
+    })
+
+    test('Загрузка фото в редактор сверх лимита', async({page})=>{
+        const editor = new Editor(page)
+        await page.goto('https://flyvi.dev/app/designs/d4e2daaf-67ef-485f-b782-cf0f2c09bdf6')
+        await editor.downloadBtn.waitFor()
+        // Переходим во вкладку Загрузки
+        await page.locator('text="Загрузки"').click()
+        // Кликаем по кнопке "Загрузить медиа"
+        const [fileChooser] = await Promise.all([
+            page.waitForEvent('filechooser'),
+            await editor.uploadMedia.click()
+        ])
+        // Загружаем своё фото
+        await fileChooser.setFiles('tests/resources/test1.jpg')        
+        // Ждём появления попапа премиум-загрузки
+        editor.proBanner.waitFor()
+
+        await page.pause()
     })
 })
 
