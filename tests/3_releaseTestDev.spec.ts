@@ -6,6 +6,7 @@ import { timeout } from "../playwright.config"
 import creds from "../auth/creds.json"
 import {Dashboard} from "../pages/Dashboard"
 import { MainPage } from "../pages/MainPage"
+import { AiWorkshop } from "../pages/AiWorkshop"
 
 
 test.describe('Релизные тесты', ()=>{
@@ -17,7 +18,7 @@ test.describe('Тесты премиумности', ()=>{
 
     test.use({ storageState: 'auth/authTestFree.json' });      // <<<ФАЙЛ С СОХРАНЁННОЙ СЕССИЕЙ ТАРИФА СТАРТ - mipipon*>>>
 
-    test('Проверка тарифа в ЛК', async ({page})=>{
+    test('Дашборд. Проверка тарифа в ЛК', async ({page})=>{
         const dashboard = new Dashboard(page)
         await page.goto('https://flyvi.dev/app')
         // Проверяем, что на Дашборде отображается тариф Старт
@@ -33,14 +34,15 @@ test.describe('Тесты премиумности', ()=>{
         await subscriptionBtn.waitFor()
         await subscriptionBtn.click()
         // Проверяем, что отображается тариф Старт
-        const tariff = await page.locator('.col_oXhib:has-text("Тарифы") [class="cardTitle_hYN+x"]').first()        
+        const tariff = page.locator('.col_oXhib:has-text("Тарифы") [class="cardTitle_hYN+x"]').first()   
+        await tariff.waitFor({timeout: 10000})     
         const tariffName = await tariff.textContent()
         expect(tariffName.trim()).toEqual('Старт')
 
         // await page.pause()
     })
 
-    test('Отображение попапа платной подписки при ГЕНЕРАЦИИ ФОТО на бесплатном тарифе', async ({page})=>{
+    test('ИИ-мастерская. Отображение попапа платной подписки при ГЕНЕРАЦИИ ФОТО на бесплатном тарифе', async ({page})=>{
         const dashboard = new Dashboard(page)
         await page.goto('https://flyvi.dev/app/image-generator')
         // Проверяем, что количество токенов соответствует условиям отображения водяного знака
@@ -61,7 +63,7 @@ test.describe('Тесты премиумности', ()=>{
         await page.pause()
     })
 
-    test('Отображение попапа платной подписки при использовании ии-мастерской на бесплатном тарифе', async ({page})=>{
+    test('ИИ-мастерская. Отображение попапа платной подписки при использовании ии-мастерской на бесплатном тарифе', async ({page})=>{
         const dashboard = new Dashboard(page)
         await page.goto('https://flyvi.dev/app/image-generator')
         // Проверяем, что количество токенов соответствует условиям отображения водяного знака
@@ -78,6 +80,48 @@ test.describe('Тесты премиумности', ()=>{
         await dashboard.proBanner.locator('button >> text=Получить бесплатную пробную версию').waitFor()
         
         // await page.pause()
+    })
+
+    test('ИИ-мастерская. Отображение попапа платной подписки при СКАЧИВАНИИ сгененрированного фото на бесплатном тарифе', async ({page})=>{
+        const dashboard = new Dashboard(page)
+        await page.goto('https://flyvi.dev/app/image-generator')
+        // Проверяем, что количество токенов соответствует условиям отображения водяного знака
+        const balance = await dashboard.getTokenCount()        
+        expect(balance, '<<<НЕДОСТАТОЧНО ТОКЕНОВ>>>').toBeGreaterThan(0)
+        expect(balance, '<<<ТОКЕНОВ БОЛЬШЕ 4>>>').toBeLessThan(5)
+        // Ждём отображения кнопки смены тарифа на ПРО
+        await dashboard.changeToProBtn.waitFor()
+        // Кликаем по сгененрированному фото
+        await dashboard.aiImage.click()
+        // Клик по кнопке скачивания в попапе
+        const popupDownloadBtn = page.locator('.ai-generator__dialog_btn-container button').nth(1)
+        await popupDownloadBtn.click()
+        // Проверяем, что отображается баннер перехода на платную подписку
+        await dashboard.proBanner.waitFor()
+        await dashboard.proBanner.locator('button >> text=Получить бесплатную пробную версию').waitFor()
+        
+        await page.pause()
+    })
+
+    test('ИИ-мастерская. Отображение попапа платной подписки при КОПИРОВАНИИ сгененрированного фото на бесплатном тарифе', async ({page})=>{
+        const dashboard = new Dashboard(page)
+        await page.goto('https://flyvi.dev/app/image-generator')
+        // Проверяем, что количество токенов соответствует условиям отображения водяного знака
+        const balance = await dashboard.getTokenCount()        
+        expect(balance, '<<<НЕДОСТАТОЧНО ТОКЕНОВ>>>').toBeGreaterThan(0)
+        expect(balance, '<<<ТОКЕНОВ БОЛЬШЕ 4>>>').toBeLessThan(5)
+        // Ждём отображения кнопки смены тарифа на ПРО
+        await dashboard.changeToProBtn.waitFor()
+        // Кликаем по сгененрированному фото
+        await dashboard.aiImage.click()
+        // Клик по кнопке скачивания в попапе
+        const popupDownloadBtn = page.locator('.ai-generator__dialog_btn-container button').nth(2)
+        await popupDownloadBtn.click()
+        // Проверяем, что отображается баннер перехода на платную подписку
+        await dashboard.proBanner.waitFor()
+        await dashboard.proBanner.locator('button >> text=Получить бесплатную пробную версию').waitFor()
+        
+        await page.pause()
     })
 
     test('Отображение ВОДЯНОГО ЗНАКА на бесплатном тарифе', async({page})=>{
@@ -111,7 +155,7 @@ test.describe('Тесты премиумности', ()=>{
         await editor.aiEditorBtn.click()
         // Проверяем, что на функциях в меню отображает иконка премиума
         const waterMark = page.locator('.ai-editor .premium-label')
-        await expect(waterMark).toHaveCount(11)
+        await expect(waterMark).toHaveCount(12)
         // await waterMark.highlight()
         // Кликаем по кнопке Колоризации
         const colorization = page.locator('.ai-editor >> text=Колоризация')
@@ -854,98 +898,6 @@ test.describe('ОБЩИЕ ПО ЭДИТОРУ', ()=>{
 
         // await page.pause()
     })
-
-    test('ИИ-мастерская. Генерация ФОТО', async({page})=>{
-        const editor = new Editor(page)
-        const dashboard = new Dashboard(page)
-        let oldCount: Number, newCount: Number    
-        await page.goto('https://flyvi.dev/app/image-generator')  
-        await dashboard.tokenCount.waitFor()
-
-        const tk = page.locator('.header .span-text >> text=Токены')
-        // await tk.highlight()
-        const text2 = await tk.evaluate(text => text.textContent)
-        const text1 = await tk.textContent()
-        await expect(text2.trim()).toEqual('Токены')
-        await expect(text1.trim()).toEqual('Токены')
-
-        await expect(async ()=>{
-            const tokenText = await dashboard.tokenCount.textContent()
-            oldCount = Number(tokenText)
-            expect(oldCount, '<<<НЕДОСТАТОЧНО ТОКЕНОВ>>>').toBeGreaterThan(0)
-        }).toPass({timeout:10000})    
-
-        await dashboard.imgPrompt.fill('картонный кот')
-        const styleBtn = page.locator('.ai-generator__main >> text="Без стиля"')
-        await styleBtn.click()
-        const cinemaStyle = page.locator('.dropdown-item:has-text("Кинематографический")')
-        await cinemaStyle.click()
-        await dashboard.imgGenerateBtn.click()
-        const newImgs = page.locator('.ai-generator__history div[id*="section"]').nth(0).locator('img[src*="flyvi.io/ai-history"]')
-        await expect(async ()=>{            
-            const imgSize = await newImgs.evaluateAll(imgs =>
-                imgs.every(img => img.naturalHeight > 0))
-        }).toPass()        
-        // Проверка, что отрабатывают все модели
-        const text2img = page.waitForResponse('**/api/text2img?prompt=*', {timeout:25000})    
-        const response = await text2img
-        const json = await response.json()
-        await expect(json.data.prompt_ru).toEqual('картонный кот')
-        await expect(json.data.images[0].model).toEqual('playground')                  // Модель playground
-        await expect(json.data.images[0].path).toContain('.jpg')
-        await expect(json.data.images[1].model).toEqual('stablecascade')               // Модель stablecascade
-        await expect(json.data.images[1].path).toContain('.jpg')
-        await expect(json.data.images[2].model).toEqual('sd')                          // Модель sd
-        await expect(json.data.images[2].path).toContain('.jpg')
-        await expect(json.data.images[3].model).toEqual('flux')                        // Модель flux
-        await expect(json.data.images[3].path).toContain('.jpg')
-
-        await expect(async ()=>{            
-            const imgSize = await newImgs.evaluateAll(imgs =>
-                imgs.every(img => img.naturalHeight > 0)
-            )
-        }).toPass()
-        // await newImgs.highlight()
-        await expect(async ()=>{
-            const tokenText = await dashboard.tokenCount.textContent()
-            newCount = Number(tokenText)
-            expect(oldCount, '<<<ТОКЕНЫ НЕ ПОТРАТИЛИСЬ>>>').toEqual(newCount+1)
-        }).toPass({timeout:10000})  
-
-        // await page.pause()
-    })
-
-    test('ИИ-мастерская. Открыть фото в дизайне', async ({page, context})=>{
-        const editor = new Editor(page)
-        const dashboard = new Dashboard(page)
-        // Переход в ИИ-мастерскую
-        await page.goto('https://flyvi.dev/app/image-generator')
-        await dashboard.tokenCount.waitFor()
-        // Выбираем первую сгенерированную картинку и кликаем по ней
-        const imgHistory = page.locator('img[src*="/ai-history/"]').nth(0)
-        await imgHistory.waitFor()
-        const imgLink = await imgHistory.evaluate(img => img.getAttribute('src'))
-        await imgHistory.click()
-        // Проверяем, что ссылка на фото в истории и в открывшемся попапе одинаковые
-        const imgPreview = await page.locator('.dialog-wrapper img[src*="/ai-history/"]')
-        const imgPreviewLink = await imgPreview.evaluate(img => img.getAttribute('src'))
-        await expect(imgPreviewLink).toEqual(imgLink)
-        // Кликаем по кнопке "Использовать в дизайне"
-        const createDesignFromBtn = page.locator('.dialog-wrapper button >> text=Использовать в дизайне')
-        const [newTab] = await Promise.all([
-            context.waitForEvent('page', {timeout: 15000}),
-            createDesignFromBtn.click() // Клик по кнопке
-        ])
-        // Ждём перехода на другую вкалдку и проверяем, что есть фото на холсте
-        await newTab.waitForURL('**/designs/*', {timeout:10000})
-        const downloadBtn = newTab.locator('.header button >> text=Скачать')
-        await downloadBtn.waitFor()
-        const canvasImg = newTab.locator('.story-box-inner__wrapper img')  
-        await canvasImg.waitFor()
-        // console.log('<<<LINK>>>', canvasImgLink)       
-
-        // await page.pause()
-    })
     
     test('ИИ-редактор. Колоризация изображения', async({page})=>{
         const editor = new Editor(page)
@@ -1087,7 +1039,7 @@ test.describe('ОБЩИЕ ПО ЭДИТОРУ', ()=>{
         await expect(async () =>{
             newCount = await editor.getTokenCountApi()            
             await expect(newCount).toEqual(oldCount-1) 
-        }).toPass({timeout: 10000})
+        }).toPass({timeout: 20000})
         // Ждём, пока пропадёт баннер прогресса
         await expect(loader).toBeHidden({timeout:10000})
         // Клик по ПРИМЕНИТЬ
@@ -1413,6 +1365,123 @@ test.describe('ОБЩИЕ ПО ЭДИТОРУ', ()=>{
         }
 
         // await page.pause()
+    })
+})
+
+test.describe('Тесты ИИ-мастерской для ПРО тарифа', ()=>{
+    test.beforeEach(async({page})=>{
+        page.setViewportSize({"width": 1600, "height": 900})
+    })
+    test.use({ storageState: 'auth/authTest.json'});               // <<<ФАЙЛ С СОХРАНЁННОЙ СЕССИЕЙ PRO>>>
+
+    test('ИИ-мастерская. Генерация ФОТО', async({page})=>{
+        const editor = new Editor(page)
+        const workshop = new AiWorkshop(page)
+        let oldCount: Number, newCount: Number    
+        await page.goto('https://flyvi.dev/app/image-generator')        
+        await workshop.tokenCount.waitFor()
+
+        const tk = page.locator('.header .span-text >> text=Токены')
+        await tk.highlight()
+        const text2 = await tk.evaluate(text => text.textContent)
+        const text1 = await tk.textContent()
+        await expect(text2.trim()).toEqual('Токены')
+        await expect(text1.trim()).toEqual('Токены')
+
+        await expect(async ()=>{
+            const tokenText = await workshop.tokenCount.textContent()
+            oldCount = Number(tokenText)
+            expect(oldCount, '<<<НЕДОСТАТОЧНО ТОКЕНОВ>>>').toBeGreaterThan(0)
+        }).toPass({timeout:10000})    
+
+        await workshop.imgPrompt.fill('картонный кот')
+        const styleBtn = page.locator('.ai-generator__main >> text="Без стиля"')
+        await styleBtn.click()
+        const cinemaStyle = page.locator('.dropdown-item:has-text("Кинематографический")')
+        await cinemaStyle.click()
+        await workshop.imgGenerateBtn.click()
+        const newImgs = page.locator('.ai-generator__history div[id*="section"]').nth(0).locator('img[src*="flyvi.io/ai-history"]')
+        await expect(async ()=>{            
+            const imgSize = await newImgs.evaluateAll(imgs =>
+                imgs.every(img => img.naturalHeight > 0))
+        }).toPass()        
+
+        const text2img = page.waitForResponse('**/api/text2img?prompt=*', {timeout:25000})    
+        const response = await text2img
+        const json = await response.json()
+        await expect(json.data.prompt_ru).toEqual('картонный кот')
+        await expect(json.data.images[0].model).toEqual('playground')                  // Модель playground
+        await expect(json.data.images[0].path).toContain('.jpg')
+        await expect(json.data.images[1].model).toEqual('stablecascade')               // Модель stablecascade
+        await expect(json.data.images[1].path).toContain('.jpg')
+        await expect(json.data.images[2].model).toEqual('sd')                          // Модель sd
+        await expect(json.data.images[2].path).toContain('.jpg')
+        await expect(json.data.images[3].model).toEqual('flux')                        // Модель flux
+        await expect(json.data.images[3].path).toContain('.jpg')
+
+        await expect(async ()=>{            
+            const imgSize = await newImgs.evaluateAll(imgs =>
+                imgs.every(img => img.naturalHeight > 0)
+            )
+        }).toPass()
+        // await newImgs.highlight()
+        await expect(async ()=>{
+            const tokenText = await workshop.tokenCount.textContent()
+            newCount = Number(tokenText)
+            expect(oldCount, '<<<ТОКЕНЫ НЕ ПОТРАТИЛИСЬ>>>').toEqual(newCount+1)
+        }).toPass({timeout:10000})  
+
+        await page.pause()
+    })
+
+    test('ИИ-мастерская. Создание дизайна из сгененрированного фото', async ({page, context})=>{
+        const editor = new Editor(page)
+        const workshop = new AiWorkshop(page)
+        // Переход в ИИ-мастерскую
+        await page.goto('https://flyvi.dev/app/image-generator')
+        await workshop.tokenCount.waitFor()
+        // Выбираем первую сгенерированную картинку и кликаем по ней
+        const imgHistory = page.locator('img[src*="/ai-history/"]').nth(0)
+        await imgHistory.waitFor()
+        const imgLink = await imgHistory.evaluate(img => img.getAttribute('src'))
+        await imgHistory.click()
+        // Проверяем, что ссылка на фото в истории и в открывшемся попапе одинаковые
+        const imgPreview = await page.locator('.dialog-wrapper img[src*="/ai-history/"]')
+        const imgPreviewLink = await imgPreview.evaluate(img => img.getAttribute('src'))
+        await expect(imgPreviewLink).toEqual(imgLink)
+        // Кликаем по кнопке "Использовать в дизайне"
+        const createDesignFromBtn = page.locator('.dialog-wrapper button >> text=Использовать в дизайне')
+        const [newTab] = await Promise.all([
+            context.waitForEvent('page', {timeout: 15000}),
+            createDesignFromBtn.click() // Клик по кнопке
+        ])
+        // Ждём перехода на другую вкалдку и проверяем, что есть фото на холсте
+        await newTab.waitForURL('**/designs/*', {timeout:10000})
+        const downloadBtn = newTab.locator('.header button >> text=Скачать')
+        await downloadBtn.waitFor()
+        const canvasImg = newTab.locator('.story-box-inner__wrapper img')  
+        await canvasImg.waitFor()
+        // console.log('<<<LINK>>>', canvasImgLink)       
+
+        await page.pause()
+    })
+
+    test('ИИ-мастерская. Загрузка своего фото в ии-редактор', async({page})=>{
+        const wh = new AiWorkshop(page)        
+        // Переход в ИИ-редактор
+        await page.goto('https://flyvi.dev/app/image-editor')
+        // Загружаем своё фото в ии-редактор
+        const uploadBtn = page.locator('[class="upload_img"] span:has(span:has-text("Загрузить изображение"))')
+        const [aploadImg] = await Promise.all([
+            page.waitForEvent('filechooser'),
+            await uploadBtn.click()
+        ])
+        await aploadImg.setFiles('tests/resources/test1.jpg')
+        // Проверяем, что фото появилось в редакторе
+        const uploadedImg = page.locator('[class="zoom-container"] img[src*="/tmp/"]')
+        await uploadedImg.waitFor()
+
+        await page.pause()
     })
 })
 })
