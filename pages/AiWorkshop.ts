@@ -19,7 +19,7 @@ export class AiWorkshop {
 
     // Получение количества токенов через АПИ
     getTokenCount = async () =>{
-        const response = await this.page.waitForResponse('**/api/tokens/balance')
+        const response = await this.page.waitForResponse('**/api/tokens/balance', {timeout:20000})
         const balance = await response.json()
         return balance.monthly_tokens + balance.permanent_tokens
     }

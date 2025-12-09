@@ -1477,5 +1477,201 @@ test.describe('Тесты ИИ-мастерской для ПРО тарифа',
 
         await page.pause()
     })
+
+    test('ИИ-мастерская. Удаление фона', async({page})=>{
+        const workshop = new AiWorkshop(page)
+        let oldToken: string, newToken: string
+        let oldImg: string, newImg: string
+        // Переход в ИИ-редактор
+        await page.goto('/app/image-editor')
+        // Проверяем баланс токенов
+        oldToken = await workshop.getTokenCount()
+        expect(oldToken, "<<<НЕДОСТАТОЧНО ТОКЕНОВ>>>").toBeGreaterThan(0)
+        // Загружаем своё фото в ии-редактор
+        const uploadBtn = page.locator('[class="upload_img"] span:has(span:has-text("Загрузить изображение"))')
+        const [aploadImg] = await Promise.all([
+            page.waitForEvent('filechooser'),
+            await uploadBtn.click()
+        ])
+        await aploadImg.setFiles('tests/resources/test1.jpg')
+        // Сохраняем ссылку на первую картинку
+        const uploadedImg = page.locator('[class="zoom-container"] img[src*="/tmp/"]')
+        await uploadedImg.waitFor()
+        oldImg = await uploadedImg.getAttribute('src')
+        // Применяем редактирование
+        newToken = await Promise.all([
+            workshop.getTokenCount(),
+            page.getByText('Удалить фон').click()
+        ])
+        // Проверяем, что токены потратились
+        expect(newToken[0], '<<<Токены не потратились!!!>>>').toEqual(oldToken-1)
+        // Ждём, пока не поменяется картинка
+        await expect(async()=>{
+            newImg = await uploadedImg.getAttribute('src')
+            expect(newImg).not.toEqual(oldImg)
+        }).toPass({timeout: 15000})    
+
+        await page.pause()
+    })
+
+    test('ИИ-мастерская. Удаление водяного знака', async({page})=>{
+        const workshop = new AiWorkshop(page)
+        let oldToken: string, newToken: string
+        let oldImg: string, newImg: string
+        // Переход в ИИ-редактор
+        await page.goto('/app/image-editor')
+        // Проверяем баланс токенов
+        oldToken = await workshop.getTokenCount()
+        expect(oldToken, "<<<НЕДОСТАТОЧНО ТОКЕНОВ>>>").toBeGreaterThan(0)
+        // Загружаем своё фото в ии-редактор
+        const uploadBtn = page.locator('[class="upload_img"] span:has(span:has-text("Загрузить изображение"))')
+        const [aploadImg] = await Promise.all([
+            page.waitForEvent('filechooser'),
+            await uploadBtn.click()
+        ])
+        await aploadImg.setFiles('tests/resources/test1.jpg')
+        // Сохраняем ссылку на первую картинку
+        const uploadedImg = page.locator('[class="zoom-container"] img[src*="/tmp/"]')
+        await uploadedImg.waitFor()
+        oldImg = await uploadedImg.getAttribute('src')
+        // Применяем редактирование
+        newToken = await Promise.all([
+            workshop.getTokenCount(),
+            page.getByText('Удалить водяной знак').click()
+        ])
+        // Проверяем, что токены потратились
+        expect(newToken[0], '<<<Токены не потратились!!!>>>').toEqual(oldToken-1)
+        // Ждём, пока не поменяется картинка картинка
+        await expect(async()=>{
+            newImg = await uploadedImg.getAttribute('src')
+            expect(newImg).not.toEqual(oldImg)
+        }).toPass({timeout: 15000})
+
+        // console.log(oldImg);
+        // console.log(newImg);
+
+        await page.pause()
+    })
+
+    test('ИИ-мастерская. Колоризация', async({page})=>{
+        const workshop = new AiWorkshop(page)
+        let oldToken: string, newToken: string
+        let oldImg: string, newImg: string
+        // Переход в ИИ-редактор
+        await page.goto('/app/image-editor')
+        // Проверяем баланс токенов
+        oldToken = await workshop.getTokenCount()
+        expect(oldToken, "<<<НЕДОСТАТОЧНО ТОКЕНОВ>>>").toBeGreaterThan(0)
+        // Загружаем своё фото в ии-редактор
+        const uploadBtn = page.locator('[class="upload_img"] span:has(span:has-text("Загрузить изображение"))')
+        const [aploadImg] = await Promise.all([
+            page.waitForEvent('filechooser'),
+            await uploadBtn.click()
+        ])
+        await aploadImg.setFiles('tests/resources/test1.jpg')
+        // Сохраняем ссылку на первую картинку
+        const uploadedImg = page.locator('[class="zoom-container"] img[src*="/tmp/"]')
+        await uploadedImg.waitFor()
+        oldImg = await uploadedImg.getAttribute('src')
+        // Применяем редактирование
+        newToken = await Promise.all([
+            workshop.getTokenCount(),
+            page.getByText('Колоризация').click()
+        ])
+        // Проверяем, что токены потратились
+        expect(newToken[0], '<<<Токены не потратились!!!>>>').toEqual(oldToken-1)
+        // Переключаем переключатель ДО/ПОСЛЕ
+        const toggle = page.locator('[class="custom-switch"]')
+        await toggle.isVisible({timeout: 25000})
+        await toggle.click()
+        // Ждём, пока не поменяется картинка картинка
+        await expect(async()=>{
+            newImg = await uploadedImg.getAttribute('src')
+            expect(newImg).not.toEqual(oldImg)
+        }).toPass({timeout: 15000})
+
+        // console.log(oldImg);
+        // console.log(newImg);
+
+        await page.pause()
+    })
+
+    test('ИИ-мастерская. Улучшить изображение', async({page})=>{
+        const workshop = new AiWorkshop(page)
+        let oldToken: string, newToken: string
+        let oldImg: string, newImg: string
+        // Переход в ИИ-редактор
+        await page.goto('/app/image-editor')
+        // Проверяем баланс токенов
+        oldToken = await workshop.getTokenCount()
+        expect(oldToken, "<<<НЕДОСТАТОЧНО ТОКЕНОВ>>>").toBeGreaterThan(0)
+        // Загружаем своё фото в ии-редактор
+        const uploadBtn = page.locator('[class="upload_img"] span:has(span:has-text("Загрузить изображение"))')
+        const [aploadImg] = await Promise.all([
+            page.waitForEvent('filechooser'),
+            await uploadBtn.click()
+        ])
+        await aploadImg.setFiles('tests/resources/test1.jpg')
+        // Сохраняем ссылку на первую картинку
+        const uploadedImg = page.locator('[class="zoom-container"] img[src*="/tmp/"]')
+        await uploadedImg.waitFor()
+        oldImg = await uploadedImg.getAttribute('src')
+        // Применяем редактирование
+        newToken = await Promise.all([
+            workshop.getTokenCount(),
+            page.getByText('Улучшить изображение').click()
+        ])
+        // Проверяем, что токены потратились
+        expect(newToken[0], '<<<Токены не потратились!!!>>>').toEqual(oldToken-1)
+        // Переключаем переключатель ДО/ПОСЛЕ
+        const toggle = page.locator('[class="custom-switch"]')
+        await toggle.isVisible({timeout: 25000})
+        await toggle.click()
+        // Ждём, пока не поменяется картинка картинка
+        await expect(async()=>{
+            newImg = await uploadedImg.getAttribute('src')
+            expect(newImg).not.toEqual(oldImg)
+        }).toPass({timeout: 15000})
+
+        await page.pause()
+    })
+
+    test('ИИ-мастерская. Изменить изображение', async({page})=>{
+        const workshop = new AiWorkshop(page)
+        let oldToken: string, newToken: string
+        let oldImg: string, newImg: string
+        // Переход в ИИ-редактор
+        await page.goto('/app/image-editor')
+        // Проверяем баланс токенов
+        oldToken = await workshop.getTokenCount()
+        expect(oldToken, "<<<НЕДОСТАТОЧНО ТОКЕНОВ>>>").toBeGreaterThan(0)
+        // Загружаем своё фото в ии-редактор
+        const uploadBtn = page.locator('[class="upload_img"] span:has(span:has-text("Загрузить изображение"))')
+        const [aploadImg] = await Promise.all([
+            page.waitForEvent('filechooser'),
+            await uploadBtn.click()
+        ])
+        await aploadImg.setFiles('tests/resources/test1.jpg')
+        // Сохраняем ссылку на первую картинку
+        const uploadedImg = page.locator('[class="zoom-container"] img[src*="/tmp/"]')
+        await uploadedImg.waitFor()
+        oldImg = await uploadedImg.getAttribute('src')
+        // Переходим в меню инструмента
+        await page.getByText('Изменить изображение').click()
+        await page.getByPlaceholder('Введите текст запроса').fill('Добавь солнечные очки')
+        // Применяем редактирование
+        newToken = await Promise.all([
+            workshop.getTokenCount({timeout: 25000}),
+            await page.getByRole('button', {name: "Изменить изображение"}).click()
+        ])
+        expect(newToken[0], '<<<Токены не потратились!!!>>>').toEqual(oldToken-1)
+        // Ждём, пока не поменяется картинка
+        await expect(async()=>{
+            newImg = await uploadedImg.getAttribute('src')
+            expect(newImg).not.toEqual(oldImg)
+        }).toPass({timeout: 15000})
+
+        await page.pause()        
+    })
 })
 })
