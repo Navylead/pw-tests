@@ -28,7 +28,7 @@ export class Editor {
         this.changesSavedBtn = page.locator('header button >> text=Изменения сохранены')    // Кнопка Изменения сохранены
         this.continueBtn = page.locator('.dialog-wrapper button >> text = Продолжить редактирование') // Кнопка Продолжить редактирование
         this.changeDesignSizeBtn = page.locator('#editorHeader button >> text=Изменить размер')       // Кнопка редактирования размера дизайна
-        this.randomTemplateBtn = page.locator('#decorsDrawer button >> text=Случайный шаблон')        // Кнопка Случайного шаблона
+        this.randomTemplateBtn = page.getByRole('button', {name: "Случайный шаблон"})                 // Кнопка Случайного шаблона
         this.deleteBgBtn = page.locator('button >> text=Удалить фон')                                 // Кнопка Удалить Фон
         this.deformationBtn = page.locator('#editorToolbar button:has(g[mask="url(#mask0_17110_5152)"])') // Кнопка Деформации
         this.eraserBtn = page.locator('#editorToolbar button:has([d="M4.50001 8L11 14.5"])')              // Кнопка Ластика
@@ -67,5 +67,12 @@ export class Editor {
         await doneBtn.click()
         const downloadBtn = this.page.locator('.site-story-download__menu').getByRole('button', {name: 'Скачать'})
         await downloadBtn.click()
+    }
+
+    // Проверка попапа скачивания дизайна
+    downloadPopup = async() =>{
+        const downloadPopup = this.page.locator('[class="dialog-wrapper"]')
+        await downloadPopup.waitFor({timeout: 15000})
+        await downloadPopup.locator('button:has-text("Отменить")')       
     }
 }

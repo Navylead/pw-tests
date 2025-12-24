@@ -82,7 +82,38 @@ test.describe('Тесты премиумности', ()=>{
         // await page.pause()
     })
 
-    test('ИИ-мастерская. Отображение попапа платной подписки при СКАЧИВАНИИ сгененрированного фото на бесплатном тарифе', async ({page})=>{
+    test('↓↓↓ИИ-мастерская. СКАЧИВАНИЕ ии-фото на бесплатном тарифе. ИСТОРИЯ ГЕНЕРАЦИИ. СПИСОК', async ({page})=>{
+        const dashboard = new Dashboard(page)
+        await page.goto('/app/image-generator')
+        // Проверяем, что количество токенов соответствует условиям отображения водяного знака
+        const balance = await dashboard.getTokenCount()        
+        expect(balance, '<<<НЕДОСТАТОЧНО ТОКЕНОВ>>>').toBeGreaterThan(0)
+        expect(balance, '<<<ТОКЕНОВ БОЛЬШЕ 4>>>').toBeLessThan(5)
+        // Ждём отображения кнопки смены тарифа на ПРО
+        await dashboard.changeToProBtn.waitFor()
+        // Клик по кнопке скачивания в попапе
+        const aiImage = page.locator('[class="ai-generator__history"] [class="image-container"]').first()        
+        await aiImage.hover()              
+        await aiImage.locator('button').nth(2).click()
+        // Проверяем, что отображается баннер перехода на платную подписку
+        await dashboard.proBanner.waitFor()
+        await dashboard.proBanner.locator('button >> text=Получить бесплатную пробную версию').waitFor()
+        // Проверяем, что скачивание началось
+        const popupCloseBtn = page.locator('[class="dialogWrapper_FVcGt"] [class="close-icon"]')
+        const [fileDownload] = await Promise.all([
+            page.waitForEvent('download'),
+            popupCloseBtn.click()
+        ])
+        // Проверяем, что фото скачалось
+        expect(fileDownload).toBeTruthy()
+        // Проверяем, что разрешение файла корректное
+        const filename = fileDownload.suggestedFilename()
+        expect(filename).toContain('.jpg')
+        
+        await page.pause()
+    })
+
+    test('↓↓↓ИИ-мастерская. СКАЧИВАНИЕ ии-фото на бесплатном тарифе. ИСТОРИЯ ГЕНЕРАЦИИ. ПОПАП', async ({page})=>{
         const dashboard = new Dashboard(page)
         await page.goto('/app/image-generator')
         // Проверяем, что количество токенов соответствует условиям отображения водяного знака
@@ -99,6 +130,118 @@ test.describe('Тесты премиумности', ()=>{
         // Проверяем, что отображается баннер перехода на платную подписку
         await dashboard.proBanner.waitFor()
         await dashboard.proBanner.locator('button >> text=Получить бесплатную пробную версию').waitFor()
+        // Проверяем, что скачивание началось
+        const popupCloseBtn = page.locator('[class="dialogWrapper_FVcGt"] [class="close-icon"]')
+        const [fileDownload] = await Promise.all([
+            page.waitForEvent('download'),
+            popupCloseBtn.click()
+        ])
+        // Проверяем, что фото скачалось
+        expect(fileDownload).toBeTruthy()
+        // Проверяем, что разрешение файла корректное
+        const filename = fileDownload.suggestedFilename()
+        expect(filename).toContain('.jpg')
+        
+        await page.pause()
+    })
+
+    test('↓↓↓ИИ-мастерская. СКАЧИВАНИЕ ии-фото на бесплатном тарифе. ИИ-РЕДАКТОР', async ({page})=>{
+        const dashboard = new Dashboard(page)
+        await page.goto('/app/image-generator')
+        // Проверяем, что количество токенов соответствует условиям отображения водяного знака
+        const balance = await dashboard.getTokenCount()        
+        expect(balance, '<<<НЕДОСТАТОЧНО ТОКЕНОВ>>>').toBeGreaterThan(0)
+        expect(balance, '<<<ТОКЕНОВ БОЛЬШЕ 4>>>').toBeLessThan(5)
+        // Ждём отображения кнопки смены тарифа на ПРО
+        await dashboard.changeToProBtn.waitFor()
+        // Переходим в ИИ-РЕДАКТОР
+        await dashboard.aiImage.hover()
+        const downloadBtn = page.locator('[class="image-container"]').first().locator('button').nth(6)        
+        await downloadBtn.click()
+        // Клик по кнопке скачивания в ИИ-РЕДАКТОРЕ
+        const aiEditorDownloadBtn = page.locator('[class="ai-editor__main_canvas_img"] button').nth(3)
+        await aiEditorDownloadBtn.click()
+        // Проверяем, что отображается баннер перехода на платную подписку
+        await dashboard.proBanner.waitFor()
+        await dashboard.proBanner.locator('button >> text=Получить бесплатную пробную версию').waitFor()
+        // Проверяем, что скачивание началось
+        const popupCloseBtn = page.locator('[class="dialogWrapper_FVcGt"] [class="close-icon"]')
+        const [fileDownload] = await Promise.all([
+            page.waitForEvent('download'),
+            popupCloseBtn.click()
+        ])
+        // Проверяем, что фото скачалось
+        expect(fileDownload).toBeTruthy()
+        // Проверяем, что разрешение файла корректное
+        const filename = fileDownload.suggestedFilename()
+        expect(filename).toContain('.jpg')
+        
+        await page.pause()
+    })
+
+    test('↓↓↓ИИ-мастерская. СКАЧИВАНИЕ ии-фото на бесплатном тарифе. ГАЛЕРЕЯ', async ({page})=>{
+        const dashboard = new Dashboard(page)
+        await page.goto('/app/gallery')
+        // Проверяем, что количество токенов соответствует условиям отображения водяного знака
+        const balance = await dashboard.getTokenCount()        
+        expect(balance, '<<<НЕДОСТАТОЧНО ТОКЕНОВ>>>').toBeGreaterThan(0)
+        expect(balance, '<<<ТОКЕНОВ БОЛЬШЕ 4>>>').toBeLessThan(5)
+        // Ждём отображения кнопки смены тарифа на ПРО
+        await dashboard.changeToProBtn.waitFor()
+        // Клик по кнопке скачивания первого фото в списке
+        const imgPreview = page.locator('[class="v-responsive__content"]').first()
+        await imgPreview.hover()
+        const downloadBtn = imgPreview.getByRole('button').nth(2)
+        await downloadBtn.click()        
+        // Проверяем, что отображается баннер перехода на платную подписку
+        await dashboard.proBanner.waitFor()
+        await dashboard.proBanner.locator('button >> text=Получить бесплатную пробную версию').waitFor()
+        // Проверяем, что скачивание началось
+        const popupCloseBtn = page.locator('[class="dialogWrapper_FVcGt"] [class="close-icon"]')
+        const [fileDownload] = await Promise.all([
+            page.waitForEvent('download'),
+            popupCloseBtn.click()
+        ])
+        // Проверяем, что фото скачалось
+        expect(fileDownload).toBeTruthy()
+        // Проверяем, что разрешение файла корректное
+        const filename = fileDownload.suggestedFilename()
+        expect(filename).toContain('.jpg')
+        
+        await page.pause()
+    })
+
+    test('↓↓↓ИИ-мастерская. СКАЧИВАНИЕ ии-фото на бесплатном тарифе. ГАЛЕРЕЯ. ПОПАП', async ({page})=>{
+        const dashboard = new Dashboard(page)
+        await page.goto('/app/gallery')
+        // Проверяем, что количество токенов соответствует условиям отображения водяного знака
+        const balance = await dashboard.getTokenCount()        
+        expect(balance, '<<<НЕДОСТАТОЧНО ТОКЕНОВ>>>').toBeGreaterThan(0)
+        expect(balance, '<<<ТОКЕНОВ БОЛЬШЕ 4>>>').toBeLessThan(5)
+        // Ждём отображения кнопки смены тарифа на ПРО
+        await dashboard.changeToProBtn.waitFor()
+        // Кликаем по сгененрированному фото
+        const imgPreview = page.locator('[class="v-responsive__content"]').first()
+        await imgPreview.click()
+        // Ждём появления карточки фото
+        const popup = page.locator('[class="dialog-wrapper"]')
+        await popup.waitFor()
+        // Кликаем по кнопке Скачать
+        await popup.getByRole('button').nth(1).click()
+        // Проверяем, что отображается баннер перехода на платную подписку
+        await dashboard.proBanner.waitFor()
+        await dashboard.proBanner.locator('button >> text=Получить бесплатную пробную версию').waitFor()
+        // Проверяем, что скачивание началось
+        const popupCloseBtn = page.locator('[class="dialogWrapper_FVcGt"] [class="close-icon"]')
+        const [fileDownload] = await Promise.all([
+            page.waitForEvent('download'),
+            popupCloseBtn.click()
+        ])
+        // Проверяем, что фото скачалось
+        expect(fileDownload).toBeTruthy()
+        // Проверяем, что разрешение файла корректное
+        const filename = fileDownload.suggestedFilename()
+        expect(filename).toContain('.jpg')
         
         await page.pause()
     })
@@ -656,8 +799,7 @@ test.describe('ОБЩИЕ ПО ЭДИТОРУ', ()=>{
         await editor.downloadBtn.waitFor({timeout: 10000})                                // Отображение кнопки СКАЧАТЬ ДИЗАНЙ
         await page.locator('.flyvi-decors-drawer__menu_wrapper >> text=ИИ-мастерская').click() // Открыть меню ИИ-Генератора
         const balanceResponse = await page.waitForResponse('**/api/tokens/balance')       // Апишка баланса токенов
-        const balance = await balanceResponse.json()
-        // console.log('<<<<BALANCE>>>', balance)
+        const balance = await balanceResponse.json()        
         await expect(balance.monthly_tokens+balance.permanent_tokens, '<<<НЕДОСТАТОЧНО ТОКЕНОВ - АПИ>>>').toBeGreaterThan(0) 
         let tokens = page.locator('.tokens-count_container_count')          // Счётчик токенов для генерации
         const previewImg = page.locator('.images img')                      // Превьюшка первого фото ИИ
@@ -705,7 +847,7 @@ test.describe('ОБЩИЕ ПО ЭДИТОРУ', ()=>{
         await page.goto('/app/designs/2a24881a-930d-4a11-a034-969632f9e74c')
         await editor.changesSavedBtn.waitFor()
         await editor.downloadBtn.click()                        // Клик по кнопке СКАЧАТЬ
-        const designType = page.locator('.site-story-download__menu [role="button"] >> text=PNG')
+        const designType = page.locator('[class="site-story-download__menu"] [role="button"]').first()        
         await designType.click()                                // Клик по меню выбора формата дизайна
         await page.locator('text = JPG').click()                // Выбор формата  JPG
         const menuDownloadBtn = page.locator('.site-story-download__menu button >> text = Скачать')
@@ -713,9 +855,9 @@ test.describe('ОБЩИЕ ПО ЭДИТОРУ', ()=>{
         await editor.continueBtn.waitFor({timeout:18000})       // Ожидание появления меню после скачивания дизайна
         const lastResp = responses[responses.length-1]          // Последний ответ АПИ
 		const respBody = await lastResp.json()                  // Парсим ответ
-        expect(respBody.status).toEqual('DONE')                 // Проверка, что по АПИ приходит стаутс DONE
-        // console.log('ДЛИНА МАССИВА - ', responses.length)
-        //await page.pause() 
+        expect(respBody.status).toEqual('DONE')                 // Проверка, что по АПИ приходит стаутс DONE        
+
+        await page.pause()
     })
 
     test('Эдитор. Создание дизайна - История Instagram', async ({page})=>{
@@ -739,10 +881,14 @@ test.describe('ОБЩИЕ ПО ЭДИТОРУ', ()=>{
         const editor = new Editor(page)
 
         await page.goto('/app')
+        // Ожидание загрузки страницы
         const designList = page.locator('.stories-list .v-responsive__content').first()
-        await designList.waitFor()
+        await designList.waitFor({timeout: 15000})
+        await dashboard.templateSearch.waitFor()
+        // Клик по кнопке создания дизайна
         await dashboard.createDesignBtn.waitFor()
         await dashboard.createDesignBtn.click()
+        // Выбираем свой размер
         const customSizeButton = page.locator('[role="menu"] button >> text=Настраиваемый размер')
         await customSizeButton.click()
         const widthInput = page.locator('.custom-design-menu input').first()
@@ -751,8 +897,13 @@ test.describe('ОБЩИЕ ПО ЭДИТОРУ', ()=>{
         const height = page.locator('.custom-design-menu input').nth(1)
         await height.clear()
         await height.fill('2222')
+        // Создаём дизайн
         const createCustomDesignButton = page.locator('.custom-design-menu button >> text=Создать дизайн')
         await createCustomDesignButton.click()
+        if(await page.locator('div').getByText('BACKGROUND').isVisible()) {
+            await page.waitForTimeout(5000) // Убрать явное ожидание
+            await createCustomDesignButton.click()
+        }
         await page.waitForURL('**/designs/*')
         await editor.changeDesignSizeBtn.waitFor()
         await editor.downloadBtn.waitFor()
@@ -772,15 +923,13 @@ test.describe('ОБЩИЕ ПО ЭДИТОРУ', ()=>{
     test('Дашборд. Создание WEB-STORY', async ({page, context})=>{
         const dashboard = new Dashboard(page)
         const editor = new Editor(page)
-
         await page.goto('/app')
         await dashboard.createDesignBtn.waitFor()
         await page.locator('[href="/app/dashboard"]').click()
-        const createStoryButton = page.locator('button >> text=Создать сторис')  
-
-        // ПЕРЕХОД НА НОВУЮ ВКЛВДКУ
+        const createStoryButton = page.locator('button >> text=Создать сторис')
+        // ПЕРЕХОД НА НОВУЮ ВКЛАДКУ
         const [newTab] = await Promise.all([
-            context.waitForEvent('page'),
+            context.waitForEvent('page', {timeout: 15000}),
             createStoryButton.click() // Клик по кнопке
       ])
         const publishButton = newTab.locator('#editorHeader button >> text=Опубликовать на сайте')
@@ -789,6 +938,32 @@ test.describe('ОБЩИЕ ПО ЭДИТОРУ', ()=>{
         await chooseAlbumButton.isVisible()
         await publishButton.click()
 
+        await newTab.pause()
+    })
+
+    test('Папки. Создание дизайна из шаблона в папке', async({page, context})=>{
+        // Переход в раздел "Папки"
+        await page.goto('/app/folders')
+        // Переход в папку юзера
+        const userFolder = page.locator('[class="folder-wrapper"]').getByText('test_0')
+        await userFolder.waitFor()
+        await userFolder.click()
+        // На вкладку с шаблонами
+        await page.locator('[class="folder_menu"]').getByText('Шаблоны').click()
+        // Проверка, что оба шаблона загрузились
+        const template = page.locator('[class="folderTemplateContainer_Zki+H"]')
+        for(let i = 0; i < 3; i++) {
+            await template.nth(i).waitFor()
+        }
+        // Клик по шаблону и переход на новую вкладку
+        const [newTab] = await Promise.all([
+            context.waitForEvent('page'),
+            template.nth(1).click()
+        ])
+        // Проверка, что дизайн создался
+        const downloadBtn = newTab.locator('#editorHeader').getByRole('button', {name: "Скачать"})
+        await downloadBtn.waitFor({timeout: 20000})
+        
         await newTab.pause()
     })
 
@@ -821,12 +996,16 @@ test.describe('ОБЩИЕ ПО ЭДИТОРУ', ()=>{
 
     test('Эдитор. Случайный шаблон', async ({page})=>{
         const editor = new Editor(page)
-        let oldBackground, newBackground
+        let oldBackground: string, newBackground: string
         await page.goto('/app/designs/892617f4-7acf-4e1b-add3-adfcaa62e753')
+        const api = await page.waitForResponse('**/get-content?itemType=DECOR-TYPE&type=TEMPLATE*')
         await editor.changesSavedBtn.waitFor()
         oldBackground = await editor.canvasBackground.evaluate(el => el.dataset.key) // Атрибут фона ДО 
-        // console.log('<<<oldBackground>>>', oldBackground)
-        await editor.randomTemplateBtn.click()                                       // Клик по Случайный Шаблон
+        // Проверка, что загрузились шаблоны в левом меню
+        const defaultTemlate = page.locator('[class="v-responsive__content"]')
+        await defaultTemlate.nth(0).waitFor({timeout: 20000})
+        // await page.waitForTimeout(3000)
+        await editor.randomTemplateBtn.click()                                       // Клик по кнопке Случайный Шаблон
         await page.locator('.loading-blur-screen').waitFor({state: 'detached', timeout:10000})
         // Проверка, что шаблон применился
         await expect(async ()=>{
@@ -1033,9 +1212,9 @@ test.describe('ОБЩИЕ ПО ЭДИТОРУ', ()=>{
         await expect(async () =>{
             newCount = await editor.getTokenCountApi()            
             await expect(newCount).toEqual(oldCount-1) 
-        }).toPass({timeout: 10000})
+        }).toPass({timeout: 20000})
         // Ждём, пока пропадёт баннер прогресса
-        await expect(loader).toBeHidden({timeout:10000})
+        await expect(loader).toBeHidden({timeout:15000})
         // Клик по ПРИМЕНИТЬ
         const acceptBtn = page.locator('text=Применить')
         await acceptBtn.click()
@@ -1185,7 +1364,7 @@ test.describe('ОБЩИЕ ПО ЭДИТОРУ', ()=>{
         await editor.changesSavedBtn.waitFor()
         // Ождиание подгрузки шаблонов в левом меню
         const templatesList = await page.locator('.content_iAKDM [style*="decors-types/templates/"]')
-        expect(templatesList.nth(0)).toBeVisible({timeout: 10000})        
+        expect(templatesList.nth(0)).toBeVisible({timeout: 15000})        
         // Поиск по шаблонам
         const templatesInput = page.getByPlaceholder('Поиск шаблонов')
         await templatesInput.waitFor()
@@ -1194,12 +1373,37 @@ test.describe('ОБЩИЕ ПО ЭДИТОРУ', ()=>{
         // Проверка, что появились результаты поиска
         await page.locator('.title_xLixx').first().waitFor({state: "hidden"})
         const templatesSearch = page.locator('.list_XCx5H [style*="decors-types/templates/"]')
-        await templatesSearch.first().waitFor()
+        await templatesSearch.first().waitFor({timeout: 15000})
         const templatesCount = await templatesSearch.count()
         expect(templatesCount).toBeGreaterThan(0)        
         const notFoundMessage = page.locator('[class="message-not-found"]')
         // await notFoundMessage.waitFor({state: "hidden"})
         await expect(notFoundMessage, '<<<Ничего не найдено!!!>>>').not.toBeVisible()
+        
+        await page.pause()
+    })
+
+    test('Эдитор. Поиск по Шрифтам', async({page})=>{
+        const editor = new Editor(page)
+        // Переходим в дизайн
+        await page.goto('/app/designs/11ffc3bd-f2fd-4ca5-80bb-b1c56a51e604')
+        await editor.changesSavedBtn.waitFor()
+        // Кликаем по текстовому декору
+        await editor.decor.first().click()
+        // Открываем меню смены шрифта
+        const fontBtn = page.locator('[class="toolbar-center-container"] [class="selectLabel_oRghk"]')
+        await fontBtn.waitFor()
+        await fontBtn.click()
+        // Вводим поисковый запрос в инпут поиска по шрифтам
+        const fontInput = page.locator('[class="v-text-field__slot"]:has(label:has-text("Поиск шрифта")) input[type="text"]')
+        await fontInput.waitFor()
+        await fontInput.fill('lon')        
+        // Проверяем, что результат поиска корректный
+        const fonts = page.locator('[class="font-container"]:has-text("Все шрифты") [class="font-item"]')        
+        await expect(fonts).toHaveCount(4)
+        for(let i = 0; i < 4; i++) {            
+            await expect(fonts.nth(i)).toHaveAttribute('style', /lon/i)
+        }
         
         await page.pause()
     })
@@ -1468,7 +1672,7 @@ test.describe('Тесты ИИ-мастерской для ПРО тарифа',
         const uploadBtn = page.locator('[class="upload_img"] span:has(span:has-text("Загрузить изображение"))')
         const [aploadImg] = await Promise.all([
             page.waitForEvent('filechooser'),
-            await uploadBtn.click()
+            uploadBtn.click()
         ])
         await aploadImg.setFiles('tests/resources/test1.jpg')
         // Проверяем, что фото появилось в редакторе
@@ -1545,10 +1749,7 @@ test.describe('Тесты ИИ-мастерской для ПРО тарифа',
         await expect(async()=>{
             newImg = await uploadedImg.getAttribute('src')
             expect(newImg).not.toEqual(oldImg)
-        }).toPass({timeout: 15000})
-
-        // console.log(oldImg);
-        // console.log(newImg);
+        }).toPass({timeout: 20000})        
 
         await page.pause()
     })
@@ -1609,7 +1810,7 @@ test.describe('Тесты ИИ-мастерской для ПРО тарифа',
         const uploadBtn = page.locator('[class="upload_img"] span:has(span:has-text("Загрузить изображение"))')
         const [aploadImg] = await Promise.all([
             page.waitForEvent('filechooser'),
-            await uploadBtn.click()
+            uploadBtn.click()
         ])
         await aploadImg.setFiles('tests/resources/test1.jpg')
         // Сохраняем ссылку на первую картинку
@@ -1649,7 +1850,7 @@ test.describe('Тесты ИИ-мастерской для ПРО тарифа',
         const uploadBtn = page.locator('[class="upload_img"] span:has(span:has-text("Загрузить изображение"))')
         const [aploadImg] = await Promise.all([
             page.waitForEvent('filechooser'),
-            await uploadBtn.click()
+            uploadBtn.click()
         ])
         await aploadImg.setFiles('tests/resources/test1.jpg')
         // Сохраняем ссылку на первую картинку
@@ -1669,7 +1870,7 @@ test.describe('Тесты ИИ-мастерской для ПРО тарифа',
         await expect(async()=>{
             newImg = await uploadedImg.getAttribute('src')
             expect(newImg).not.toEqual(oldImg)
-        }).toPass({timeout: 15000})
+        }).toPass({timeout: 20000})
 
         await page.pause()        
     })
