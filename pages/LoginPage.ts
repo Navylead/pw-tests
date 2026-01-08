@@ -37,6 +37,7 @@ export class LoginPage {
         // Клик по кнопке "Войти"
         await mainPage.logInBtn.click()
         // Заполнение полей авторизации
+        await this.loginByPasswordBtn.waitFor({timeout: 30000})
         await this.loginByPasswordBtn.click()
         await this.emailInput.fill(email)
         await this.passwordInput.fill(password)
@@ -49,7 +50,7 @@ export class LoginPage {
         this.loginResponse = await responseLogin.json()
         this.meResponse = await responseMe.json()
         // Првоерка отображения кнопки создания дизайна в Дашборде
-        await dashboard.createDesignBtn.waitFor({timeout:15000})
+        await dashboard.createDesignBtn.waitFor({timeout:25000})
         await this.page.waitForURL('/app')
         //await this.page.context().storageState({ path: 'auth.json' });
     }
@@ -62,6 +63,7 @@ export class LoginPage {
         // Клик по кнопке "Войти"
         await mainPage.logInBtn.click()
         // Заполнение полей авторизации
+        await this.loginByPasswordBtn.waitFor({timeout: 30000})
         await this.loginByPasswordBtn.click()
         await this.emailInput.fill(email)
         await this.passwordInput.fill(password)
@@ -73,8 +75,8 @@ export class LoginPage {
         ])
         this.loginResponse = await responseLogin.json()
         this.meResponse = await responseMe.json()
-        // Првоерка отображения кнопки создания дизайна в Дашборде
-        await dashboard.createDesignBtn.waitFor({timeout:15000})
+        // Проверка отображения кнопки создания дизайна в Дашборде
+        await dashboard.createDesignBtn.waitFor({timeout:25000})
         await this.page.waitForURL('https://flyvi.dev/app')
         //await this.page.context().storageState({ path: 'auth.json' });
     }
