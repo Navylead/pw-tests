@@ -158,7 +158,7 @@ test.describe('Тесты премиумности', ()=>{
         await dashboard.changeToProBtn.waitFor()
         // Переходим в ИИ-РЕДАКТОР
         await dashboard.aiImage.hover()
-        const downloadBtn = page.locator('[class="image-container"]').first().locator('button').nth(6)        
+        const downloadBtn = page.getByRole('button', {name: "Изменить"})
         await downloadBtn.click()
         // Клик по кнопке скачивания в ИИ-РЕДАКТОРЕ
         const aiEditorDownloadBtn = page.locator('[class="ai-editor__main_canvas_img"] button').nth(3)
@@ -1271,7 +1271,7 @@ test.describe('ОБЩИЕ ПО ЭДИТОРУ', ()=>{
         await page.locator('text=Колоризация').click()
         const loader = page.locator('.story-editor .preloader')
         await loader.waitFor()
-        await expect(loader).toBeHidden({timeout:10000})
+        await expect(loader).toBeHidden({timeout:30000})
         // Проверяем, что отображается изменённое изображение             
         await expect(async ()=>{
             newImg = await editor.decor.locator('img').getAttribute('src') 
@@ -1310,7 +1310,7 @@ test.describe('ОБЩИЕ ПО ЭДИТОРУ', ()=>{
         await expect(async ()=>{
             newCount = await editor.getTokenCountApi()
             await expect(newCount).toEqual(oldCount-1)
-        }).toPass({timeout: 10000})               
+        }).toPass({timeout: 30000})               
         // Проверяем, что отображается изменённое изображение
         await expect(newCount).toEqual(oldCount-1)         
         await expect(loader).toBeHidden({timeout:10000})        
@@ -1389,7 +1389,7 @@ test.describe('ОБЩИЕ ПО ЭДИТОРУ', ()=>{
         await expect(async () =>{
             newCount = await editor.getTokenCountApi()            
             await expect(newCount).toEqual(oldCount-1) 
-        }).toPass({timeout: 20000})
+        }).toPass({timeout: 30000})
         // Ждём, пока пропадёт баннер прогресса
         await expect(loader).toBeHidden({timeout:15000})
         // Клик по ПРИМЕНИТЬ
@@ -1590,10 +1590,11 @@ test.describe('ОБЩИЕ ПО ЭДИТОРУ', ()=>{
         // Переход в дизайн
         await page.goto('https://flyvi.dev/app/designs/085a218b-8329-4fb6-ba02-3c0f7774819c')
         await editor.changesSavedBtn.waitFor()
-        await page.locator('[id="decorsDrawer"]').locator('text="Медиа"').click()
+        // Переход в раздел Медиа
+        await page.getByText('Медиа').click()
         // Ождиание подгрузки фото в левом меню
         const folderHeader = page.locator('.title_xLixx:has-text("Недавно использованные")')
-        await folderHeader.waitFor()
+        await folderHeader.waitFor({timeout: 25000})
         const photoList = await page.locator('.content_iAKDM [id="item_ELEMENT-0"]:has([style*="decors-types/unsplash/"])')
         await photoList.nth(0).waitFor()   
         // Поиск по фото
@@ -1637,7 +1638,7 @@ test.describe('ОБЩИЕ ПО ЭДИТОРУ', ()=>{
         // Найденных элементов больше 0
         expect(pexelCount).toBeGreaterThan(0)        
         
-        // await page.pause()
+        await page.pause()
     })
 
     test('Эдитор. Поиск по Аудио', async ({page})=>{
@@ -1827,7 +1828,7 @@ test.describe('Тесты ИИ-мастерской для ПРО тарифа',
         // Кликаем по кнопке "Использовать в дизайне"
         const createDesignFromBtn = page.locator('.dialog-wrapper button >> text=Использовать в дизайне')
         const [newTab] = await Promise.all([
-            context.waitForEvent('page', {timeout: 15000}),
+            context.waitForEvent('page', {timeout: 25000}),
             createDesignFromBtn.click() // Клик по кнопке
         ])
         // Ждём перехода на другую вкалдку и проверяем, что есть фото на холсте

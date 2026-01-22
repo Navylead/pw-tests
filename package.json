@@ -20,7 +20,7 @@
   "author": "K.D.",
   "license": "ISC",
   "devDependencies": {
-    "@playwright/test": "^1.47.2",
+    "@playwright/test": "^1.57.0",
     "@types/node": "^22.5.5",
     "typescript": "^5.8.3"
   },
