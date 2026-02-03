@@ -26,10 +26,26 @@ export class RegistrationPage {
         this.registrationByCodeBtn = page.getByRole('button', {name: 'Получить код подтверждения'}) // Кнопка регистрации по КОДУ
     }
 
+    // Команда регистрации пользователя на ПРОДЕ
     async register(name: string, email: string, password: string) {
         const mainPage = new MainPage(this.page)
         const dashboard = new Dashboard(this.page)
         await this.page.goto('/ru')
+        await mainPage.registerBtn.click()
+        await this.registrationByPasswordBtn.waitFor()
+        await this.registrationByPasswordBtn.click()
+        await this.nameInput.fill(name)
+        await this.emailInput.fill(email)
+        await this.passwordInput.fill(password)
+        await this.checkBoxTermOfUse.click()
+        await this.beginWorkBtn.click()
+    }
+
+    // Команда регистрации пользователя на ТЕСТЕ
+    async registerTest(name: string, email: string, password: string) {
+        const mainPage = new MainPage(this.page)
+        const dashboard = new Dashboard(this.page)
+        await this.page.goto('https://flyvi.dev/ru')
         await mainPage.registerBtn.click()
         await this.registrationByPasswordBtn.waitFor()
         await this.registrationByPasswordBtn.click()

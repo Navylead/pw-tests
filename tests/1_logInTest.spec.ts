@@ -34,7 +34,7 @@ test.describe('Registration', ()=>{
     await registrationDonePopap.waitFor() // Попап
     await registrationDoneBtn.waitFor()   // Кнопка    
 
-    // await page.pause()
+    await page.pause()
   })
 
   test('Регистрация по коду с моком', async ({page})=>{
@@ -88,7 +88,7 @@ test.describe('Registration', ()=>{
     // console.log(verifyMessage);
     await dashboard.createDesignBtn.waitFor()
 
-    // await page.pause()
+    await page.pause()
   })
 
   test.skip('Регистрация пользователя', async({page})=>{
@@ -114,7 +114,7 @@ test.describe('Registration', ()=>{
     await page.locator('[class="dialog-wrapper dialog-wrapper__success"] h2 >> text=Ещё немного!').isVisible()
     await page.locator('[class="dialog-wrapper dialog-wrapper__success"] button >> text=Хорошо').isVisible()
 
-    // await page.pause()
+    await page.pause()
   })
 
   test('Регистрация использующимся EMAIL', async ({page})=>{
@@ -130,7 +130,7 @@ test.describe('Registration', ()=>{
     const errorMessage = page.getByText('Данный email уже зарегистрирован')
     await errorMessage.waitFor()
 
-    // await page.pause()
+    await page.pause()
   })
 })
 
@@ -156,7 +156,7 @@ test.describe('Sign in', ()=>{
   await page.waitForURL('https://flyvi.io/app')
   // Проверка, что авторизация была успешной (например, отображение кнопки СОЗДАТЬ ДИЗАЙН)
   await dashboard.createDesignBtn.waitFor()
-  // await page.pause()
+  await page.pause()
 })
 
 test('Восстановить пароль', async ({page})=>{
@@ -173,7 +173,7 @@ test('Восстановить пароль', async ({page})=>{
   )
   const message = await response.json()
   expect(message.message).toEqual('На email выслано письмо для сброса пароля.')
-  // await page.pause()
+  await page.pause()
 })
 
 test('АВТОРИЗАЦИЯ. Пустые поля', async ({page})=>{
@@ -187,7 +187,7 @@ test('АВТОРИЗАЦИЯ. Пустые поля', async ({page})=>{
   await expect(message1).toBeVisible()
   const message2 = page.locator('.v-messages__message').nth(1)
   // await expect(message2).toBeVisible()
-  // await page.pause()
+  await page.pause()
 })
 
 test('АВТОРИЗАЦИЯ. Неверные креды', async ({page})=>{
@@ -202,7 +202,8 @@ test('АВТОРИЗАЦИЯ. Неверные креды', async ({page})=>{
   const errorMessage = page.locator('.error-messages')
   await expect(errorMessage).toHaveText('Email или пароль введены некорректно.')
   await expect(errorMessage).toBeVisible()
-  // await page.pause()
+
+  await page.pause()
 })
 })
 
