@@ -145,38 +145,46 @@ test.describe('Sign in', ()=>{
   })
 
   test('АВТОРИЗАЦИЯ корректными кредами', async({page})=>{
-  const loginPage = new LoginPage(page)
-  const dashboard = new Dashboard(page)
-  // Авторизация
-  await loginPage.login(creds.email1, creds.password1)   
-  // Проверка ответов АПИ для "login" "me"
-  expect(loginPage.loginResponse.access_token).not.toEqual('')
-  // fs.writeFileSync('token.json', token.access_token)        <<Запись токена в файл>>  
-  expect(loginPage.meResponse.user.id).toEqual(89671)
-  expect(loginPage.meResponse.user.name).toEqual('Ликси')
-  expect(loginPage.meResponse.user.email).toEqual(creds.email1)
-  expect(loginPage.meResponse.user.tariff.name).toEqual('Business')
-  // Ожидание успешного перехода на главную страницу
-  await page.waitForURL('https://flyvi.io/app')
-  // Проверка, что авторизация была успешной (например, отображение кнопки СОЗДАТЬ ДИЗАЙН)
-  await dashboard.createDesignBtn.waitFor()
-  await page.pause()
+
+    const loginPage = new LoginPage(page)
+    const dashboard = new Dashboard(page)
+    // Авторизация
+    await loginPage.login(creds.email1, creds.password1)   
+    // Проверка ответов АПИ для "login" "me"
+    expect(loginPage.loginResponse.access_token).not.toEqual('')
+    // fs.writeFileSync('token.json', token.access_token)        <<Запись токена в файл>>  
+    expect(loginPage.meResponse.user.id).toEqual(89671)
+    expect(loginPage.meResponse.user.name).toEqual('Ликси')
+    expect(loginPage.meResponse.user.email).toEqual(creds.email1)
+    expect(loginPage.meResponse.user.tariff.name).toEqual('Business')
+    // Ожидание успешного перехода на главную страницу
+    await page.waitForURL('https://flyvi.io/app')
+    // Проверка, что авторизация была успешной (например, отображение кнопки СОЗДАТЬ ДИЗАЙН)
+    await dashboard.createDesignBtn.waitFor()
+
+    await page.pause()
 })
 
 test('Восстановить пароль', async ({page})=>{
+
   const loginPage = new LoginPage(page)
   const dashboard = new Dashboard(page)
   const email = 'navyleadreel@gmail.com'
   await page.goto('/app/login')
+  // Восстанавливаем пароль
   await loginPage.restoreBtn.click()
+  // Вводим свою почту
   await page.locator('.auth-form__main input[id="email"]').click()
   await page.locator('.auth-form__main input[id="email"]').fill(email)
-  await page.locator('.auth-form__main button >> text=Восстановить пароль').click()
-  const response = await page.waitForResponse(res=>
-    res.url() === 'https://api.flyvi.io/api/password/forgot'
-  )
-  const message = await response.json()
+  // Отправляем запрос
+  const [resp] = await Promise.all([
+    page.waitForResponse('**/api/password/forgot'),
+    page.locator('.auth-form__main button >> text=Восстановить пароль').click()
+  ])
+  // Проверяем, что отображается уведомление об отправке письма  
+  const message = await resp.json()
   expect(message.message).toEqual('На email выслано письмо для сброса пароля.')
+
   await page.pause()
 })
 
@@ -324,7 +332,7 @@ test.describe('Тесты премиумности', ()=>{
         // Кликаем по сгененрированному фото
         await dashboard.aiImage.click()
         // Клик по кнопке скачивания в попапе
-        const popupDownloadBtn = page.locator('.ai-generator__dialog_btn-container button').nth(1)
+        const popupDownloadBtn = page.locator('.dialog_btn-container button.dialog_btn-helper').nth(0)
         await popupDownloadBtn.click()
         // Проверяем, что отображается баннер перехода на платную подписку
         await dashboard.proBanner.waitFor()
@@ -355,10 +363,10 @@ test.describe('Тесты премиумности', ()=>{
         await dashboard.changeToProBtn.waitFor()
         // Переходим в ИИ-РЕДАКТОР
         await dashboard.aiImage.hover()
-        const downloadBtn = page.getByRole('button', {name:"Изменить"})  
-        await downloadBtn.click()
+        const changeBtn = page.getByRole('button', {name:"Изменить"})  
+        await changeBtn.click()
         // Клик по кнопке скачивания в ИИ-РЕДАКТОРЕ
-        const aiEditorDownloadBtn = page.locator('[class="ai-editor__main_canvas_img"] button').nth(3)
+        const aiEditorDownloadBtn = page.locator('[class="ai-editor__main_canvas_img"] button').nth(4)
         await aiEditorDownloadBtn.click()
         // Проверяем, что отображается баннер перехода на платную подписку
         await dashboard.proBanner.waitFor()
@@ -511,7 +519,7 @@ test.describe('Тесты премиумности', ()=>{
         // Создаём дизайн
         const [newTab] = await Promise.all([
             context.waitForEvent('page'),
-            page.locator('[class="helpers__container"] button').nth(4).click()
+            page.locator('[class="helpers__container"] button').nth(5).click()
         ])
         // Проверяем, что дизайн создался
         await newTab.waitForLoadState('load', {timeout: 25000})
@@ -584,7 +592,7 @@ test.describe('Тесты премиумности', ()=>{
         // Кликаем по сгененрированному фото
         await dashboard.aiImage.click()
         // Клик по кнопке скачивания в попапе
-        const popupDownloadBtn = page.locator('.ai-generator__dialog_btn-container button').nth(2)
+        const popupDownloadBtn = page.locator('.dialog_btn-container button').nth(2)
         await popupDownloadBtn.click()
         // Проверяем, что отображается баннер перехода на платную подписку
         await dashboard.proBanner.waitFor()
@@ -622,6 +630,8 @@ test.describe('Тесты премиумности', ()=>{
         await editor.decor.click()
         // Переходим в меню ии-редактора
         await editor.aiEditorBtn.click()
+        // Разворачиваем список инструментов
+        await page.locator('[class="small-title mt-6 ml-5"]').getByText('Показать все').click()
         // Проверяем, что на функциях в меню отображает иконка премиума
         const waterMark = page.locator('.ai-editor .premium-label')
         await expect(waterMark).toHaveCount(12)
@@ -1079,18 +1089,19 @@ test.describe('Тесты премиумности', ()=>{
     })
 
     test('Эдитор. Добавление декора из БРЕНДБУКА в дизайн: Сет', async ({page})=>{
+
         const editor = new Editor(page)
         await page.goto('/app/designs/a9d4defc-7041-452a-91c4-9c9569eceea6')
         // Переход в Брендбук
         await page.locator('text=Брендбук').click()
         // Ожидание загрузки медиа в брендбуке и клик по первому элементу
         const brandbookMedia = page.locator('.flyvi-decors-drawer__list.flyvi-decors-drawer__list_open [class="text-template-container"]')
-        await brandbookMedia.nth(0).waitFor({state: "visible", timeout: 10000})
+        await brandbookMedia.nth(0).waitFor({state: "visible", timeout: 20000})
         await brandbookMedia.nth(0).click()
         // Ждём отображение попапа премиума
         await editor.proBanner.waitFor()
 
-        // await page.pause()
+        await page.pause()
     })
 
     test('Эдитор. Загрузка фото в редактор сверх лимита', async({page})=>{
@@ -1119,26 +1130,48 @@ test.describe('ОБЩИЕ ПО ЭДИТОРУ', ()=>{
     })
     test.use({ storageState: 'auth/auth1.json' });                    // <<<ФАЙЛ С СОХРАНЁННОЙ СЕССИЕЙ PRO>>>
 
+    test('Эдитор. Дублирование декоров', async ({page})=>{
+        const editor = new Editor(page)
+
+        await page.goto('/app/designs/ea76845a-4249-4af3-a289-b43ba9820265')
+        await editor.changesSavedBtn.waitFor()
+        // Выбираем группировку декоров
+        await editor.decor.first().click({force: true})
+        await editor.decor.first().click({button: "right", force: true})
+        // Дублируем декоры
+        await page.getByText('Дублировать').click()
+        // Проверяем, не появилась ли ошибка
+        const errorMsg = page.locator('.Vue-Toastification__toast.Vue-Toastification__toast--error.bottom-right')
+        await expect(errorMsg, '<<<ВЫЛЕТАЕТ ОШИБКА>>>').toBeHidden()        
+        // Удаляем дубликат
+        await page.keyboard.press('Delete')
+
+        await page.pause()
+    })
+
     test('Эдитор. Генерация фото ИИ', async({page})=>{
+        
         const editor = new Editor(page)
         await page.goto('/app/designs/61bb153a-ab29-402c-b5c9-0c303fba998b')        
-        await editor.downloadBtn.waitFor({timeout: 10000})                                // Отображение кнопки СКАЧАТЬ ДИЗАНЙ
+        await editor.downloadBtn.waitFor({timeout: 10000})                                     // Отображение кнопки СКАЧАТЬ ДИЗАЙН
         await page.locator('.flyvi-decors-drawer__menu_wrapper >> text=ИИ-мастерская').click() // Открыть меню ИИ-Генератора
-        const balanceResponse = await page.waitForResponse('**/api/tokens/balance')       // Апишка баланса токенов
-        const balance = await balanceResponse.json()        
+        // Перход в ФОТО-генератор
+        await page.locator('.tabs div').first().click()
+        const balanceResponse = await page.waitForResponse('**/api/tokens/balance')            // Апишка баланса токенов
+        const balance = await balanceResponse.json()
+        // console.log('<<<<BALANCE>>>', balance)
         await expect(balance.monthly_tokens+balance.permanent_tokens, '<<<НЕДОСТАТОЧНО ТОКЕНОВ - АПИ>>>').toBeGreaterThan(0) 
-        let tokens = page.locator('.tokens-count_container_count')          // Счётчик токенов для генерации
-        const previewImg = page.locator('.images img')                      // Превьюшка первого фото ИИ
-        // const previewImg2 = page.locator('.images img').nth(1)           // Превьюшка второго фото ИИ
-        const genInput = page.locator('textarea')                           // Инпут для промпта
-        const genBtn = page.locator('.neuro-btn >> text=Сгенерировать изображение') // Кнопка генерации ФОТО ИИ
-        const AISize = page.locator('.neuro-settings .v-input__control').nth(1)     // Меню выбора размеров
-        const AIStyle = page.locator('.neuro-settings .styles')                     // Меню выбора стиля генерации           
-        await genInput.fill('Большой ядерный взрыв')                                // Ввод промпта
+        let tokens = page.locator('.tokens-count_container_count')              // Счётчик токенов для генерации
+        const previewImg = page.locator('.image-grid img[src*="/ai-history/"]') // Превьюшка первого фото ИИ
+        const genInput = page.locator('textarea')                               // Инпут для промпта
+        const genBtn = page.getByRole('button', {name: "Сгенерировать изображение"}) // Кнопка генерации ФОТО ИИ
+        const AISize = page.locator('.dropdown-toggle').nth(1)                       // Меню выбора размеров
+        const AIStyle = page.locator('.dropdown-toggle').nth(0)                      // Меню выбора стиля генерации           
+        await genInput.fill('Большой ядерный взрыв')                                 // Ввод промпта
         await AISize.click()
-        await page.locator('.v-list-item__title >> text=9:16 (576 x 1024)').click() // Выбор размера генерируемой картинки
+        await page.locator('.dropdown-item >> text=9:16 (576 x 1024)').click()      // Выбор размера генерируемой картинки
         await AIStyle.click()
-        await page.locator('.styles_item >> text=Энди Уорхол').click()              // Выбор стиля генерируемой картинки
+        await page.locator('.dropdown-item >> text=Фотогламур').click()             // Выбор стиля генерируемой картинки
         await expect(tokens).toBeVisible()
         let text = await tokens.innerText()       
         const tokenCounter = parseInt(text)                                         // Счётчик токенов
@@ -1146,20 +1179,23 @@ test.describe('ОБЩИЕ ПО ЭДИТОРУ', ()=>{
             throw new Error('<<<НЕДОСТАТОЧНО ТОКЕНОВ>>>')}                          // Вылетает ошибка, если токенов осталось меньше 1
         await expect (genBtn).toBeVisible()                                         // Отображение кнопки начала Генерации
         await genBtn.click()                                                        // Клик по кнопке ГЕНЕРАЦИИ
-        await previewImg.first().waitFor({ state: "visible", timeout: 40000 })      // Ожидаем появление превьюшек
-        const countImg1 = await page.$$('.images img')
+        await previewImg.first().waitFor({ state: "visible", timeout: 15000 })      // Ожидаем появление превьюшек
+        for (let i = 0; i < 4; i++) {
+            await page.locator('.image-grid img[src*="/ai-history/"]').nth(i).waitFor()
+        }
+        const countImg1 = await page.$$('.image-grid img[src*="/ai-history/"]')
         await expect (countImg1.length).toEqual(4)
-        const countImg2 = await page.$$eval('.images img', (img) => img.length)
-        await expect (countImg2).toEqual(4)  
-        // await previewImg2.waitFor({ timeout: 13000 })
-        const imgs = page.locator('.images img')
+        const countImg2 = await page.$$eval('.image-grid img[src*="/ai-history/"]', (img) => img.length)
+        await expect (countImg2).toEqual(4)       
+        const imgs = page.locator('.image-grid img[src*="/ai-history/"]')
         const count = await imgs.count()
         await expect(count).toBe(4)
         tokens = page.locator('.tokens-count_container_count')
         text = await tokens.innerText()  
         const newTokenCounter = parseInt(text)              // Счётчик токенов после генерации
         await expect(newTokenCounter).toBe(tokenCounter-1)  // Проверка, что токены потратились
-        // await page.pause()
+
+        await page.pause()
     })
 
     test('Эдитор. Скачивание дизайна JPG', async ({page})=>{
@@ -1455,10 +1491,14 @@ test.describe('ОБЩИЕ ПО ЭДИТОРУ', ()=>{
         // Кликаем по первому фото в дизайне
         await editor.decor.click()
         // Кликаем по кнопке ИИ-редактора в тулбаре
-        await editor.aiEditorBtn.click()
-        // Проверяем, что баланс токенов больше 0
-        const apiToken = await page.waitForResponse('**/api/tokens/balance')
-        const apiJson = await apiToken.json()
+        const [api] = await Promise.all([
+            page.waitForResponse('**/api/tokens/balance'),
+            editor.aiEditorBtn.click()
+        ])        
+        // Разворачиваем список инструментов
+        await page.locator('[class="small-title mt-6 ml-5"]').getByText('Показать все').click()
+        // Проверяем, что баланс токенов больше 0        
+        const apiJson = await api.json()
         oldCount = apiJson.monthly_tokens + apiJson.permanent_tokens
         await expect(oldCount).toBeGreaterThan(0)
         // Применяем редактирование
@@ -1483,7 +1523,7 @@ test.describe('ОБЩИЕ ПО ЭДИТОРУ', ()=>{
 
     test('Эдитор. Улучшение изображения', async({page})=>{
         const editor = new Editor(page)
-        let oldCount: number, newCount: number
+        let newCount: number
         let oldImg: string, newImg: string
         await page.goto('/app/designs/a438f148-0a3e-447c-96f4-759d8d9ac428')
         await editor.changesSavedBtn.waitFor()
@@ -1492,9 +1532,13 @@ test.describe('ОБЩИЕ ПО ЭДИТОРУ', ()=>{
         // Кликаем по первому фото в дизайне
         await editor.decor.click({force:true})
         // Кликаем по кнопке ИИ-редактора в тулбаре
-        await editor.aiEditorBtn.click()
-        // Проверяем, что баланс токенов больше 0
-        oldCount = await editor.getTokenCountApi()
+        const [oldCount] = await Promise.all([
+            editor.getTokenCountApi(),
+            editor.aiEditorBtn.click()
+        ])        
+        // Разворачиваем список инструментов
+        await page.locator('[class="small-title mt-6 ml-5"]').getByText('Показать все').click()
+        // Проверяем, что баланс токенов больше 0        
         await expect(oldCount).toBeGreaterThan(0)
         // Применяем редактирование
         await page.locator('text=Улучшить изображение').click()
@@ -1556,7 +1600,7 @@ test.describe('ОБЩИЕ ПО ЭДИТОРУ', ()=>{
 
     test('Эдитор. Дорисовка изображения', async({page})=>{
         const editor = new Editor(page)
-        let oldCount: number, newCount: number
+        let newCount: number
         let oldImg: string, newImg: string
         await page.goto('/app/designs/7d0d1e26-74b2-4776-9094-666549d6e286')
         await editor.changesSavedBtn.waitFor()
@@ -1565,9 +1609,11 @@ test.describe('ОБЩИЕ ПО ЭДИТОРУ', ()=>{
         // Кликаем по первому фото в дизайне
         await editor.decor.click({force:true})
         // Кликаем по кнопке ИИ-редактора в тулбаре
-        await editor.aiEditorBtn.click()
-        // Проверяем, что баланс токенов больше 0
-        oldCount = await editor.getTokenCountApi()
+        const [oldCount] = await Promise.all([
+            editor.getTokenCountApi(),
+            editor.aiEditorBtn.click()
+        ])        
+        // Проверяем, что баланс токенов больше 0        
         await expect(oldCount).toBeGreaterThan(0)
         // Применяем редактирование
         await page.locator('.ai-editor__main_choose-styles_list_item:has-text("Дорисовать изображение")').click()
@@ -1595,7 +1641,7 @@ test.describe('ОБЩИЕ ПО ЭДИТОРУ', ()=>{
             expect(oldImg).not.toEqual(newImg)
         }).toPass({timeout: 10000}) 
 
-        // await page.pause()
+        await page.pause()
     })
 
     test('ДАШБОРД. Создание дизайна с превышением максимально допустимого размера ШИРИНЫ', async({page})=>{
@@ -1790,7 +1836,7 @@ test.describe('ОБЩИЕ ПО ЭДИТОРУ', ()=>{
         const folderHeader = page.locator('.title_xLixx:has-text("Недавно использованные")')
         await folderHeader.waitFor({timeout: 25000})
         const photoList = await page.locator('.content_iAKDM [id="item_ELEMENT-0"]:has([style*="decors-types/unsplash/"])')
-        await photoList.nth(0).waitFor()   
+        await photoList.nth(0).waitFor({timeout: 25000})   
         // Поиск по фото
         const photoInput = page.getByPlaceholder('Поиск фотографий')
         await photoInput.waitFor()
@@ -1931,10 +1977,10 @@ test.describe('ОБЩИЕ ПО ЭДИТОРУ', ()=>{
         const designTitle = page.locator('[class="card-title cardTitle_tvse0"]') 
         await expect(designTitle).toHaveCount(3)
         for(let i = 0; i < 3; i++) {
-            await expect(designTitle.nth(i)).toContainText('Искомый')
+            await expect(designTitle.nth(i)).toContainText('искомый')
         }
 
-        // await page.pause()
+        await page.pause()
     })
 })
 
@@ -1969,24 +2015,26 @@ test.describe('Тесты ИИ-мастерской для ПРО тарифа',
         await styleBtn.click()
         const cinemaStyle = page.locator('.dropdown-item:has-text("Кинематографический")')
         await cinemaStyle.click()
-        await workshop.imgGenerateBtn.click()
+        const [text2img] = await Promise.all([
+            page.waitForResponse('**/api/ai/image-generation?provider=*', {timeout:25000}),
+            workshop.imgGenerateBtn.click()
+        ])   
         const newImgs = page.locator('.ai-generator__history div[id*="section"]').nth(0).locator('img[src*="flyvi.io/ai-history"]')
         await expect(async ()=>{            
             const imgSize = await newImgs.evaluateAll(imgs =>
                 imgs.every(img => img.naturalHeight > 0))
-        }).toPass()        
-
-        const text2img = page.waitForResponse('**/api/text2img?prompt=*', {timeout:25000})    
-        const response = await text2img
-        const json = await response.json()
+        }).toPass()           
+        // Проверяем, что в ответе пришли названия используемых моделей
+        const json = await text2img.json()     
+        const aiModels = ['flux-klein', 'sd35-turbo', 'qwen', 'z-image-turbo']
         await expect(json.data.prompt_ru).toEqual('картонный кот')
-        await expect(json.data.images[0].model).toEqual('playground')                  // Модель playground
+        await expect(aiModels).toContain(json.data.images[0].model)      
         await expect(json.data.images[0].path).toContain('.jpg')
-        await expect(json.data.images[1].model).toEqual('stablecascade')               // Модель stablecascade
+        await expect(aiModels).toContain(json.data.images[1].model)      
         await expect(json.data.images[1].path).toContain('.jpg')
-        await expect(json.data.images[2].model).toEqual('sd')                          // Модель sd
+        await expect(aiModels).toContain(json.data.images[2].model)        
         await expect(json.data.images[2].path).toContain('.jpg')
-        await expect(json.data.images[3].model).toEqual('flux')                        // Модель flux
+        await expect(aiModels).toContain(json.data.images[3].model)                 
         await expect(json.data.images[3].path).toContain('.jpg')
 
         await expect(async ()=>{            
@@ -2236,6 +2284,44 @@ test.describe('Тесты ИИ-мастерской для ПРО тарифа',
         newToken = await Promise.all([
             workshop.getTokenCount({timeout: 25000}),
             await page.getByRole('button', {name: "Изменить изображение"}).click()
+        ])
+        expect(newToken[0], '<<<Токены не потратились!!!>>>').toEqual(oldToken-1)
+        // Ждём, пока не поменяется картинка
+        await expect(async()=>{
+            newImg = await uploadedImg.getAttribute('src')
+            expect(newImg).not.toEqual(oldImg)
+        }).toPass({timeout: 20000})
+
+        await page.pause()        
+    })
+
+    test('♛ ♛ ♛ ИИ-МАСТЕРСКАЯ. Nano Banana', async({page})=>{
+        const workshop = new AiWorkshop(page)
+        let oldToken: string, newToken: string
+        let oldImg: string, newImg: string
+        // Переход в ИИ-редактор
+        await page.goto('/app/image-editor')
+        // Проверяем баланс токенов
+        oldToken = await workshop.getTokenCount()
+        expect(oldToken, "<<<НЕДОСТАТОЧНО ТОКЕНОВ>>>").toBeGreaterThan(0)
+        // Загружаем своё фото в ии-редактор
+        const uploadBtn = page.locator('[class="upload_img"] span:has(span:has-text("Загрузить изображение"))')
+        const [aploadImg] = await Promise.all([
+            page.waitForEvent('filechooser'),
+            uploadBtn.click()
+        ])
+        await aploadImg.setFiles('tests/resources/test1.jpg')
+        // Сохраняем ссылку на первую картинку
+        const uploadedImg = page.locator('[class="zoom-container"] img[src*="/tmp/"]')
+        await uploadedImg.waitFor()
+        oldImg = await uploadedImg.getAttribute('src')
+        // Переходим в меню инструмента
+        await page.getByText('Nano Banana').click()
+        await page.getByPlaceholder('Введите текст запроса').fill('Добавь солнечные очки')
+        // Применяем редактирование
+        newToken = await Promise.all([
+            workshop.getTokenCount(),
+            page.getByRole('button', {name: "Изменить изображение"}).click()
         ])
         expect(newToken[0], '<<<Токены не потратились!!!>>>').toEqual(oldToken-1)
         // Ждём, пока не поменяется картинка

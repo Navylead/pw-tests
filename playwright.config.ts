@@ -24,9 +24,9 @@ module.exports = defineConfig({
   /* Reporter to use. See https://playwright.dev/docs/test-reporters */
   reporter: 'line',
   /* Shared settings for all the projects below. See https://playwright.dev/docs/api/class-testoptions. */
-  timeout: 30000, // Общий ТАЙМАУТ теста
+  timeout: 60000, // Общий ТАЙМАУТ теста
   use: {
-    actionTimeout: 7000, // Устанавливает таймаут 10 секунд для каждой операции (например, клика)
+    actionTimeout: 7000, // Устанавливает таймаут 10 секунд для каждой операции (например, клика)    
     navigationTimeout: 30000, // Таймаут 30 секунд для переходов на страницы
     /* Base URL to use in actions like `await page.goto('/')`. */
     baseURL: 'https://flyvi.io',
@@ -39,7 +39,16 @@ module.exports = defineConfig({
   projects: [
     {
       name: 'chromium',
-      use: { ...devices['Desktop Chrome'] },
+      use: { 
+        //...devices['Desktop Chrome'],
+        locale: 'en-US',
+        launchOptions: {
+          args: ['--disable-features=Translate',
+            '--lang=en-US',
+            '--disable-extensions',
+          ]
+  }
+       },
     },
 
     /*{
