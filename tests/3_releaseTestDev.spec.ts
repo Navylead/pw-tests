@@ -2338,5 +2338,323 @@ test.describe('Тесты ИИ-мастерской для ПРО тарифа',
 
         await page.pause()        
     })
+
+    test('♛ ♛ ♛ ИИ-МАСТЕРСКАЯ. Дорисовать изображение', async({page})=>{
+        const workshop = new AiWorkshop(page)
+        let oldToken: string, newToken: string
+        let oldImg: string, newImg: string
+        // Переход в ИИ-редактор
+        await page.goto('https://flyvi.dev/app/image-editor')
+        // Проверяем баланс токенов
+        oldToken = await workshop.getTokenCount()
+        expect(oldToken, "<<<НЕДОСТАТОЧНО ТОКЕНОВ>>>").toBeGreaterThan(0)
+        // Загружаем своё фото в ии-редактор
+        const uploadBtn = page.locator('[class="upload_img"] span:has(span:has-text("Загрузить изображение"))')
+        const [aploadImg] = await Promise.all([
+            page.waitForEvent('filechooser'),
+            uploadBtn.click()
+        ])
+        await aploadImg.setFiles('tests/resources/test1.jpg')
+        // Сохраняем ссылку на первую картинку
+        const uploadedImg = page.locator('[class="zoom-container"] img[src*="/tmp/"]')
+        await uploadedImg.waitFor()
+        oldImg = await uploadedImg.getAttribute('src')
+        // Переходим в меню инструмента
+        await page.getByText('Дорисовать изображение').click()
+        //
+        await page.locator('.ai-editor_menu__format').nth(2).click()        
+        // Применяем редактирование
+        newToken = await Promise.all([
+            workshop.getTokenCount(),
+            page.getByRole('button', {name: "Дорисовать изображение"}).click()
+        ])
+        expect(newToken[0], '<<<Токены не потратились!!!>>>').toEqual(oldToken-1)
+        // Ждём, пока не поменяется картинка
+        await expect(async()=>{
+            newImg = await uploadedImg.getAttribute('src')
+            expect(newImg).not.toEqual(oldImg)
+        }).toPass({timeout: 20000})
+
+        await page.pause()        
+    })
+
+    test('♛ ♛ ♛ ИИ-МАСТЕРСКАЯ. Заменить фон', async({page})=>{
+        const workshop = new AiWorkshop(page)
+        let oldToken: string, newToken: string
+        let oldImg: string, newImg: string
+        // Переход в ИИ-редактор
+        await page.goto('https://flyvi.dev/app/image-editor')
+        // Проверяем баланс токенов
+        oldToken = await workshop.getTokenCount()
+        expect(oldToken, "<<<НЕДОСТАТОЧНО ТОКЕНОВ>>>").toBeGreaterThan(0)
+        // Загружаем своё фото в ии-редактор
+        const uploadBtn = page.locator('[class="upload_img"] span:has(span:has-text("Загрузить изображение"))')
+        const [aploadImg] = await Promise.all([
+            page.waitForEvent('filechooser'),
+            uploadBtn.click()
+        ])
+        await aploadImg.setFiles('tests/resources/test1.jpg')
+        // Сохраняем ссылку на первую картинку
+        const uploadedImg = page.locator('[class="zoom-container"] img[src*="/tmp/"]')
+        await uploadedImg.waitFor()
+        oldImg = await uploadedImg.getAttribute('src')
+        // Переходим в меню инструмента
+        await page.getByText('Заменить фон').click()
+        // Вводим промпт
+        await page.getByPlaceholder('Введите текст запроса').fill('Пляж')
+        // Применяем редактирование
+        newToken = await Promise.all([
+            workshop.getTokenCount(),
+            page.getByRole('button', {name: "Заменить фон"}).click()
+        ])
+        expect(newToken[0], '<<<Токены не потратились!!!>>>').toEqual(oldToken-1)
+        // Ждём, пока не поменяется картинка
+        await expect(async()=>{
+            newImg = await uploadedImg.getAttribute('src')
+            expect(newImg).not.toEqual(oldImg)
+        }).toPass({timeout: 20000})
+
+        await page.pause()        
+    })
+
+    test('♛ ♛ ♛ ИИ-МАСТЕРСКАЯ. Заменить объект', async({page})=>{
+        const workshop = new AiWorkshop(page)
+        let oldToken: string, newToken: string
+        let oldImg: string, newImg: string
+        // Переход в ИИ-редактор
+        await page.goto('https://flyvi.dev/app/image-editor')
+        // Проверяем баланс токенов
+        oldToken = await workshop.getTokenCount()
+        expect(oldToken, "<<<НЕДОСТАТОЧНО ТОКЕНОВ>>>").toBeGreaterThan(0)
+        // Загружаем своё фото в ии-редактор
+        const uploadBtn = page.locator('[class="upload_img"] span:has(span:has-text("Загрузить изображение"))')
+        const [aploadImg] = await Promise.all([
+            page.waitForEvent('filechooser'),
+            uploadBtn.click()
+        ])
+        await aploadImg.setFiles('tests/resources/test1.jpg')
+        // Сохраняем ссылку на первую картинку
+        const uploadedImg = page.locator('[class="zoom-container"] img[src*="/tmp/"]')
+        await uploadedImg.waitFor()
+        oldImg = await uploadedImg.getAttribute('src')
+        // Переходим в меню инструмента
+        await page.getByText('Заменить объект').click()
+        // Проверяем, что фото загрузилось на холсте
+        await page.locator('img[src*="flyvi.dev/tmp/"]').waitFor()     
+        // Рисуем маску
+        const canvas = page.locator('canvas')
+        const boundingBox = await canvas.boundingBox()
+        const startX = boundingBox.x + 50; 
+        const startY = boundingBox.y + 50; 
+        const endX = boundingBox.x + 500; 
+        const endY = boundingBox.y + 500;
+        await page.mouse.move(startX, startY);  // Перемещаем курсор в начальную точку
+        await page.mouse.down();                // Нажимаем кнопку мыши
+        await page.mouse.move(endX, endY);      // Перемещаем курсор в конечную точку
+        await page.mouse.up();                  // Отпускаем кнопку мыши      
+        // Вводим промпт
+        await page.getByPlaceholder('Введите текст запроса').fill('молния')
+        // Меняем размер кисти
+        await page.locator('[class="v-input__append-outer"] input').fill('40')
+        // Вызов попапа оплаты
+        await page.locator('[class="tokens-count_container_addicon"]').click()
+        await page.locator('[class="close-icon"]').click()
+        // Применяем редактирование
+        newToken = await Promise.all([
+            workshop.getTokenCount(),
+            page.getByRole('button', {name: "Заменить объект"}).click()          
+        ])
+        // Проверяем потраченные токены
+        expect(newToken[0], '<<<Токены не потратились!!!>>>').toEqual(oldToken-1)
+        // Ждём, пока не поменяется картинка
+        await expect(async()=>{
+            newImg = await uploadedImg.getAttribute('src')
+            expect(newImg).not.toEqual(oldImg)
+        }).toPass({timeout: 20000})
+
+        await page.pause()        
+    })
+
+    test('♛ ♛ ♛ ИИ-МАСТЕРСКАЯ. Удалить объект', async({page})=>{
+        const workshop = new AiWorkshop(page)
+        let oldToken: string, newToken: string
+        let oldImg: string, newImg: string
+        // Переход в ИИ-редактор
+        await page.goto('https://flyvi.dev/app/image-editor')
+        // Проверяем баланс токенов
+        oldToken = await workshop.getTokenCount()
+        expect(oldToken, "<<<НЕДОСТАТОЧНО ТОКЕНОВ>>>").toBeGreaterThan(0)
+        // Загружаем своё фото в ии-редактор
+        const uploadBtn = page.locator('[class="upload_img"] span:has(span:has-text("Загрузить изображение"))')
+        const [aploadImg] = await Promise.all([
+            page.waitForEvent('filechooser'),
+            uploadBtn.click()
+        ])
+        await aploadImg.setFiles('tests/resources/test1.jpg')
+        // Сохраняем ссылку на первую картинку
+        const uploadedImg = page.locator('[class="zoom-container"] img[src*="/tmp/"]')
+        await uploadedImg.waitFor()
+        oldImg = await uploadedImg.getAttribute('src')
+        // Переходим в меню инструмента
+        await page.getByText('Удалить объект').click()
+        // Проверяем, что фото загрузилось на холсте
+        await page.locator('img[src*="flyvi.dev/tmp/"]').waitFor()     
+        // Рисуем маску
+        const canvas = page.locator('canvas')
+        const boundingBox = await canvas.boundingBox()
+        const startX = boundingBox.x + 50; 
+        const startY = boundingBox.y + 50; 
+        const endX = boundingBox.x + 500; 
+        const endY = boundingBox.y + 500;
+        await page.mouse.move(startX, startY);  // Перемещаем курсор в начальную точку
+        await page.mouse.down();                // Нажимаем кнопку мыши
+        await page.mouse.move(endX, endY);      // Перемещаем курсор в конечную точку
+        await page.mouse.up();                  // Отпускаем кнопку мыши        
+        // Меняем размер кисти
+        await page.locator('[class="v-input__append-outer"] input').fill('40')
+        // Вызов попапа оплаты
+        await page.locator('[class="tokens-count_container_addicon"]').click()
+        await page.locator('[class="close-icon"]').click()
+        // Применяем редактирование
+        newToken = await Promise.all([
+            workshop.getTokenCount(),
+            page.getByRole('button', {name: "Удалить объект"}).click()          
+        ])
+        // Проверяем потраченные токены
+        expect(newToken[0], '<<<Токены не потратились!!!>>>').toEqual(oldToken-1)
+        // Ждём, пока не поменяется картинка
+        await expect(async()=>{
+            newImg = await uploadedImg.getAttribute('src')
+            expect(newImg).not.toEqual(oldImg)
+        }).toPass({timeout: 20000})
+
+        await page.pause()        
+    })
+
+    test('♛ ♛ ♛ ИИ-МАСТЕРСКАЯ. Заменить лицо', async({page})=>{
+        const workshop = new AiWorkshop(page)
+        let oldToken: string, newToken: string
+        let oldImg: string, newImg: string
+        // Переход в ИИ-редактор
+        await page.goto('https://flyvi.dev/app/image-editor')
+        // Проверяем баланс токенов
+        oldToken = await workshop.getTokenCount()
+        expect(oldToken, "<<<НЕДОСТАТОЧНО ТОКЕНОВ>>>").toBeGreaterThan(0)
+        // Загружаем своё фото в ии-редактор
+        const uploadBtn = page.locator('[class="upload_img"] span:has(span:has-text("Загрузить изображение"))')
+        const [aploadImg] = await Promise.all([
+            page.waitForEvent('filechooser'),
+            uploadBtn.click()
+        ])
+        await aploadImg.setFiles('tests/resources/test1.jpg')
+        // Сохраняем ссылку на первую картинку
+        const uploadedImg = page.locator('[class="zoom-container"] img[src*="/tmp/"]')
+        await uploadedImg.waitFor()
+        oldImg = await uploadedImg.getAttribute('src')
+        // Переходим в меню инструмента
+        await page.getByText('Заменить лицо').click()
+        const [uploadFace] = await Promise.all([
+            page.waitForEvent('filechooser'),
+            page.locator('[class="upload_img"]:has(span:has-text("Загрузить изображение")) label').click()
+        ])
+        await uploadFace.setFiles('tests/resources/test3.png')
+        // Проверяем, что загрузилось фото на замену
+        await page.locator('[class="ai-editor_menu__slider"] img[src*="flyvi.dev/tmp/"]').waitFor()      
+        // Применяем редактирование
+        newToken = await Promise.all([
+            workshop.getTokenCount(),
+            page.getByRole('button', {name: "Заменить лицо"}).click()          
+        ])
+        // Проверяем потраченные токены
+        expect(newToken[0], '<<<Токены не потратились!!!>>>').toEqual(oldToken-1)
+        // Ждём, пока не поменяется картинка
+        await expect(async()=>{
+            newImg = await uploadedImg.getAttribute('src')
+            expect(newImg).not.toEqual(oldImg)
+        }).toPass({timeout: 20000})
+
+        await page.pause()        
+    })
+
+    test('♛ ♛ ♛ ИИ-МАСТЕРСКАЯ. Стилизация', async({page})=>{
+        const workshop = new AiWorkshop(page)
+        let oldToken: string, newToken: string
+        let oldImg: string, newImg: string
+        // Переход в ИИ-редактор
+        await page.goto('https://flyvi.dev/app/image-editor')
+        // Проверяем баланс токенов
+        oldToken = await workshop.getTokenCount()
+        expect(oldToken, "<<<НЕДОСТАТОЧНО ТОКЕНОВ>>>").toBeGreaterThan(0)
+        // Загружаем своё фото в ии-редактор
+        const uploadBtn = page.locator('[class="upload_img"] span:has(span:has-text("Загрузить изображение"))')
+        const [aploadImg] = await Promise.all([
+            page.waitForEvent('filechooser'),
+            uploadBtn.click()
+        ])
+        await aploadImg.setFiles('tests/resources/test1.jpg')
+        // Сохраняем ссылку на первую картинку
+        const uploadedImg = page.locator('[class="zoom-container"] img[src*="/tmp/"]')
+        await uploadedImg.waitFor()
+        oldImg = await uploadedImg.getAttribute('src')
+        // Переходим в меню инструмента
+        await page.getByText('Стилизация').click()              
+        // Применяем редактирование
+        newToken = await Promise.all([
+            workshop.getTokenCount(),
+            page.locator('[class="card__block"]:has-text("Аниме-пиксель-арт")').click()          
+        ])
+        // Проверяем потраченные токены
+        expect(newToken[0], '<<<Токены не потратились!!!>>>').toEqual(oldToken-1)
+        // Ждём, пока не поменяется картинка
+        await expect(async()=>{
+            newImg = await uploadedImg.getAttribute('src')
+            expect(newImg).not.toEqual(oldImg)
+        }).toPass({timeout: 20000})
+
+        await page.pause()        
+    })
+
+    test.only('♛ ♛ ♛ ИИ-МАСТЕРСКАЯ. Замена изображения', async({page})=>{
+        const workshop = new AiWorkshop(page)
+        let oldToken: string, newToken: string
+        let oldImg: string, newImg: string
+        // Переход в ИИ-редактор
+        await page.goto('https://flyvi.dev/app/image-editor')
+        // Проверяем баланс токенов
+        oldToken = await workshop.getTokenCount()
+        expect(oldToken, "<<<НЕДОСТАТОЧНО ТОКЕНОВ>>>").toBeGreaterThan(0)
+        // Загружаем своё фото в ии-редактор
+        const uploadBtn = page.locator('[class="upload_img"] span:has(span:has-text("Загрузить изображение"))')
+        const [aploadImg] = await Promise.all([
+            page.waitForEvent('filechooser'),
+            uploadBtn.click()
+        ])
+        await aploadImg.setFiles('tests/resources/test1.jpg')
+        // Сохраняем ссылку на первую картинку
+        const uploadedImg = page.locator('[class="zoom-container"] img[src*="/tmp/"]')
+        await uploadedImg.waitFor()
+        oldImg = await uploadedImg.getAttribute('src')
+        console.log(oldImg)
+        // Клик по кнопке замены изображения
+        const [newPhoto] = await Promise.all([
+            page.waitForEvent('filechooser'),
+            page.locator('button:has(input[type="file"])').click()
+        ])
+        await page.pause()
+        await newPhoto.setFiles('tests/resources/test1.jpg')
+        //
+        await expect(uploadedImg).not.toHaveAttribute('src', oldImg)
+        newImg = await uploadedImg.getAttribute('src')
+        console.log(newImg)
+        // Ждём, пока не поменяется картинка
+        // await expect(async()=>{     
+        //     newImg = await reloadedImg.getAttribute('src')      
+        //     expect(newImg).not.toEqual(oldImg)
+        // }).toPass({timeout: 20000})
+
+        await page.pause()        
+    })
+
+    
 })
 })
