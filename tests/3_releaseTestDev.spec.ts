@@ -1375,7 +1375,7 @@ test.describe('ОБЩИЕ ПО ЭДИТОРУ', ()=>{
         await page.locator('[href="/app/dashboard"]').click()
         const createStoryButton = page.locator('button >> text=Создать сторис')  
 
-        // ПЕРЕХОД НА НОВУЮ ВКЛВДКУ
+        // ПЕРЕХОД НА НОВУЮ ВКЛАДКУ
         const [newTab] = await Promise.all([
             context.waitForEvent('page'),
             createStoryButton.click() // Клик по кнопке
@@ -1387,6 +1387,28 @@ test.describe('ОБЩИЕ ПО ЭДИТОРУ', ()=>{
         await publishButton.click()
 
         // await newTab.pause()
+    })
+
+    test('Дашборд. Создание ДОСКИ', async ({page, context})=>{
+        const dashboard = new Dashboard(page)
+        const editor = new Editor(page)
+        // Переход в Дашборд
+        await page.goto('https://flyvi.dev/app')
+        await dashboard.createDesignBtn.waitFor()
+        // Создание ДОСКИ
+        await page.locator('[href="/app/dashboard"]').click()        
+        // ПЕРЕХОД НА НОВУЮ ВКЛАДКУ
+        const [newTab] = await Promise.all([
+            context.waitForEvent('page'),
+            page.locator('.item__text').getByText('Онлайн-доска').click()           // Клик по кнопке
+        ])
+        // Проверяем, что отображается кнопка Доступа и название дизайна
+        const accessBtn = newTab.locator('#editorHeader button:has-text("Выбрать альбом")')        
+        await accessBtn.isVisible()        
+        const designName = newTab.locator('[id="editorHeader"]')
+        await expect(designName).toContainText(/доска/)
+
+        await newTab.pause()
     })
 
     test('Эдитор. Изменение размера дизайна', async({page})=>{
@@ -2614,7 +2636,7 @@ test.describe('Тесты ИИ-мастерской для ПРО тарифа',
         await page.pause()        
     })
 
-    test.only('♛ ♛ ♛ ИИ-МАСТЕРСКАЯ. Замена изображения', async({page})=>{
+    test.skip('♛ ♛ ♛ ИИ-МАСТЕРСКАЯ. Замена изображения', async({page})=>{
         const workshop = new AiWorkshop(page)
         let oldToken: string, newToken: string
         let oldImg: string, newImg: string

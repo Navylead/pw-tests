@@ -1374,6 +1374,28 @@ test.describe('ОБЩИЕ ПО ЭДИТОРУ', ()=>{
         await newTab.pause()
     })
 
+    test('Дашборд. Создание ДОСКИ', async ({page, context})=>{
+        const dashboard = new Dashboard(page)
+        const editor = new Editor(page)
+        // Переход в Дашборд
+        await page.goto('/app')
+        await dashboard.createDesignBtn.waitFor()
+        // Создание ДОСКИ
+        await page.locator('[href="/app/dashboard"]').click()        
+        // ПЕРЕХОД НА НОВУЮ ВКЛАДКУ
+        const [newTab] = await Promise.all([
+            context.waitForEvent('page'),
+            page.locator('.item__text').getByText('Онлайн-доска').click()           // Клик по кнопке
+        ])
+        // Проверяем, что отображается кнопка Доступа и название дизайна
+        const accessBtn = newTab.locator('#editorHeader button:has-text("Выбрать альбом")')        
+        await accessBtn.isVisible()        
+        const designName = newTab.locator('[id="editorHeader"]')
+        await expect(designName).toContainText(/доска/)
+
+        await newTab.pause()
+    })
+
     test('Эдитор. Изменение размера дизайна', async({page})=>{
         const editor = new Editor(page)
         let oldWidth, newWidth
@@ -2604,6 +2626,47 @@ test.describe('Тесты ИИ-мастерской для ПРО тарифа',
             newImg = await uploadedImg.getAttribute('src')
             expect(newImg).not.toEqual(oldImg)
         }).toPass({timeout: 20000})
+
+        await page.pause()        
+    })
+
+    test.skip('♛ ♛ ♛ ИИ-МАСТЕРСКАЯ. Замена изображения', async({page})=>{
+        const workshop = new AiWorkshop(page)
+        let oldToken: string, newToken: string
+        let oldImg: string, newImg: string
+        // Переход в ИИ-редактор
+        await page.goto('/app/image-editor')
+        // Проверяем баланс токенов
+        oldToken = await workshop.getTokenCount()
+        expect(oldToken, "<<<НЕДОСТАТОЧНО ТОКЕНОВ>>>").toBeGreaterThan(0)
+        // Загружаем своё фото в ии-редактор
+        const uploadBtn = page.locator('[class="upload_img"] span:has(span:has-text("Загрузить изображение"))')
+        const [aploadImg] = await Promise.all([
+            page.waitForEvent('filechooser'),
+            uploadBtn.click()
+        ])
+        await aploadImg.setFiles('tests/resources/test1.jpg')
+        // Сохраняем ссылку на первую картинку
+        const uploadedImg = page.locator('[class="zoom-container"] img[src*="/tmp/"]')
+        await uploadedImg.waitFor()
+        oldImg = await uploadedImg.getAttribute('src')
+        console.log(oldImg)
+        // Клик по кнопке замены изображения
+        const [newPhoto] = await Promise.all([
+            page.waitForEvent('filechooser'),
+            page.locator('button:has(input[type="file"])').click()
+        ])
+        await page.pause()
+        await newPhoto.setFiles('tests/resources/test1.jpg')
+        //
+        await expect(uploadedImg).not.toHaveAttribute('src', oldImg)
+        newImg = await uploadedImg.getAttribute('src')
+        console.log(newImg)
+        // Ждём, пока не поменяется картинка
+        // await expect(async()=>{     
+        //     newImg = await reloadedImg.getAttribute('src')      
+        //     expect(newImg).not.toEqual(oldImg)
+        // }).toPass({timeout: 20000})
 
         await page.pause()        
     })
