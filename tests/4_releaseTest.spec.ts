@@ -1379,10 +1379,8 @@ test.describe('ОБЩИЕ ПО ЭДИТОРУ', ()=>{
         const editor = new Editor(page)
         // Переход в Дашборд
         await page.goto('/app')
-        await dashboard.createDesignBtn.waitFor()
+        await dashboard.createDesignBtn.waitFor()             
         // Создание ДОСКИ
-        await page.locator('[href="/app/dashboard"]').click()        
-        // ПЕРЕХОД НА НОВУЮ ВКЛАДКУ
         const [newTab] = await Promise.all([
             context.waitForEvent('page'),
             page.locator('.item__text').getByText('Онлайн-доска').click()           // Клик по кнопке
@@ -2050,14 +2048,14 @@ test.describe('Тесты ИИ-мастерской для ПРО тарифа',
         const json = await text2img.json()     
         const aiModels = ['flux-klein', 'sd35-turbo', 'qwen', 'z-image-turbo']
         await expect(json.data.prompt_ru).toEqual('картонный кот')
-        await expect(aiModels).toContain(json.data.images[0].model)      
-        await expect(json.data.images[0].path).toContain('.jpg')
-        await expect(aiModels).toContain(json.data.images[1].model)      
-        await expect(json.data.images[1].path).toContain('.jpg')
-        await expect(aiModels).toContain(json.data.images[2].model)        
-        await expect(json.data.images[2].path).toContain('.jpg')
-        await expect(aiModels).toContain(json.data.images[3].model)                 
-        await expect(json.data.images[3].path).toContain('.jpg')
+        await expect(aiModels).toContain(json.data.medias[0].model)      
+        await expect(json.data.medias[0].path).toContain('.jpg')
+        await expect(aiModels).toContain(json.data.medias[1].model)      
+        await expect(json.data.medias[1].path).toContain('.jpg')
+        await expect(aiModels).toContain(json.data.medias[2].model)        
+        await expect(json.data.medias[2].path).toContain('.jpg')
+        await expect(aiModels).toContain(json.data.medias[3].model)                 
+        await expect(json.data.medias[3].path).toContain('.jpg')
 
         await expect(async ()=>{            
             const imgSize = await newImgs.evaluateAll(imgs =>

@@ -190,7 +190,7 @@ test('Восстановить пароль', async ({page})=>{
 
 test('АВТОРИЗАЦИЯ. Пустые поля', async ({page})=>{
   const loginPage = new LoginPage(page)
-  await page.goto('/app/login')
+  await page.goto('https://flyvi.dev/app/login')
   await loginPage.loginByPasswordBtn.waitFor()
   await loginPage.loginByPasswordBtn.click()
   await loginPage.submitBtn.click()
@@ -205,7 +205,7 @@ test('АВТОРИЗАЦИЯ. Пустые поля', async ({page})=>{
 test('АВТОРИЗАЦИЯ. Неверные креды', async ({page})=>{
   const loginPage = new LoginPage(page)
   const wrongCreds = ['lolololo@laluxy.com', '9876543210']
-  await page.goto('/app/login')
+  await page.goto('https://flyvi.dev/app/login')
   await loginPage.loginByPasswordBtn.waitFor()
   await loginPage.loginByPasswordBtn.click()
   await loginPage.emailInput.fill(wrongCreds[0])
@@ -252,9 +252,11 @@ test.describe('Тесты премиумности', ()=>{
 
     test('ИИ-мастерская. Отображение попапа платной подписки при ГЕНЕРАЦИИ ФОТО на бесплатном тарифе', async ({page})=>{
         const dashboard = new Dashboard(page)
-        await page.goto('https://flyvi.dev/app/image-generator')
-        // Проверяем, что количество токенов соответствует условиям отображения водяного знака
-        const balance = await dashboard.getTokenCount()        
+        const [balance] = await Promise.all([
+            dashboard.getTokenCount(),
+            await page.goto('https://flyvi.dev/app/image-generator')
+        ])
+        // Проверяем, что количество токенов соответствует условиям отображения водяного знака                
         expect(balance, '<<<НЕДОСТАТОЧНО ТОКЕНОВ>>>').toBeGreaterThan(0)
         expect(balance, '<<<ТОКЕНОВ БОЛЬШЕ 4>>>').toBeLessThan(5)
         // Ждём отображения кнопки смены тарифа на ПРО
@@ -273,9 +275,12 @@ test.describe('Тесты премиумности', ()=>{
 
     test('ИИ-мастерская. Отображение попапа платной подписки при использовании ии-мастерской на бесплатном тарифе', async ({page})=>{
         const dashboard = new Dashboard(page)
-        await page.goto('https://flyvi.dev/app/image-generator')
+        const [balance] = await Promise.all([
+            dashboard.getTokenCount(),
+            await page.goto('https://flyvi.dev/app/image-generator')
+        ])
         // Проверяем, что количество токенов соответствует условиям отображения водяного знака
-        const balance = await dashboard.getTokenCount()        
+                
         expect(balance, '<<<НЕДОСТАТОЧНО ТОКЕНОВ>>>').toBeGreaterThan(0)
         expect(balance, '<<<ТОКЕНОВ БОЛЬШЕ 4>>>').toBeLessThan(5)
         // Ждём отображения кнопки смены тарифа на ПРО
@@ -292,9 +297,12 @@ test.describe('Тесты премиумности', ()=>{
 
     test('↓↓↓ ИИ-мастерская. СКАЧИВАНИЕ ии-фото на бесплатном тарифе. ИСТОРИЯ ГЕНЕРАЦИИ. СПИСОК', async ({page})=>{
         const dashboard = new Dashboard(page)
-        await page.goto('https://flyvi.dev/app/image-generator')
+        const [balance] = await Promise.all([
+            dashboard.getTokenCount(),
+            await page.goto('https://flyvi.dev/app/image-generator')
+        ])
         // Проверяем, что количество токенов соответствует условиям отображения водяного знака
-        const balance = await dashboard.getTokenCount()        
+                
         expect(balance, '<<<НЕДОСТАТОЧНО ТОКЕНОВ>>>').toBeGreaterThan(0)
         expect(balance, '<<<ТОКЕНОВ БОЛЬШЕ 4>>>').toBeLessThan(5)
         // Ждём отображения кнопки смены тарифа на ПРО
@@ -324,9 +332,12 @@ test.describe('Тесты премиумности', ()=>{
 
     test('↓↓↓ ИИ-мастерская. СКАЧИВАНИЕ ии-фото на бесплатном тарифе. ИСТОРИЯ ГЕНЕРАЦИИ. ПОПАП', async ({page})=>{
         const dashboard = new Dashboard(page)
-        await page.goto('https://flyvi.dev/app/image-generator')
+        const [balance] = await Promise.all([
+            dashboard.getTokenCount(),
+            await page.goto('https://flyvi.dev/app/image-generator')
+        ])
         // Проверяем, что количество токенов соответствует условиям отображения водяного знака
-        const balance = await dashboard.getTokenCount()        
+                
         expect(balance, '<<<НЕДОСТАТОЧНО ТОКЕНОВ>>>').toBeGreaterThan(0)
         expect(balance, '<<<ТОКЕНОВ БОЛЬШЕ 4>>>').toBeLessThan(5)
         // Ждём отображения кнопки смены тарифа на ПРО
@@ -356,9 +367,11 @@ test.describe('Тесты премиумности', ()=>{
 
     test('↓↓↓ ИИ-мастерская. СКАЧИВАНИЕ ии-фото на бесплатном тарифе. ИИ-РЕДАКТОР', async ({page})=>{
         const dashboard = new Dashboard(page)
-        await page.goto('https://flyvi.dev/app/image-generator')
-        // Проверяем, что количество токенов соответствует условиям отображения водяного знака
-        const balance = await dashboard.getTokenCount()        
+        const [balance] = await Promise.all([
+            dashboard.getTokenCount(),
+            await page.goto('https://flyvi.dev/app/image-generator')
+        ])        
+        // Проверяем, что количество токенов соответствует условиям отображения водяного знака              
         expect(balance, '<<<НЕДОСТАТОЧНО ТОКЕНОВ>>>').toBeGreaterThan(0)
         expect(balance, '<<<ТОКЕНОВ БОЛЬШЕ 4>>>').toBeLessThan(5)
         // Ждём отображения кнопки смены тарифа на ПРО
@@ -459,9 +472,12 @@ test.describe('Тесты премиумности', ()=>{
     test('⊗⊗⊗ ИИ-мастерская. СОЗДАНИЕ ДИЗАЙНА из ии-фото на бесплатном тарифе. ИСТОРИЯ ГЕНЕРАЦИИ. СПИСОК', async ({page, context})=>{
         const dashboard = new Dashboard(page)
         const editor = new Editor(page)
-        await page.goto('https://flyvi.dev/app/image-generator')
+        const [balance] = await Promise.all([
+            dashboard.getTokenCount(),
+            await page.goto('https://flyvi.dev/app/image-generator')
+        ])
         // Проверяем, что количество токенов соответствует условиям отображения водяного знака
-        const balance = await dashboard.getTokenCount()        
+                
         expect(balance, '<<<НЕДОСТАТОЧНО ТОКЕНОВ>>>').toBeGreaterThan(0)
         expect(balance, '<<<ТОКЕНОВ БОЛЬШЕ 4>>>').toBeLessThan(5)
         // Ждём отображения кнопки смены тарифа на ПРО
@@ -484,9 +500,12 @@ test.describe('Тесты премиумности', ()=>{
 
     test('⊗⊗⊗ ИИ-мастерская. СОЗДАНИЕ ДИЗАЙНА из ии-фото на бесплатном тарифе. ИСТОРИЯ ГЕНЕРАЦИИ. ПОПАП', async ({page, context})=>{
         const dashboard = new Dashboard(page)
-        await page.goto('https://flyvi.dev/app/image-generator')
+        const [balance] = await Promise.all([
+            dashboard.getTokenCount(),
+            await page.goto('https://flyvi.dev/app/image-generator')
+        ])
         // Проверяем, что количество токенов соответствует условиям отображения водяного знака
-        const balance = await dashboard.getTokenCount()        
+                
         expect(balance, '<<<НЕДОСТАТОЧНО ТОКЕНОВ>>>').toBeGreaterThan(0)
         expect(balance, '<<<ТОКЕНОВ БОЛЬШЕ 4>>>').toBeLessThan(5)
         // Ждём отображения кнопки смены тарифа на ПРО
@@ -508,9 +527,12 @@ test.describe('Тесты премиумности', ()=>{
 
     test('⊗⊗⊗ ИИ-мастерская. СОЗДАНИЕ ДИЗАЙНА из ии-фото на бесплатном тарифе. ИИ-РЕДАКТОР', async ({page, context})=>{
         const dashboard = new Dashboard(page)
-        await page.goto('https://flyvi.dev/app/image-generator')
+        const [balance] = await Promise.all([
+            dashboard.getTokenCount(),
+            await page.goto('https://flyvi.dev/app/image-generator')
+        ])
         // Проверяем, что количество токенов соответствует условиям отображения водяного знака
-        const balance = await dashboard.getTokenCount()        
+                
         expect(balance, '<<<НЕДОСТАТОЧНО ТОКЕНОВ>>>').toBeGreaterThan(0)
         expect(balance, '<<<ТОКЕНОВ БОЛЬШЕ 4>>>').toBeLessThan(5)
         // Ждём отображения кнопки смены тарифа на ПРО
@@ -585,9 +607,12 @@ test.describe('Тесты премиумности', ()=>{
 
     test('ИИ-мастерская. Отображение попапа платной подписки при КОПИРОВАНИИ сгененрированного фото на бесплатном тарифе', async ({page})=>{
         const dashboard = new Dashboard(page)
-        await page.goto('https://flyvi.dev/app/image-generator')
+        const [balance] = await Promise.all([
+            dashboard.getTokenCount(),
+            await page.goto('https://flyvi.dev/app/image-generator')
+        ])
         // Проверяем, что количество токенов соответствует условиям отображения водяного знака
-        const balance = await dashboard.getTokenCount()        
+                
         expect(balance, '<<<НЕДОСТАТОЧНО ТОКЕНОВ>>>').toBeGreaterThan(0)
         expect(balance, '<<<ТОКЕНОВ БОЛЬШЕ 4>>>').toBeLessThan(5)
         // Ждём отображения кнопки смены тарифа на ПРО
@@ -607,9 +632,12 @@ test.describe('Тесты премиумности', ()=>{
 
     test('ИИ-мастерская. Отображение ВОДЯНОГО ЗНАКА на бесплатном тарифе', async({page})=>{
         const dashboard = new Dashboard(page)
-        await page.goto('https://flyvi.dev/app/image-generator')
+        const [balance] = await Promise.all([
+            dashboard.getTokenCount(),
+            await page.goto('https://flyvi.dev/app/image-generator')
+        ])
         // Проверяем, что количество токенов соответствует условиям отображения водяного знака
-        const balance = await dashboard.getTokenCount()        
+                
         expect(balance, '<<<НЕДОСТАТОЧНО ТОКЕНОВ>>>').toBeGreaterThan(0)
         expect(balance, '<<<ТОКЕНОВ БОЛЬШЕ 4>>>').toBeLessThan(5)
         // Ждём отображения кнопки смены тарифа на ПРО
@@ -1394,10 +1422,8 @@ test.describe('ОБЩИЕ ПО ЭДИТОРУ', ()=>{
         const editor = new Editor(page)
         // Переход в Дашборд
         await page.goto('https://flyvi.dev/app')
-        await dashboard.createDesignBtn.waitFor()
+        await dashboard.createDesignBtn.waitFor()        
         // Создание ДОСКИ
-        await page.locator('[href="/app/dashboard"]').click()        
-        // ПЕРЕХОД НА НОВУЮ ВКЛАДКУ
         const [newTab] = await Promise.all([
             context.waitForEvent('page'),
             page.locator('.item__text').getByText('Онлайн-доска').click()           // Клик по кнопке
@@ -2059,14 +2085,14 @@ test.describe('Тесты ИИ-мастерской для ПРО тарифа',
         const json = await text2img.json()     
         const aiModels = ['flux-klein', 'sd35-turbo', 'qwen', 'z-image-turbo']
         await expect(json.data.prompt_ru).toEqual('картонный кот')
-        await expect(aiModels).toContain(json.data.images[0].model)      
-        await expect(json.data.images[0].path).toContain('.jpg')
-        await expect(aiModels).toContain(json.data.images[1].model)      
-        await expect(json.data.images[1].path).toContain('.jpg')
-        await expect(aiModels).toContain(json.data.images[2].model)        
-        await expect(json.data.images[2].path).toContain('.jpg')
-        await expect(aiModels).toContain(json.data.images[3].model)                 
-        await expect(json.data.images[3].path).toContain('.jpg')
+        await expect(aiModels).toContain(json.data.medias[0].model)      
+        await expect(json.data.medias[0].path).toContain('.jpg')
+        await expect(aiModels).toContain(json.data.medias[1].model)      
+        await expect(json.data.medias[1].path).toContain('.jpg')
+        await expect(aiModels).toContain(json.data.medias[2].model)        
+        await expect(json.data.medias[2].path).toContain('.jpg')
+        await expect(aiModels).toContain(json.data.medias[3].model)                 
+        await expect(json.data.medias[3].path).toContain('.jpg')
 
         await expect(async ()=>{            
             const imgSize = await newImgs.evaluateAll(imgs =>
