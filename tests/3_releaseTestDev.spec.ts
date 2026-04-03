@@ -7,7 +7,7 @@ import {Dashboard} from "../pages/Dashboard"
 import { MainPage } from "../pages/MainPage"
 import { AiWorkshop } from "../pages/AiWorkshop"
 import { promiseHooks } from "v8"
-import auth1 from "../auth/auth1.json"
+// import auth1 from "../auth/auth1.json"
 import creds from "../auth/creds.json"
 import RegistrationPage from "../pages/RegistrationPage"
 
@@ -1185,6 +1185,9 @@ test.describe('ОБЩИЕ ПО ЭДИТОРУ', ()=>{
 
         await page.goto('https://flyvi.dev/app/designs/cd544fae-4e4e-4315-b606-1d47ebf9618a')
         await editor.changesSavedBtn.waitFor()
+        // Заглушка для отработки сокета
+        await page.getByText('Папки').click()
+        await page.getByText('Стили').click()
         // Выбираем группировку декоров
         await editor.decor.first().click({force: true})
         await editor.decor.first().click({button: "right", force: true})
@@ -1195,6 +1198,8 @@ test.describe('ОБЩИЕ ПО ЭДИТОРУ', ()=>{
         await expect(errorMsg, '<<<ВЫЛЕТАЕТ ОШИБКА>>>').toBeHidden() 
         // Удаляем дубликат
         await page.keyboard.press('Delete')
+        // Заглушка для отработки сокета
+        await page.getByText('Папки').click()
 
         await page.pause()
     })

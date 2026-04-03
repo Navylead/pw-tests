@@ -1135,6 +1135,9 @@ test.describe('ОБЩИЕ ПО ЭДИТОРУ', ()=>{
 
         await page.goto('/app/designs/ea76845a-4249-4af3-a289-b43ba9820265')
         await editor.changesSavedBtn.waitFor()
+        // Заглушка для отработки сокета
+        await page.getByText('Папки').click()
+        await page.getByText('Стили').click()
         // Выбираем группировку декоров
         await editor.decor.first().click({force: true})
         await editor.decor.first().click({button: "right", force: true})
@@ -1145,7 +1148,9 @@ test.describe('ОБЩИЕ ПО ЭДИТОРУ', ()=>{
         await expect(errorMsg, '<<<ВЫЛЕТАЕТ ОШИБКА>>>').toBeHidden()        
         // Удаляем дубликат
         await page.keyboard.press('Delete')
-
+        // Заглушка для отработки сокета
+        await page.getByText('Папки').click()
+        
         await page.pause()
     })
 
