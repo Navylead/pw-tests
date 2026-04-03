@@ -1967,7 +1967,7 @@ test.describe('ОБЩИЕ ПО ЭДИТОРУ', ()=>{
         // Найденных элементов больше 0
         expect(audioCount).toBeGreaterThan(0)        
         
-        // await page.pause()
+        await page.pause()
     })
 
     test('Эдитор. Поиск по Элементам', async ({page})=>{
