@@ -666,7 +666,7 @@ test.describe('Тесты премиумности', ()=>{
         await page.locator('[class="small-title mt-6 ml-5"]').getByText('Показать все').click()
         // Проверяем, что на функциях в меню отображает иконка премиума
         const waterMark = page.locator('.ai-editor .premium-label')
-        await expect(waterMark).toHaveCount(12)
+        await expect(waterMark).toHaveCount(13)
         // await waterMark.highlight()
         // Кликаем по кнопке Колоризации
         const colorization = page.locator('.ai-editor >> text=Колоризация')
@@ -1117,7 +1117,7 @@ test.describe('Тесты премиумности', ()=>{
         // Ждём отображение попапа премиума
         await editor.proBanner.waitFor()
 
-        // await page.pause()
+        await page.pause()
     })
 
     test('Эдитор. Добавление декора из БРЕНДБУКА дизайн: Сет', async ({page})=>{
@@ -1388,7 +1388,7 @@ test.describe('ОБЩИЕ ПО ЭДИТОРУ', ()=>{
         await searchResult.waitFor()
         // Создаём дизайн
         const template = page.getByAltText('КУЛВЕРК')        
-        await template.nth(4).click()
+        await template.nth(5).click()
 
         const [newTab] = await Promise.all([
             context.waitForEvent('page', {timeout: 25000}),            
@@ -1878,7 +1878,7 @@ test.describe('ОБЩИЕ ПО ЭДИТОРУ', ()=>{
         await fontInput.fill('vin')
         // Проверяем, что результат поиска корректный
         const fonts = page.locator('[class="font-container"] [class="font-item"]')
-        await expect(fonts).toHaveCount(3)
+        await expect(fonts).toHaveCount(4)
         for(let i = 0; i < 3; i++) {            
             await expect(fonts.nth(i)).toHaveAttribute('style', /vin/i)
         }
@@ -2665,6 +2665,46 @@ test.describe('Тесты ИИ-мастерской для ПРО тарифа',
         }).toPass({timeout: 20000})
 
         await page.pause()        
+    })
+
+    test('♛ ♛ ♛ ИИ-МАСТЕРСКАЯ. Авторетушь', async({page})=>{
+        const workshop = new AiWorkshop(page)
+        let oldToken: string, newToken: string
+        let oldImg: string, newImg: string
+        // Переход в ИИ-редактор
+        await page.goto('https://flyvi.dev/app/image-editor')
+        // Проверяем баланс токенов
+        oldToken = await workshop.getTokenCount()
+        expect(oldToken, "<<<НЕДОСТАТОЧНО ТОКЕНОВ>>>").toBeGreaterThan(0)
+        // Загружаем своё фото в ии-редактор
+        const uploadBtn = page.locator('[class="upload_img"] span:has(span:has-text("Загрузить изображение"))')
+        const [aploadImg] = await Promise.all([
+            page.waitForEvent('filechooser'),
+            uploadBtn.click()
+        ])
+        await aploadImg.setFiles('tests/resources/test1.jpg')
+        // Сохраняем ссылку на первую картинку
+        const uploadedImg = page.locator('[class="zoom-container"] img[src*="/tmp/"]')
+        await uploadedImg.waitFor()
+        oldImg = await uploadedImg.getAttribute('src')
+        // Применяем редактирование
+        newToken = await Promise.all([
+            workshop.getTokenCount(),
+            page.getByText('Авторетушь').click()
+        ])
+        // Проверяем, что токены потратились
+        expect(newToken[0], '<<<Токены не потратились!!!>>>').toEqual(oldToken-1)
+        // Переключаем переключатель ДО/ПОСЛЕ
+        const toggle = page.locator('[class="custom-switch"]')
+        await toggle.isVisible({timeout: 25000})
+        await toggle.click()
+        // Ждём, пока не поменяется картинка
+        await expect(async()=>{
+            newImg = await uploadedImg.getAttribute('src')
+            expect(newImg).not.toEqual(oldImg)
+        }).toPass({timeout: 15000})
+
+        await page.pause()
     })
 
     test.skip('♛ ♛ ♛ ИИ-МАСТЕРСКАЯ. Замена изображения', async({page})=>{
