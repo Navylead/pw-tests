@@ -2713,5 +2713,83 @@ test.describe('Тесты ИИ-мастерской для ПРО тарифа',
 
         await page.pause()        
     })
+
+    test("✪✪✪ Генератор ВИДЕО. История генераций. Скачать видео", async({page})=>{
+        const workshop = new AiWorkshop(page)
+        // Переход в видео-генератор
+        await page.goto('/app/video-generator')
+        const downloadBtn = page.locator('.image-container_icons_icon [height="19"]').first()
+        await downloadBtn.waitFor()
+        // Клик по кнопке скачивания
+        const [downloadFile] = await Promise.all([
+            page.waitForEvent('download'),
+            downloadBtn.click()
+        ])
+        // Проверяем расширение скаченного файла
+        await expect(downloadFile.suggestedFilename()).toContain('.mp4')
+        // await downloadFile.saveAs('tests/resources/popug.mp4')
+
+        await page.pause() 
+    })
+
+    test("✪✪✪ Генератор ВИДЕО. Галерея. Скачать видео", async({page})=>{
+        const workshop = new AiWorkshop(page)
+        // Переход в видео-генератор
+        await page.goto('/app/video-generator')
+        // Переходим в Галерею
+        await page.getByRole('button', {name: 'Галерея'}).click()
+        // Клик по кнопке скачивания        
+        const downloadBtn = page.locator('.blocks button').nth(3)
+        await downloadBtn.waitFor()
+        const [downloadFile] = await Promise.all([
+            page.waitForEvent('download'),
+            downloadBtn.click()
+        ])
+        // Проверяем расширение скаченного файла
+        await expect(downloadFile.suggestedFilename()).toContain('.mp4')
+        // await downloadFile.saveAs('tests/resources/popug.mp4')
+
+        await page.pause() 
+    })
+
+    test("✪✪✪ Генератор ВИДЕО. История генераций. Создать дизайн из видео", async({page, context})=>{
+        const workshop = new AiWorkshop(page)
+        const editor = new Editor(page)
+        // Переход в видео-генератор
+        await page.goto('/app/video-generator')        
+        const createBtn = page.locator('.buttons > button:nth-child(4)').first()
+        await createBtn.waitFor()
+        // Клик по кнопке создания дизайна
+        const [newTab] = await Promise.all([
+            context.waitForEvent('page'),
+            createBtn.click()
+        ])
+        // Проверяем, что создался дизайн
+        await newTab.locator('header button >> text=Изменения сохранены').waitFor({timeout: 20000})
+        await newTab.locator('.story-box-inner__wrapper video').waitFor()             
+
+        await page.pause() 
+    })
+
+    test("✪✪✪ Генератор ВИДЕО. Галерея. Создать дизайн из видео", async({page, context})=>{
+        const workshop = new AiWorkshop(page)
+        const editor = new Editor(page)
+        // Переход в видео-генератор
+        await page.goto('/app/video-generator')
+        // Переходим в Галерею
+        await page.getByRole('button', {name: 'Галерея'}).click()         
+        // Клик по кнопке создания дизайна        
+        const createBtn = page.getByRole('button').nth(4)
+        await createBtn.waitFor()
+        const [newTab] = await Promise.all([
+            context.waitForEvent('page'),
+            createBtn.click()
+        ])
+        // Проверяем, что создался дизайн
+        await newTab.locator('header button >> text=Изменения сохранены').waitFor({timeout: 20000})
+        await newTab.locator('.story-box-inner__wrapper video').waitFor()
+
+        await page.pause() 
+    })
 })
 })
