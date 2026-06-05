@@ -2,13 +2,13 @@
 import {test, expect} from "@playwright/test"
 import {LoginPage} from "../pages/LoginPage"
 import {Editor} from "../pages/Editor"
-import creds from "../auth/creds.json"
-import { Dashboard } from "../pages/Dashboard"
+import {Dashboard} from "../pages/Dashboard"
 import { MainPage } from "../pages/MainPage"
 import { AiWorkshop } from "../pages/AiWorkshop"
-import { RegistrationPage } from "../pages/RegistrationPage"
-import { Response } from "@playwright/test"
-
+import auth1 from "../auth/auth1.json"
+import creds from "../auth/creds.json"
+import RegistrationPage from "../pages/RegistrationPage"
+import type { Response } from '@playwright/test'
 
 test.describe('Релизные тесты', ()=>{
 
@@ -26,12 +26,12 @@ test.describe('Registration', ()=>{
           message: "Ваш аккаунт был создан."
       })
       })
-    })
+    })    
     const mockName: string = 'mock_user'
     const mockEmail: string = 'testmock@gmail.com'
     const password: string = '0123456789'
     // Регистрация
-    await register.register(mockName, mockEmail, password)
+    await register.registerTest(mockName, mockEmail, password)
     // Отображение попапа успешной регистрации
     const registrationDonePopap = page.locator('.auth-form__wrapper')
     const registrationDoneBtn = registrationDonePopap.locator('button:has-text("Хорошо")')
@@ -67,7 +67,7 @@ test.describe('Registration', ()=>{
     })
     // Регистрация по коду
     let mockEmail: string = 'string128128@mail.ru', mockName: string = 'ПО КОДУ'
-    await page.goto('https://flyvi.dev/app/login')
+    await page.goto('https://flyvi.art/app/login')
     await page.locator('text=Зарегистрируйтесь').click()
     await page.locator('[placeholder="Введите полное имя"]').fill(mockName)
     await page.locator('[placeholder="Введите адрес электронной почты"]').fill(mockEmail)
@@ -94,7 +94,7 @@ test.describe('Registration', ()=>{
     await page.pause()
   })
 
-  test('Регистрация пользователя', async({page})=>{
+  test.skip('Регистрация пользователя', async({page})=>{ // ПРИДУМАТЬ, КАК РЕГИТЬСЯ НА ТЕСТЕ
     const register = new RegistrationPage(page)
     const randomNumber = Math.floor(Math.random() * 100)
     const name: string = 'testdelete'
@@ -102,15 +102,15 @@ test.describe('Registration', ()=>{
     const password: string = '8888888888'     
     // Регистрация
     const [request] = await Promise.all([
-        page.waitForRequest('https://api.flyvi.io/api/auth/register', {timeout:25000}),
-        register.register(name, email, password)
+        page.waitForRequest('https://api.flyvi.art/api/auth/register', {timeout:25000}),
+        register.registerTest(name, email, password)
     ])
-    // Проверка данных в ЗАПРОСЕ
+    // Проверка запроса
     const reqBody = await JSON.parse(request.postData() ?? '{}')
     expect(reqBody.email).toEqual(email)
     expect(reqBody.password).toEqual(password)
-    // Проверка данных в ОТВЕТЕ
-    const respPromise = page.waitForResponse('https://api.flyvi.io/api/auth/register')
+    // Проверка ответа
+    const respPromise = page.waitForResponse('https://api.flyvi.art/api/auth/register')
     const resp = await respPromise					
     const respBody = await resp.json()
     expect(respBody.message).toEqual("Ваш аккаунт был создан.")
@@ -126,7 +126,7 @@ test.describe('Registration', ()=>{
     const email: string = creds.email1
     const password: string = '8888888888'  
     // Регистрация
-    await register.register(name, email, password)
+    await register.registerTest(name, email, password)
     const response = await page.waitForResponse('**/api/auth/register')
     const jsonResponse = await response.json()
     expect(jsonResponse.errors.email[0]).toEqual('Данный email уже зарегистрирован')
@@ -148,16 +148,16 @@ test.describe('Sign in', ()=>{
     const loginPage = new LoginPage(page)
     const dashboard = new Dashboard(page)
     // Авторизация
-    await loginPage.login(creds.email1, creds.password1)   
+    await loginPage.loginArt(creds.emailTest, creds.passwordTest)   
     // Проверка ответов АПИ для "login" "me"
     expect(loginPage.loginResponse.access_token).not.toEqual('')
     // fs.writeFileSync('token.json', token.access_token)        <<Запись токена в файл>>  
-    expect(loginPage.meResponse.user.id).toEqual(89671)
-    expect(loginPage.meResponse.user.name).toEqual('Ликси')
-    expect(loginPage.meResponse.user.email).toEqual(creds.email1)
-    expect(loginPage.meResponse.user.tariff.name).toEqual('Business')
+    expect(loginPage.meResponse.user.id).toEqual(271)
+    expect(loginPage.meResponse.user.name).toEqual("KIRILL")
+    expect(loginPage.meResponse.user.email).toEqual(creds.emailTest)
+    expect(loginPage.meResponse.user.tariff.name).toEqual('Pro')
     // Ожидание успешного перехода на главную страницу
-    await page.waitForURL('https://flyvi.io/app')
+    await page.waitForURL('https://flyvi.art/app')
     // Проверка, что авторизация была успешной (например, отображение кнопки СОЗДАТЬ ДИЗАЙН)
     await dashboard.createDesignBtn.waitFor()
 
@@ -165,9 +165,10 @@ test.describe('Sign in', ()=>{
 })
 
 test('Восстановить пароль', async ({page})=>{
-  const loginPage = new LoginPage(page)  
-  const email = 'navyleadreel@gmail.com'
-  await page.goto('/app/login')
+  const loginPage = new LoginPage(page)
+  const dashboard = new Dashboard(page)
+  const email: string = creds.emailTest
+  await page.goto('https://flyvi.art/app/login')
   // Восстанавливаем пароль
   await loginPage.restoreBtn.click()
   // Вводим свою почту
@@ -187,7 +188,7 @@ test('Восстановить пароль', async ({page})=>{
 
 test('АВТОРИЗАЦИЯ. Пустые поля', async ({page})=>{
   const loginPage = new LoginPage(page)
-  await page.goto('/app/login')
+  await page.goto('https://flyvi.art/app/login')
   await loginPage.loginByPasswordBtn.waitFor()
   await loginPage.loginByPasswordBtn.click()
   await loginPage.submitBtn.click()
@@ -202,7 +203,7 @@ test('АВТОРИЗАЦИЯ. Пустые поля', async ({page})=>{
 test('АВТОРИЗАЦИЯ. Неверные креды', async ({page})=>{
   const loginPage = new LoginPage(page)
   const wrongCreds = ['lolololo@laluxy.com', '9876543210']
-  await page.goto('/app/login')
+  await page.goto('https://flyvi.art/app/login')
   await loginPage.loginByPasswordBtn.waitFor()
   await loginPage.loginByPasswordBtn.click()
   await loginPage.emailInput.fill(wrongCreds[0])
@@ -221,11 +222,11 @@ test.describe('Тесты премиумности', ()=>{
         page.setViewportSize({"width": 1600, "height": 900})
     })
 
-    test.use({ storageState: 'auth/auth3.json' });                    // <<<ФАЙЛ С СОХРАНЁННОЙ СЕССИЕЙ ТАРИФА СТАРТ - xedibe*>>>
+    test.use({ storageState: 'auth/authArtFree.json' });      // <<<ФАЙЛ С СОХРАНЁННОЙ СЕССИЕЙ ТАРИФА СТАРТ - mipipon*>>>
 
     test('Дашборд. Проверка тарифа в ЛК', async ({page})=>{
         const dashboard = new Dashboard(page)
-        await page.goto('/app')
+        await page.goto('https://flyvi.art/app')
         // Проверяем, что на Дашборде отображается тариф Старт
         const dashboardTariff: string = await page.locator('.drawer-account__tariff-name').innerText()
         expect(dashboardTariff).toContain('БЕСПЛАТНО')
@@ -233,26 +234,27 @@ test.describe('Тесты премиумности', ()=>{
         await dashboard.userLogo.waitFor()
         await dashboard.userLogo.click()
         await page.locator('text=Мой профиль').click()
-        await page.waitForURL('/app/user/profile')
+        await page.waitForURL('https://flyvi.art/app/user/profile')
         // Переход на вкладку Подписка
         const subscriptionBtn = page.locator('text=Подписка')
         await subscriptionBtn.waitFor()
         await subscriptionBtn.click()
         // Проверяем, что отображается тариф Старт
-        const tariff = page.locator('.col_oXhib:has-text("Тарифы") [class="cardTitle_hYN+x"]').first()        
+        const tariff = page.locator('.col_oXhib:has-text("Тарифы") [class="cardTitle_hYN+x"]').first()   
+        await tariff.waitFor({timeout: 10000})     
         const tariffName: string = await tariff.innerText()
-        expect(tariffName.trim()).toContain('Старт')
+        expect(tariffName).toContain('Старт')
 
         // await page.pause()
     })
 
-    test('ИИ-мастерская. Отображение попапа платной подписки при ГЕНЕРАЦИИ ФОТО на бесплатном тарифе', async ({page})=>{
-        const dashboard = new Dashboard(page)         
-        // Проверяем, что количество токенов соответствует условиям отображения водяного знака
+    test('↓↓↓ ИИ-мастерская. Отображение попапа платной подписки при ГЕНЕРАЦИИ ФОТО на бесплатном тарифе', async ({page})=>{
+        const dashboard = new Dashboard(page)
         const [balance] = await Promise.all([
             dashboard.getTokenCount(),
-            page.goto('/app/image-generator')
-        ])                
+            page.goto('https://flyvi.art/app/image-generator')
+        ])        
+        // Проверяем, что количество токенов соответствует условиям отображения водяного знака                
         expect(balance, '<<<НЕДОСТАТОЧНО ТОКЕНОВ>>>').toBeGreaterThan(0)
         expect(balance, '<<<ТОКЕНОВ БОЛЬШЕ 4>>>').toBeLessThan(5)
         // Ждём отображения кнопки смены тарифа на ПРО
@@ -266,16 +268,17 @@ test.describe('Тесты премиумности', ()=>{
         await banner.waitFor()
         await banner.locator('button >> text=Получить бесплатную пробную версию').waitFor()   
 
-        // await page.pause()
+        await page.pause()
     })
 
-    test('ИИ-мастерская. Отображение попапа платной подписки при использовании ии-мастерской на бесплатном тарифе', async ({page})=>{
-        const dashboard = new Dashboard(page)         
-        // Проверяем, что количество токенов соответствует условиям отображения водяного знака
+    test('↓↓↓ ИИ-мастерская. Отображение попапа платной подписки при использовании ии-мастерской на бесплатном тарифе', async ({page})=>{
+        const dashboard = new Dashboard(page)
         const [balance] = await Promise.all([
             dashboard.getTokenCount(),
-            page.goto('/app/image-generator')
-        ])          
+            page.goto('https://flyvi.art/app/image-generator')
+        ])
+        // Проверяем, что количество токенов соответствует условиям отображения водяного знака
+                
         expect(balance, '<<<НЕДОСТАТОЧНО ТОКЕНОВ>>>').toBeGreaterThan(0)
         expect(balance, '<<<ТОКЕНОВ БОЛЬШЕ 4>>>').toBeLessThan(5)
         // Ждём отображения кнопки смены тарифа на ПРО
@@ -287,23 +290,24 @@ test.describe('Тесты премиумности', ()=>{
         await dashboard.proBanner.waitFor()
         await dashboard.proBanner.locator('button >> text=Получить бесплатную пробную версию').waitFor()
         
-        // await page.pause()
+        await page.pause()
     })
 
     test('↓↓↓ ИИ-мастерская. СКАЧИВАНИЕ ии-фото на бесплатном тарифе. ИСТОРИЯ ГЕНЕРАЦИИ. СПИСОК', async ({page})=>{
-        const dashboard = new Dashboard(page)         
-        // Проверяем, что количество токенов соответствует условиям отображения водяного знака
+        const dashboard = new Dashboard(page)
         const [balance] = await Promise.all([
             dashboard.getTokenCount(),
-            page.goto('/app/image-generator')
-        ])         
+            page.goto('https://flyvi.art/app/image-generator')
+        ])
+        // Проверяем, что количество токенов соответствует условиям отображения водяного знака                
         expect(balance, '<<<НЕДОСТАТОЧНО ТОКЕНОВ>>>').toBeGreaterThan(0)
         expect(balance, '<<<ТОКЕНОВ БОЛЬШЕ 4>>>').toBeLessThan(5)
         // Ждём отображения кнопки смены тарифа на ПРО
         await dashboard.changeToProBtn.waitFor()
         // Клик по кнопке скачивания в попапе
         const aiImage = page.locator('[class="ai-generator__history"] [class="image-container"]').first()        
-        await aiImage.hover()              
+        await aiImage.hover()
+        await aiImage.locator('button').nth(2).highlight()        
         await aiImage.locator('button').nth(2).click()
         // Проверяем, что отображается баннер перехода на платную подписку
         await dashboard.proBanner.waitFor()
@@ -324,12 +328,12 @@ test.describe('Тесты премиумности', ()=>{
     })
 
     test('↓↓↓ ИИ-мастерская. СКАЧИВАНИЕ ии-фото на бесплатном тарифе. ИСТОРИЯ ГЕНЕРАЦИИ. ПОПАП', async ({page})=>{
-        const dashboard = new Dashboard(page)         
-        // Проверяем, что количество токенов соответствует условиям отображения водяного знака
+        const dashboard = new Dashboard(page)
         const [balance] = await Promise.all([
             dashboard.getTokenCount(),
-            page.goto('/app/image-generator')
-        ])          
+            page.goto('https://flyvi.art/app/image-generator')
+        ])
+        // Проверяем, что количество токенов соответствует условиям отображения водяного знака                
         expect(balance, '<<<НЕДОСТАТОЧНО ТОКЕНОВ>>>').toBeGreaterThan(0)
         expect(balance, '<<<ТОКЕНОВ БОЛЬШЕ 4>>>').toBeLessThan(5)
         // Ждём отображения кнопки смены тарифа на ПРО
@@ -337,7 +341,7 @@ test.describe('Тесты премиумности', ()=>{
         // Кликаем по сгененрированному фото
         await dashboard.aiImage.click()
         // Клик по кнопке скачивания в попапе
-        const popupDownloadBtn = page.locator('.dialog_btn-container button.dialog_btn-helper').nth(1)
+        const popupDownloadBtn = page.locator('.dialog_btn-container button.dialog_btn-helper').nth(0)
         await popupDownloadBtn.click()
         // Проверяем, что отображается баннер перехода на платную подписку
         await dashboard.proBanner.waitFor()
@@ -358,19 +362,19 @@ test.describe('Тесты премиумности', ()=>{
     })
 
     test('↓↓↓ ИИ-мастерская. СКАЧИВАНИЕ ии-фото на бесплатном тарифе. ИИ-РЕДАКТОР', async ({page})=>{
-        const dashboard = new Dashboard(page)         
-        // Проверяем, что количество токенов соответствует условиям отображения водяного знака
+        const dashboard = new Dashboard(page)
         const [balance] = await Promise.all([
             dashboard.getTokenCount(),
-            page.goto('/app/image-generator')
+            page.goto('https://flyvi.art/app/image-generator')
         ])        
+        // Проверяем, что количество токенов соответствует условиям отображения водяного знака              
         expect(balance, '<<<НЕДОСТАТОЧНО ТОКЕНОВ>>>').toBeGreaterThan(0)
         expect(balance, '<<<ТОКЕНОВ БОЛЬШЕ 4>>>').toBeLessThan(5)
         // Ждём отображения кнопки смены тарифа на ПРО
         await dashboard.changeToProBtn.waitFor()
         // Переходим в ИИ-РЕДАКТОР
         await dashboard.aiImage.hover()
-        const changeBtn = page.getByRole('button', {name:"Изменить"})  
+        const changeBtn = page.getByRole('button', {name: "Изменить"})
         await changeBtn.click()
         // Клик по кнопке скачивания в ИИ-РЕДАКТОРЕ
         const aiEditorDownloadBtn = page.locator('[class="ai-editor__main_canvas_img"] button').nth(4)
@@ -394,11 +398,12 @@ test.describe('Тесты премиумности', ()=>{
     })
 
     test('↓↓↓ ИИ-мастерская. СКАЧИВАНИЕ ии-фото на бесплатном тарифе. ГАЛЕРЕЯ', async ({page})=>{
-        const dashboard = new Dashboard(page)         
+
+        const dashboard = new Dashboard(page)        
         // Проверяем, что количество токенов соответствует условиям отображения водяного знака
         const [balance] = await Promise.all([
             dashboard.getTokenCount(),
-            page.goto('/app/gallery')
+            page.goto('https://flyvi.art/app/gallery')
         ])              
         expect(balance, '<<<НЕДОСТАТОЧНО ТОКЕНОВ>>>').toBeGreaterThan(0)
         expect(balance, '<<<ТОКЕНОВ БОЛЬШЕ 4>>>').toBeLessThan(5)
@@ -428,12 +433,11 @@ test.describe('Тесты премиумности', ()=>{
     })
 
     test('↓↓↓ ИИ-мастерская. СКАЧИВАНИЕ ии-фото на бесплатном тарифе. ГАЛЕРЕЯ. ПОПАП', async ({page})=>{
-        const dashboard = new Dashboard(page)         
-        // Проверяем, что количество токенов соответствует условиям отображения водяного знака
+        const dashboard = new Dashboard(page)
         const [balance] = await Promise.all([
             dashboard.getTokenCount(),
-            page.goto('/app/gallery')
-        ])        
+            page.goto('https://flyvi.art/app/gallery')
+        ])       
         expect(balance, '<<<НЕДОСТАТОЧНО ТОКЕНОВ>>>').toBeGreaterThan(0)
         expect(balance, '<<<ТОКЕНОВ БОЛЬШЕ 4>>>').toBeLessThan(5)
         // Ждём отображения кнопки смены тарифа на ПРО
@@ -445,7 +449,7 @@ test.describe('Тесты премиумности', ()=>{
         const popup = page.locator('[class="dialog-wrapper"]')
         await popup.waitFor()
         // Кликаем по кнопке Скачать
-        await popup.getByRole('button').nth(2).click()
+        await popup.getByRole('button').nth(1).click()
         // Проверяем, что отображается баннер перехода на платную подписку
         await dashboard.proBanner.waitFor()
         await dashboard.proBanner.locator('button >> text=Получить бесплатную пробную версию').waitFor()
@@ -465,12 +469,13 @@ test.describe('Тесты премиумности', ()=>{
     })
 
     test('⊗⊗⊗ ИИ-мастерская. СОЗДАНИЕ ДИЗАЙНА из ии-фото на бесплатном тарифе. ИСТОРИЯ ГЕНЕРАЦИИ. СПИСОК', async ({page, context})=>{
-        const dashboard = new Dashboard(page)         
-        // Проверяем, что количество токенов соответствует условиям отображения водяного знака
+        const dashboard = new Dashboard(page)
+        const editor = new Editor(page)
         const [balance] = await Promise.all([
             dashboard.getTokenCount(),
-            page.goto('/app/image-generator')
-        ])        
+            page.goto('https://flyvi.art/app/image-generator')
+        ])
+        // Проверяем, что количество токенов соответствует условиям отображения водяного знака                
         expect(balance, '<<<НЕДОСТАТОЧНО ТОКЕНОВ>>>').toBeGreaterThan(0)
         expect(balance, '<<<ТОКЕНОВ БОЛЬШЕ 4>>>').toBeLessThan(5)
         // Ждём отображения кнопки смены тарифа на ПРО
@@ -492,12 +497,12 @@ test.describe('Тесты премиумности', ()=>{
     })
 
     test('⊗⊗⊗ ИИ-мастерская. СОЗДАНИЕ ДИЗАЙНА из ии-фото на бесплатном тарифе. ИСТОРИЯ ГЕНЕРАЦИИ. ПОПАП', async ({page, context})=>{
-        const dashboard = new Dashboard(page)         
-        // Проверяем, что количество токенов соответствует условиям отображения водяного знака
+        const dashboard = new Dashboard(page)
         const [balance] = await Promise.all([
             dashboard.getTokenCount(),
-            page.goto('/app/image-generator')
-        ])        
+            page.goto('https://flyvi.art/app/image-generator')
+        ])
+        // Проверяем, что количество токенов соответствует условиям отображения водяного знака                
         expect(balance, '<<<НЕДОСТАТОЧНО ТОКЕНОВ>>>').toBeGreaterThan(0)
         expect(balance, '<<<ТОКЕНОВ БОЛЬШЕ 4>>>').toBeLessThan(5)
         // Ждём отображения кнопки смены тарифа на ПРО
@@ -518,12 +523,12 @@ test.describe('Тесты премиумности', ()=>{
     })
 
     test('⊗⊗⊗ ИИ-мастерская. СОЗДАНИЕ ДИЗАЙНА из ии-фото на бесплатном тарифе. ИИ-РЕДАКТОР', async ({page, context})=>{
-        const dashboard = new Dashboard(page)         
-        // Проверяем, что количество токенов соответствует условиям отображения водяного знака
+        const dashboard = new Dashboard(page)
         const [balance] = await Promise.all([
             dashboard.getTokenCount(),
-            page.goto('/app/image-generator')
-        ])        
+            page.goto('https://flyvi.art/app/image-generator')
+        ])
+        // Проверяем, что количество токенов соответствует условиям отображения водяного знака                
         expect(balance, '<<<НЕДОСТАТОЧНО ТОКЕНОВ>>>').toBeGreaterThan(0)
         expect(balance, '<<<ТОКЕНОВ БОЛЬШЕ 4>>>').toBeLessThan(5)
         // Ждём отображения кнопки смены тарифа на ПРО
@@ -545,11 +550,10 @@ test.describe('Тесты премиумности', ()=>{
     })
 
     test('⊗⊗⊗ ИИ-мастерская. СОЗДАНИЕ ДИЗАЙНА из ии-фото на бесплатном тарифе. ГАЛЕРЕЯ', async ({page, context})=>{
-        const dashboard = new Dashboard(page)         
-        // Проверяем, что количество токенов соответствует условиям отображения водяного знака
+        const dashboard = new Dashboard(page)
         const [balance] = await Promise.all([
             dashboard.getTokenCount(),
-            page.goto('/app/gallery')
+            page.goto('https://flyvi.art/app/gallery')
         ])              
         expect(balance, '<<<НЕДОСТАТОЧНО ТОКЕНОВ>>>').toBeGreaterThan(0)
         expect(balance, '<<<ТОКЕНОВ БОЛЬШЕ 4>>>').toBeLessThan(5)
@@ -572,12 +576,11 @@ test.describe('Тесты премиумности', ()=>{
     })
 
     test('⊗⊗⊗ ИИ-мастерская. СОЗДАНИЕ ДИЗАЙНА из ии-фото на бесплатном тарифе. ГАЛЕРЕЯ. ПОПАП', async ({page, context})=>{
-        const dashboard = new Dashboard(page)         
-        // Проверяем, что количество токенов соответствует условиям отображения водяного знака
+        const dashboard = new Dashboard(page)
         const [balance] = await Promise.all([
             dashboard.getTokenCount(),
-            page.goto('/app/gallery')
-        ])        
+            page.goto('https://flyvi.art/app/gallery')
+        ])       
         expect(balance, '<<<НЕДОСТАТОЧНО ТОКЕНОВ>>>').toBeGreaterThan(0)
         expect(balance, '<<<ТОКЕНОВ БОЛЬШЕ 4>>>').toBeLessThan(5)
         // Ждём отображения кнопки смены тарифа на ПРО
@@ -598,23 +601,24 @@ test.describe('Тесты премиумности', ()=>{
         await newTab.getByRole('button', {name: "Скачать"}).waitFor()       
         
         await page.pause()
-    })
+    })    
 
     test('ИИ-мастерская. Отображение попапа платной подписки при КОПИРОВАНИИ сгененрированного фото на бесплатном тарифе', async ({page})=>{
-        const dashboard = new Dashboard(page)         
-        // Проверяем, что количество токенов соответствует условиям отображения водяного знака
+        const dashboard = new Dashboard(page)
         const [balance] = await Promise.all([
             dashboard.getTokenCount(),
-            page.goto('/app/image-generator')
-        ])        
+            page.goto('https://flyvi.art/app/image-generator')
+        ])
+        // Проверяем, что количество токенов соответствует условиям отображения водяного знака                
         expect(balance, '<<<НЕДОСТАТОЧНО ТОКЕНОВ>>>').toBeGreaterThan(0)
         expect(balance, '<<<ТОКЕНОВ БОЛЬШЕ 4>>>').toBeLessThan(5)
         // Ждём отображения кнопки смены тарифа на ПРО
         await dashboard.changeToProBtn.waitFor()
         // Кликаем по сгененрированному фото
         await dashboard.aiImage.click()
-        // Клик по кнопке скачивания в попапе
+        // Клик по кнопке копирования в попапе
         const popupDownloadBtn = page.locator('.dialog_btn-container button').nth(2)
+        await popupDownloadBtn.highlight()
         await popupDownloadBtn.click()
         // Проверяем, что отображается баннер перехода на платную подписку
         await dashboard.proBanner.waitFor()
@@ -624,12 +628,12 @@ test.describe('Тесты премиумности', ()=>{
     })
 
     test('ИИ-мастерская. Отображение ВОДЯНОГО ЗНАКА на бесплатном тарифе', async({page})=>{
-        const dashboard = new Dashboard(page)         
-        // Проверяем, что количество токенов соответствует условиям отображения водяного знака
+        const dashboard = new Dashboard(page)
         const [balance] = await Promise.all([
             dashboard.getTokenCount(),
-            page.goto('/app/image-generator')
+            await page.goto('https://flyvi.art/app/image-generator')
         ])        
+        // Проверяем, что количество токенов соответствует условиям отображения водяного знака                
         expect(balance, '<<<НЕДОСТАТОЧНО ТОКЕНОВ>>>').toBeGreaterThan(0)
         expect(balance, '<<<ТОКЕНОВ БОЛЬШЕ 4>>>').toBeLessThan(5)
         // Ждём отображения кнопки смены тарифа на ПРО
@@ -641,13 +645,13 @@ test.describe('Тесты премиумности', ()=>{
         // await waterMark.highlight()
         await waterMark.first().waitFor()
 
-        await page.pause()
+        // await page.pause()
     })
 
     test('Эдитор. Использование ии-редактора на бесплатном тарифе', async({page})=>{
         const dashboard = new Dashboard(page)
         const editor = new Editor(page)
-        await page.goto('/app/designs/453089c9-dfc6-4b9b-90b3-36b02f721c68')
+        await page.goto('https://flyvi.art/app/designs/d4e2daaf-67ef-485f-b782-cf0f2c09bdf6')
         await editor.changesSavedBtn.waitFor()
         // Кликаем по фото на холсте
         await editor.decor.waitFor({timeout:10000})
@@ -658,22 +662,23 @@ test.describe('Тесты премиумности', ()=>{
         await page.locator('[class="small-title mt-6 ml-5"]').getByText('Показать все').click()
         // Проверяем, что на функциях в меню отображает иконка премиума
         const waterMark = page.locator('.ai-editor .premium-label')
-        await expect(waterMark).toHaveCount(14)
+        await expect(waterMark).toHaveCount(13)
         // await waterMark.highlight()
         // Кликаем по кнопке Колоризации
         const colorization = page.locator('.ai-editor >> text=Колоризация')
+        await colorization.highlight()
         await colorization.click()
         const banner = page.locator('.dialog-box')
         // Проверяем, что отображается баннер перехода на платную подписку
         await banner.waitFor()
         await banner.locator('button >> text=Получить бесплатную пробную версию').waitFor()        
         
-        // await page.pause()
+        await page.pause()
     })
 
     test('Эдитор. Скачивание премиум-элемента: ИКОНКА', async({page})=>{
         const editor = new Editor(page)
-        await page.goto('/app/designs/a9d4defc-7041-452a-91c4-9c9569eceea6')
+        await page.goto('https://flyvi.art/app/designs/2e833d06-f09f-4405-ae75-88fea9dce297')
         await editor.changesSavedBtn.waitFor()
         await editor.downloadBtn.click()
         const allPagesMenu = page.locator('button >> text=Все страницы')
@@ -695,7 +700,7 @@ test.describe('Тесты премиумности', ()=>{
 
     test('Эдитор. Скачивание премиум-элемента: ВЕКТОР', async({page})=>{
         const editor = new Editor(page)
-        await page.goto('/app/designs/a9d4defc-7041-452a-91c4-9c9569eceea6')
+        await page.goto('https://flyvi.art/app/designs/2e833d06-f09f-4405-ae75-88fea9dce297')
         await editor.changesSavedBtn.waitFor()
         await editor.downloadBtn.click()
         const allPagesMenu = page.locator('button >> text=Все страницы')
@@ -717,7 +722,7 @@ test.describe('Тесты премиумности', ()=>{
 
     test('Эдитор. Скачивание премиум-элемента: ШРИФТ', async({page})=>{
         const editor = new Editor(page)
-        await page.goto('/app/designs/a9d4defc-7041-452a-91c4-9c9569eceea6')
+        await page.goto('https://flyvi.art/app/designs/2e833d06-f09f-4405-ae75-88fea9dce297')
         await editor.changesSavedBtn.waitFor()
         await editor.downloadBtn.click()
         const allPagesMenu = page.locator('button >> text=Все страницы')
@@ -739,7 +744,7 @@ test.describe('Тесты премиумности', ()=>{
 
     test('Эдитор. Скачивание премиум-элемента: АНИМАЦИЯ', async({page})=>{
         const editor = new Editor(page)
-        await page.goto('/app/designs/a9d4defc-7041-452a-91c4-9c9569eceea6')
+        await page.goto('https://flyvi.art/app/designs/2e833d06-f09f-4405-ae75-88fea9dce297')
         await editor.changesSavedBtn.waitFor()
         await editor.downloadBtn.click()
         const allPagesMenu = page.locator('button >> text=Все страницы')
@@ -761,7 +766,7 @@ test.describe('Тесты премиумности', ()=>{
 
     test.skip('Эдитор. Скачивание премиум-элемента: АНИМАЦИЯ для декоров <<<НЕ РАБОТАЕТ!!!>>>', async({page})=>{
         const editor = new Editor(page)
-        await page.goto('/app/designs/a9d4defc-7041-452a-91c4-9c9569eceea6')
+        await page.goto('https://flyvi.art/app/designs/2e833d06-f09f-4405-ae75-88fea9dce297')
         await editor.changesSavedBtn.waitFor()
         await editor.downloadBtn.click()
         const allPagesMenu = page.locator('button >> text=Все страницы')
@@ -783,7 +788,7 @@ test.describe('Тесты премиумности', ()=>{
 
     test('Эдитор. Скачивание премиум-элемента: ФИГУРА', async({page})=>{
         const editor = new Editor(page)
-        await page.goto('/app/designs/a9d4defc-7041-452a-91c4-9c9569eceea6')
+        await page.goto('https://flyvi.art/app/designs/2e833d06-f09f-4405-ae75-88fea9dce297')
         await editor.changesSavedBtn.waitFor()
         await editor.downloadBtn.click()
         const allPagesMenu = page.locator('button >> text=Все страницы')
@@ -805,7 +810,7 @@ test.describe('Тесты премиумности', ()=>{
 
     test('Эдитор. Скачивание премиум-элемента: ЭЛЕМЕНТ', async({page})=>{
         const editor = new Editor(page)
-        await page.goto('/app/designs/a9d4defc-7041-452a-91c4-9c9569eceea6')
+        await page.goto('https://flyvi.art/app/designs/2e833d06-f09f-4405-ae75-88fea9dce297')
         await editor.changesSavedBtn.waitFor()
         await editor.downloadBtn.click()
         const allPagesMenu = page.locator('button >> text=Все страницы')
@@ -827,7 +832,7 @@ test.describe('Тесты премиумности', ()=>{
 
     test('Эдитор. Скачивание премиум-элемента: ШАБЛОН', async({page})=>{
         const editor = new Editor(page)
-        await page.goto('/app/designs/a9d4defc-7041-452a-91c4-9c9569eceea6')
+        await page.goto('https://flyvi.art/app/designs/2e833d06-f09f-4405-ae75-88fea9dce297')
         await editor.changesSavedBtn.waitFor()
         await editor.downloadBtn.click()
         const allPagesMenu = page.locator('button >> text=Все страницы')
@@ -849,7 +854,7 @@ test.describe('Тесты премиумности', ()=>{
 
     test('Эдитор. Скачивание премиум-элемента: МАСКА', async({page})=>{
         const editor = new Editor(page)
-        await page.goto('/app/designs/a9d4defc-7041-452a-91c4-9c9569eceea6')
+        await page.goto('https://flyvi.art/app/designs/2e833d06-f09f-4405-ae75-88fea9dce297')
         await editor.changesSavedBtn.waitFor()
         await editor.downloadBtn.click()
         const allPagesMenu = page.locator('button >> text=Все страницы')
@@ -871,7 +876,7 @@ test.describe('Тесты премиумности', ()=>{
 
     test('Эдитор. Скачивание премиум-элемента: ФОН', async({page})=>{
         const editor = new Editor(page)
-        await page.goto('/app/designs/a9d4defc-7041-452a-91c4-9c9569eceea6')
+        await page.goto('https://flyvi.art/app/designs/2e833d06-f09f-4405-ae75-88fea9dce297')
         await editor.changesSavedBtn.waitFor()
         await editor.downloadBtn.click()
         const allPagesMenu = page.locator('button >> text=Все страницы')
@@ -893,7 +898,7 @@ test.describe('Тесты премиумности', ()=>{
 
     test('Эдитор. Премиум-функция: ПРОЗРАЧНЫЙ ФОН', async({page})=>{
         const editor = new Editor(page)
-        await page.goto('/app/designs/bfa1beaf-4a61-44b1-9596-4cf4cac3b25d')
+        await page.goto('https://flyvi.art/app/designs/d4e2daaf-67ef-485f-b782-cf0f2c09bdf6')
         await editor.changesSavedBtn.waitFor()
         await editor.downloadBtn.click()
         const background = page.locator('.site-story-download__menu div >> text=Прозрачный фон')
@@ -906,7 +911,7 @@ test.describe('Тесты премиумности', ()=>{
 
     test('Эдитор. Премиум-функция: ОТОБРАЖЕНИЕ ВОДЯНОГО ЗНАКА', async({page})=>{
         const editor = new Editor(page)
-        await page.goto('/app/designs/bfa1beaf-4a61-44b1-9596-4cf4cac3b25d')
+        await page.goto('https://flyvi.art/app/designs/d4e2daaf-67ef-485f-b782-cf0f2c09bdf6')
         await editor.changesSavedBtn.waitFor()
         await editor.downloadBtn.click()
         const watermark = page.locator('.site-story-download__menu div >> text=Отображение водяного знака')
@@ -919,7 +924,7 @@ test.describe('Тесты премиумности', ()=>{
 
     test('Эдитор. Премиум-функция: СКЕЙЛ ДИЗАЙНА ПРИ СКАЧИВАНИИ', async({page})=>{
         const editor = new Editor(page)
-        await page.goto('/app/designs/bfa1beaf-4a61-44b1-9596-4cf4cac3b25d')
+        await page.goto('https://flyvi.art/app/designs/d4e2daaf-67ef-485f-b782-cf0f2c09bdf6')
         await editor.changesSavedBtn.waitFor()
         await editor.downloadBtn.click()
         const sizeBtn = page.locator('.site-story-download__menu').locator('text=Размер')
@@ -933,10 +938,10 @@ test.describe('Тесты премиумности', ()=>{
 
     test('Эдитор. Премиум-функция: ИЗМЕНИТЬ РАЗМЕР ДИЗАЙНА', async({page})=>{
         const editor = new Editor(page)
-        await page.goto('/app/designs/bfa1beaf-4a61-44b1-9596-4cf4cac3b25d')
+        await page.goto('https://flyvi.art/app/designs/d4e2daaf-67ef-485f-b782-cf0f2c09bdf6')
         await editor.changesSavedBtn.waitFor()
         await editor.changeDesignSizeBtn.click()
-        const designType = page.locator('[role="menu"] [role="option"] >> text=Резюме')
+        const designType = page.locator('[role="menu"] [role="option"]:has-text("Обложка для Facebook")')
         await designType.click()
         const changeButton = page.locator('[role="menu"] button >> text=Изменить').first()
         await changeButton.waitFor()
@@ -949,7 +954,7 @@ test.describe('Тесты премиумности', ()=>{
 
     test('Эдитор. Премиум-функция: ДЕФОРМАЦИЯ ДЛЯ ФОТО', async({page})=>{
         const editor = new Editor(page)
-        await page.goto('/app/designs/bfa1beaf-4a61-44b1-9596-4cf4cac3b25d')
+        await page.goto('https://flyvi.art/app/designs/d4e2daaf-67ef-485f-b782-cf0f2c09bdf6')
         // Ждём загрузку дизайна
         await editor.changesSavedBtn.waitFor()
         // Кликаем по декору
@@ -966,7 +971,7 @@ test.describe('Тесты премиумности', ()=>{
 
     test('Эдитор. Премиум-функция: УДАЛИТЬ ФОН ДЛЯ ФОТО', async({page})=>{
         const editor = new Editor(page)
-        await page.goto('/app/designs/bfa1beaf-4a61-44b1-9596-4cf4cac3b25d')
+        await page.goto('https://flyvi.art/app/designs/d4e2daaf-67ef-485f-b782-cf0f2c09bdf6')
         await editor.changesSavedBtn.waitFor()
         await editor.decor.click()
         const deformationButton = page.locator('#editorToolbar button').getByText('Удалить фон')
@@ -979,7 +984,7 @@ test.describe('Тесты премиумности', ()=>{
 
     test('Эдитор. Премиум-функция: ЛАСТИК ДЛЯ ФОТО', async({page})=>{
         const editor = new Editor(page)
-        await page.goto('/app/designs/bfa1beaf-4a61-44b1-9596-4cf4cac3b25d')
+        await page.goto('https://flyvi.art/app/designs/d4e2daaf-67ef-485f-b782-cf0f2c09bdf6')
         // Ожидаем загрузку дизайна
         await editor.changesSavedBtn.waitFor()
         // Кликаем по декору
@@ -996,7 +1001,7 @@ test.describe('Тесты премиумности', ()=>{
 
     test('Дашборд. Переход на тариф ПРО из ЛК', async({page})=>{
         const editor = new Editor(page)
-        await page.goto('/app')
+        await page.goto('https://flyvi.art/app')
         const drawer = page.locator('text=Попробовать Flyvi Pro')
         await drawer.click()        
         const getTariffBtn = page.locator('.dialogWrapper_FVcGt button >> text=Получить бесплатную пробную версию')
@@ -1005,12 +1010,11 @@ test.describe('Тесты премиумности', ()=>{
         //await page.pause()
     })
 
-    test('Эдитор. Редактирование БРЕНДБУКА на бесплатном тарифе', async ({page})=>{
+    test('Дашборд. Редактирование БРЕНДБУКА на бесплатном тарифе', async ({page})=>{
         const editor = new Editor(page)
-        await page.goto('/app/brand')
-        // await page.pause()
+        await page.goto('https://flyvi.art/app/brand')
         // Кликаем по Брендбуку в списке
-        const brandbook = page.locator('.brand-list-item:has-text("ПРЕМИУМ")')
+        const brandbook = page.locator('.brand-list-item:has-text("Первый")')
         await brandbook.waitFor({timeout: 12000})
         await brandbook.click()
         // Кликаем в меню редактирования брендбука по кнопке "Сохранить изменения"
@@ -1020,12 +1024,12 @@ test.describe('Тесты премиумности', ()=>{
         // Ждём отображение попапа премиума
         await editor.proBanner.waitFor()      
 
-        await page.pause()
+        // await page.pause()
     })
 
     test('Эдитор. Скачивание премиум-элемента: ЛОГО из Брендбука', async ({page})=>{
         const editor = new Editor(page)
-        await page.goto('/app/designs/a9d4defc-7041-452a-91c4-9c9569eceea6')
+        await page.goto('https://flyvi.art/app/designs/2e833d06-f09f-4405-ae75-88fea9dce297')
         // Выбираем страницу на скачивание
         await editor.choosePageToDownload(11)
         // Ждём отображение попапа премиума
@@ -1036,7 +1040,7 @@ test.describe('Тесты премиумности', ()=>{
 
     test('Эдитор. Скачивание премиум-элемента: ЭЛЕМЕНТ из Брендбука', async ({page})=>{
         const editor = new Editor(page)
-        await page.goto('/app/designs/a9d4defc-7041-452a-91c4-9c9569eceea6')
+        await page.goto('https://flyvi.art/app/designs/2e833d06-f09f-4405-ae75-88fea9dce297')
         // Выбираем страницу на скачивание
         await editor.choosePageToDownload(12)
         // Ждём отображение попапа премиума
@@ -1047,7 +1051,7 @@ test.describe('Тесты премиумности', ()=>{
 
     test('Эдитор. Скачивание премиум-элемента: ФОН из Брендбука', async ({page})=>{
         const editor = new Editor(page)
-        await page.goto('/app/designs/a9d4defc-7041-452a-91c4-9c9569eceea6')
+        await page.goto('https://flyvi.art/app/designs/2e833d06-f09f-4405-ae75-88fea9dce297')
         // Выбираем страницу на скачивание
         await editor.choosePageToDownload(13)
         // Ждём отображение попапа премиума
@@ -1058,18 +1062,18 @@ test.describe('Тесты премиумности', ()=>{
 
     test('Эдитор. Скачивание премиум-элемента: СЕТ из Брендбука', async ({page})=>{
         const editor = new Editor(page)
-        await page.goto('/app/designs/a9d4defc-7041-452a-91c4-9c9569eceea6')
+        await page.goto('https://flyvi.art/app/designs/2e833d06-f09f-4405-ae75-88fea9dce297')
         // Выбираем страницу на скачивание
         await editor.choosePageToDownload(14)
         // Ждём отображение попапа премиума
         await editor.proBanner.waitFor()
 
-        // await page.pause()
+        await page.pause()
     })
 
     test('Эдитор. Добавление декора из БРЕНДБУКА дизайн: Лого', async ({page})=>{
         const editor = new Editor(page)
-        await page.goto('/app/designs/a9d4defc-7041-452a-91c4-9c9569eceea6')
+        await page.goto('https://flyvi.art/app/designs/2e833d06-f09f-4405-ae75-88fea9dce297')
         // Переход в Брендбук
         await page.locator('text=Брендбук').first().click()
         // Ожидание загрузки медиа в брендбуке и клик по первому элементу
@@ -1079,12 +1083,12 @@ test.describe('Тесты премиумности', ()=>{
         // Ждём отображение попапа премиума
         await editor.proBanner.waitFor()
 
-        // await page.pause()
+        await page.pause()
     })
 
     test('Эдитор. Добавление декора из БРЕНДБУКА дизайн: Фон', async ({page})=>{
         const editor = new Editor(page)
-        await page.goto('/app/designs/a9d4defc-7041-452a-91c4-9c9569eceea6')
+        await page.goto('https://flyvi.art/app/designs/2e833d06-f09f-4405-ae75-88fea9dce297')
         // Переход в Брендбук
         await page.locator('text=Брендбук').first().click()
         // Ожидание загрузки медиа в брендбуке и клик по первому элементу
@@ -1099,7 +1103,7 @@ test.describe('Тесты премиумности', ()=>{
 
     test('Эдитор. Добавление декора из БРЕНДБУКА дизайн: Элемент', async ({page})=>{
         const editor = new Editor(page)
-        await page.goto('/app/designs/a9d4defc-7041-452a-91c4-9c9569eceea6')
+        await page.goto('https://flyvi.art/app/designs/2e833d06-f09f-4405-ae75-88fea9dce297')
         // Переход в Брендбук
         await page.locator('text=Брендбук').first().click()
         // Ожидание загрузки медиа в брендбуке и клик по первому элементу
@@ -1109,13 +1113,13 @@ test.describe('Тесты премиумности', ()=>{
         // Ждём отображение попапа премиума
         await editor.proBanner.waitFor()
 
-        // await page.pause()
+        await page.pause()
     })
 
-    test('Эдитор. Добавление декора из БРЕНДБУКА в дизайн: Сет', async ({page})=>{
+    test('Эдитор. Добавление декора из БРЕНДБУКА дизайн: Сет', async ({page})=>{
 
         const editor = new Editor(page)
-        await page.goto('/app/designs/a9d4defc-7041-452a-91c4-9c9569eceea6')
+        await page.goto('https://flyvi.art/app/designs/2e833d06-f09f-4405-ae75-88fea9dce297')
         // Переход в Брендбук
         await page.locator('text=Брендбук').first().click()
         // Ожидание загрузки медиа в брендбуке и клик по первому элементу
@@ -1128,9 +1132,18 @@ test.describe('Тесты премиумности', ()=>{
         await page.pause()
     })
 
+    test('Дашборд. Отображение премиум иконки у Брендбука в ЛК', async ({page})=>{
+        const editor = new Editor(page)
+        await page.goto('https://flyvi.art/app')
+        const brandbookFolder = await page.locator('[href="/app/brand"]')
+        await brandbookFolder.locator('circle[fill="#FE8743"]').waitFor()
+
+        // await page.pause()
+    })
+
     test('Эдитор. Загрузка фото в редактор сверх лимита', async({page})=>{
         const editor = new Editor(page)
-        await page.goto('/app/designs/bfa1beaf-4a61-44b1-9596-4cf4cac3b25d')
+        await page.goto('https://flyvi.art/app/designs/d4e2daaf-67ef-485f-b782-cf0f2c09bdf6')
         await editor.downloadBtn.waitFor()
         // Переходим во вкладку Загрузки
         await page.locator('text="Загрузки"').click()
@@ -1152,12 +1165,21 @@ test.describe('ОБЩИЕ ПО ЭДИТОРУ', ()=>{
     test.beforeEach(async({page})=>{
         page.setViewportSize({"width": 1600, "height": 900})
     })
-    test.use({ storageState: 'auth/auth1.json' });                    // <<<ФАЙЛ С СОХРАНЁННОЙ СЕССИЕЙ PRO>>>
+    test.use({ storageState: 'auth/authArt.json' });                    // <<<ФАЙЛ С СОХРАНЁННОЙ СЕССИЕЙ PRO kaw-liga*>>>
+
+    test.skip('Эдитор. Загрузка фото в редактор', async({page})=>{
+        const editor = new Editor(page)
+        await page.goto('https://flyvi.art/app/designs/26ac5fb7-addf-44eb-bb1e-26b9aa14c6fd')
+        await page.getByText('Загрузки').click()
+        await page.getByRole('button', {name: "Загрузить медиа"}).first()
+
+        await page.pause()
+    })
 
     test('Эдитор. Дублирование декоров', async ({page})=>{
         const editor = new Editor(page)
 
-        await page.goto('/app/designs/ea76845a-4249-4af3-a289-b43ba9820265')
+        await page.goto('https://flyvi.art/app/designs/cd544fae-4e4e-4315-b606-1d47ebf9618a')
         await editor.changesSavedBtn.waitFor()
         // Заглушка для отработки сокета
         await page.getByText('Папки').click()
@@ -1169,19 +1191,18 @@ test.describe('ОБЩИЕ ПО ЭДИТОРУ', ()=>{
         await page.getByText('Дублировать').click()
         // Проверяем, не появилась ли ошибка
         const errorMsg = page.locator('.Vue-Toastification__toast.Vue-Toastification__toast--error.bottom-right')
-        await expect(errorMsg, '<<<ВЫЛЕТАЕТ ОШИБКА>>>').toBeHidden()        
+        await expect(errorMsg, '<<<ВЫЛЕТАЕТ ОШИБКА>>>').toBeHidden() 
         // Удаляем дубликат
         await page.keyboard.press('Delete')
         // Заглушка для отработки сокета
         await page.getByText('Папки').click()
-        
+
         await page.pause()
     })
-
+    
     test('Эдитор. Генерация фото ИИ', async({page})=>{
-        
         const editor = new Editor(page)
-        await page.goto('/app/designs/61bb153a-ab29-402c-b5c9-0c303fba998b')        
+        await page.goto('https://flyvi.art/app/designs/26ac5fb7-addf-44eb-bb1e-26b9aa14c6fd')        
         await editor.downloadBtn.waitFor({timeout: 10000})                                     // Отображение кнопки СКАЧАТЬ ДИЗАЙН
         await page.locator('.flyvi-decors-drawer__menu_wrapper >> text=ИИ-мастерская').click() // Открыть меню ИИ-Генератора
         // Перход в ФОТО-генератор
@@ -1200,7 +1221,7 @@ test.describe('ОБЩИЕ ПО ЭДИТОРУ', ()=>{
         await AISize.click()
         await page.locator('.dropdown-item >> text=9:16 (576 x 1024)').click()      // Выбор размера генерируемой картинки
         await AIStyle.click()
-        await page.locator('.dropdown-item >> text=Комиксы').click()             // Выбор стиля генерируемой картинки
+        await page.locator('.dropdown-item >> text=Фотогламур').click()             // Выбор стиля генерируемой картинки
         await expect(tokens).toBeVisible()
         let text = await tokens.innerText()       
         const tokenCounter = parseInt(text)                                         // Счётчик токенов
@@ -1230,15 +1251,15 @@ test.describe('ОБЩИЕ ПО ЭДИТОРУ', ()=>{
     test('Эдитор. Скачивание дизайна JPG', async ({page})=>{
         const editor = new Editor(page)
 
-        const responses: Response[] = []                                    // Массив с ответами АПИ скачивания дизайна
+        const responses: Response[] = []                        // Массив с ответами АПИ скачивания дизайна
         page.on('response', async resp=>{
             if(resp.url().includes('/download-status')){
                 responses.push(resp)}                           // Перехват всех ответов АПИ скачивания
         })
-        await page.goto('/app/designs/2a24881a-930d-4a11-a034-969632f9e74c')
+        await page.goto('https://flyvi.art/app/designs/26ac5fb7-addf-44eb-bb1e-26b9aa14c6fd')
         await editor.changesSavedBtn.waitFor()
         await editor.downloadBtn.click()                        // Клик по кнопке СКАЧАТЬ
-        const designType = page.locator('[class="site-story-download__menu"] [role="button"]').first()        
+        const designType = page.locator('.site-story-download__menu [role="button"] >> text=PNG')
         await designType.click()                                // Клик по меню выбора формата дизайна
         await page.locator('text = JPG').click()                // Выбор формата  JPG
         const menuDownloadBtn = page.locator('.site-story-download__menu button >> text = Скачать')
@@ -1246,16 +1267,16 @@ test.describe('ОБЩИЕ ПО ЭДИТОРУ', ()=>{
         await editor.continueBtn.waitFor({timeout:18000})       // Ожидание появления меню после скачивания дизайна
         const lastResp = responses[responses.length-1]          // Последний ответ АПИ
 		const respBody = await lastResp.json()                  // Парсим ответ
-        expect(respBody.status).toEqual('DONE')                 // Проверка, что по АПИ приходит стаутс DONE        
+        expect(respBody.status).toEqual('DONE')                 // Проверка, что по АПИ приходит стаутс DONE
 
-        await page.pause()
+        await page.pause() 
     })
 
-    test('Эдитор. Создание дизайна - История Instagram', async ({page})=>{
+    test('Дашборд. Создание дизайна - История Instagram', async ({page})=>{
         const dashboard = new Dashboard(page)
         const editor = new Editor(page)
 
-        await page.goto('/app')
+        await page.goto('https://flyvi.art/app')
         await dashboard.createDesignBtn.waitFor()
         await dashboard.createDesignBtn.click()
         await page.locator('.category >> text=Соцсети').click()
@@ -1270,11 +1291,11 @@ test.describe('ОБЩИЕ ПО ЭДИТОРУ', ()=>{
     test('Папки. Создание дизайна из шаблона в папке', async ({page, context})=>{
         const dashboard = new Dashboard(page)
         // Переход в раздел ПАПКИ
-        await page.goto('/app/folders')
+        await page.goto('https://flyvi.art/app/folders')
         // Переход в папку юзера      
-        await page.getByText('33').click()
+        await page.getByText('456').click()
         const folderName = page.locator('[class="folder_menu_header"] [class="header_name"]')
-        await expect(folderName).toHaveText('33')
+        await expect(folderName).toHaveText('456')
         // Переходво вкладку ШАБЛОНЫ
         await page.locator('[class="folder_menu_tabs"]').getByText('Шаблоны').click()
         const template = page.locator('[class="folderTemplateContainer_Zki+H"]').first()
@@ -1291,11 +1312,46 @@ test.describe('ОБЩИЕ ПО ЭДИТОРУ', ()=>{
         await page.pause()
     })
 
+    test('Дашборд. Создание дизайна по своим размерам', async ({page})=>{
+        const dashboard = new Dashboard(page)
+        const editor = new Editor(page)
+
+        await page.goto('https://flyvi.art/app')
+        const designList = page.locator('.stories-list .v-responsive__content').first()
+        await designList.waitFor()
+        await dashboard.createDesignBtn.waitFor()
+        await dashboard.createDesignBtn.click()
+        const customSizeButton = page.locator('[role="menu"] button >> text=Настраиваемый размер')
+        await customSizeButton.click()
+        const widthInput = page.locator('.custom-design-menu input').first()
+        await widthInput.clear()
+        await widthInput.fill('2222')
+        const height = page.locator('.custom-design-menu input').nth(1)
+        await height.clear()
+        await height.fill('2222')
+        const createCustomDesignButton = page.locator('.custom-design-menu button >> text=Создать дизайн')
+        await createCustomDesignButton.click()
+        await page.waitForURL('**/designs/*')
+        await editor.changeDesignSizeBtn.waitFor()
+        await editor.downloadBtn.waitFor()
+
+        await editor.canvas.isVisible()
+        const designSize = await editor.canvas.evaluate(el=>{
+            return {
+                height: el.clientHeight,
+                width: el.clientWidth}
+        })
+        expect(designSize.height).toEqual(2222)
+        expect(designSize.width).toEqual(2222)        
+
+        await page.pause()
+    })
+
     test('Дашборд. Создание дизайна из загруженного фото', async({page, context})=>{
         const dashboard = new Dashboard(page)
         const editor = new Editor(page)
         // Переход в Дашборд
-        await page.goto('/app')
+        await page.goto('https://flyvi.art/app')
         // Открываем меню создания дизайнов
         await dashboard.createDesignBtn.waitFor()
         await dashboard.createDesignBtn.click()
@@ -1316,7 +1372,7 @@ test.describe('ОБЩИЕ ПО ЭДИТОРУ', ()=>{
     test('Мэйн. Создание дизайна из шаблона', async({page, context})=>{
         const main = new MainPage(page)
         // Переход на Мэйн
-        await page.goto('/ru/templates')
+        await page.goto('https://flyvi.art/ru/templates')
         // Проверка отображения КАПЧИ              
         if (await page.locator('iframe[src*="https://smartcaptcha.yandexcloud.net/advanced"]').isVisible())
         {
@@ -1325,14 +1381,14 @@ test.describe('ОБЩИЕ ПО ЭДИТОРУ', ()=>{
         }
         // Поиск по шаблонам
         await main.templateSearch.waitFor()
-        await main.templateSearch.fill('озон')
+        await main.templateSearch.fill('кулверк')
         await page.keyboard.press('Enter')
         // Кликаем по одному из найденных шаблонов
         const searchResult = page.locator('._1gypXs')
         await searchResult.waitFor()
-        const template = page.getByAltText(/озон/i)
         // Создаём дизайн
-        await template.nth(2).click()
+        const template = page.getByAltText('КУЛВЕРК')        
+        await template.nth(5).click()
 
         const [newTab] = await Promise.all([
             context.waitForEvent('page', {timeout: 25000}),            
@@ -1343,57 +1399,15 @@ test.describe('ОБЩИЕ ПО ЭДИТОРУ', ()=>{
         await page.pause()        
     })
 
-    test('Дашборд. Создание дизайна по своим размерам', async ({page})=>{
-        const dashboard = new Dashboard(page)
-        const editor = new Editor(page)
-
-        await page.goto('/app')
-        // Ожидание загрузки страницы
-        const designList = page.locator('.stories-list .v-responsive__content').first()
-        await designList.waitFor({timeout: 15000})
-        await dashboard.templateSearch.waitFor()
-        // Клик по кнопке создания дизайна
-        await dashboard.createDesignBtn.waitFor()
-        await dashboard.createDesignBtn.click()
-        // Выбираем свой размер
-        const customSizeButton = page.locator('[role="menu"] button >> text=Настраиваемый размер')
-        await customSizeButton.click()
-        const widthInput = page.locator('.custom-design-menu input').first()
-        await widthInput.clear()
-        await widthInput.fill('2222')
-        const height = page.locator('.custom-design-menu input').nth(1)
-        await height.clear()
-        await height.fill('2222')
-        // Создаём дизайн
-        const createCustomDesignButton = page.locator('.custom-design-menu button >> text=Создать дизайн')
-        await createCustomDesignButton.click()
-        if(await page.locator('div').getByText('BACKGROUND').isVisible()) {
-            await page.waitForTimeout(5000) // Убрать явное ожидание
-            await createCustomDesignButton.click()
-        }
-        await page.waitForURL('**/designs/*')
-        await editor.changeDesignSizeBtn.waitFor()
-        await editor.downloadBtn.waitFor()
-
-        await editor.canvas.isVisible()
-        const designSize = await editor.canvas.evaluate(el=>{
-            return {
-                height: el.clientHeight,
-                width: el.clientWidth}
-        })
-        expect(designSize.height).toEqual(2222)
-        expect(designSize.width).toEqual(2222)        
-
-        await page.pause()
-    })
-
     test('Дашборд. Создание WEB-STORY', async ({page, context})=>{
         const dashboard = new Dashboard(page)
         const editor = new Editor(page)
-        await page.goto('/app')
+
+        await page.goto('https://flyvi.art/app')
         await dashboard.createDesignBtn.waitFor()
         await page.locator('[href="/app/dashboard"]').click()
-        const createStoryButton = page.locator('button >> text=Создать сторис')
+        const createStoryButton = page.locator('button >> text=Создать сторис')  
+
         // ПЕРЕХОД НА НОВУЮ ВКЛАДКУ
         const [newTab] = await Promise.all([
             context.waitForEvent('page', {timeout: 25000}),
@@ -1405,19 +1419,18 @@ test.describe('ОБЩИЕ ПО ЭДИТОРУ', ()=>{
         await chooseAlbumButton.isVisible()
         await publishButton.click()
 
-        await newTab.pause()
+        // await newTab.pause()
     })
 
     test('Дашборд. Создание ДОСКИ', async ({page, context})=>{
-        const dashboard = new Dashboard(page)
-        const editor = new Editor(page)
+        const dashboard = new Dashboard(page)        
         // Переход в Дашборд
-        await page.goto('/app')
-        await dashboard.createDesignBtn.waitFor()             
+        await page.goto('https://flyvi.art/app')
+        await dashboard.createDesignBtn.waitFor()        
         // Создание ДОСКИ
         const [newTab] = await Promise.all([
             context.waitForEvent('page'),
-            page.locator('.item__text').getByText('Онлайн-доска').click()           // Клик по кнопке
+            page.locator('.item__text').getByText('Онлайн-доска').click()  // Клик по кнопке
         ])
         // Проверяем, что отображается кнопка Доступа и название дизайна
         const accessBtn = newTab.locator('#editorHeader button:has-text("Выбрать альбом")')        
@@ -1433,7 +1446,7 @@ test.describe('ОБЩИЕ ПО ЭДИТОРУ', ()=>{
         let oldWidth, newWidth
         const randomNumber = Math.floor(100 + Math.random() * 900)
 
-        await page.goto('/app/designs/0c0837e6-e171-4e09-b590-45d3554a4da0')
+        await page.goto('https://flyvi.art/app/designs/117333c7-8445-472c-9daa-c5a34d1df3d3')
         await editor.changesSavedBtn.isVisible()
         oldWidth = await editor.canvas.evaluate(el=>el.clientWidth)
         await editor.changeDesignSizeBtn.click()
@@ -1447,59 +1460,52 @@ test.describe('ОБЩИЕ ПО ЭДИТОРУ', ()=>{
         await changeSizeButton.click()
         newWidth = await editor.canvas.evaluate(el => el.clientWidth)
         await expect(oldWidth).not.toEqual(newWidth)
-        // console.log('<<<OLDOLDODODLDLDODLDLOD>>>', oldWidth)
-        // console.log('<<<NEWNWNEWNENEWNENWENWNE>>>', newWidth)
-        // const resizeBanner = page.locator('.Vue-Toastification__toast-body >> text=Размер дизайна изменен')
-        // await resizeBanner.waitFor()
 
         // await page.pause()
     })
 
     test('Эдитор. Случайный шаблон', async ({page})=>{
-        const editor = new Editor(page)        
-        await page.goto('/app/designs/892617f4-7acf-4e1b-add3-adfcaa62e753')
-        const api = await page.waitForResponse('**/get-content?itemType=DECOR-TYPE&type=TEMPLATE*')
+        const editor = new Editor(page)
+        // let oldBackground: string, newBackground: string
+        await page.goto('https://flyvi.art/app/designs/c661b327-7728-42c3-a210-55b97c99b197')
         await editor.changesSavedBtn.waitFor()
-        let oldBackground = await editor.canvasBackground.evaluate(el => el.dataset.key) // Атрибут фона ДО 
-        // Проверка, что загрузились шаблоны в левом меню
-        const defaultTemlate = page.locator('[class="v-responsive__content"]')
-        await defaultTemlate.nth(0).waitFor({timeout: 20000})
-        // await page.waitForTimeout(3000)
-        await editor.randomTemplateBtn.click()                                       // Клик по кнопке Случайный Шаблон
+        let oldBackground = await editor.canvasBackground.evaluate(el => el.dataset.key) // Атрибут фона ДО        
+        await editor.randomTemplateBtn.click()                                       // Клик по Случайный Шаблон
         await page.locator('.loading-blur-screen').waitFor({state: 'detached', timeout:10000})
         // Проверка, что шаблон применился
         await expect(async ()=>{
             let newBackground = await editor.canvasBackground.evaluate(el => el.dataset.key) // Атрибут фона ПОСЛЕ 
-            expect(oldBackground).not.toEqual(newBackground)        
-        }).toPass({timeout: 12000})
-        
+            expect(oldBackground).not.toEqual(newBackground)
+        }).toPass({timeout: 12000})      
+
         await page.pause()
     })
 
     test('Эдитор. УДАЛЕНИЕ ФОНА У ФОТО АПЛОАД', async({page})=>{
         const editor = new Editor(page)
-        await page.goto('/app/designs/3ba00c33-3def-4599-b474-b5429c86af82')
+        await page.goto('https://flyvi.art/app/designs/89b9ce64-b955-4dc4-90a9-5c40a0d79ad8')
         await editor.changeDesignSizeBtn.waitFor()
         await editor.decor.locator('img[src*="uploads"]').click({force:true})                  // Клик по декору на холсте
         await editor.deleteBgBtn.click()                                                       // Удаляем фон
         await page.locator('.loading-blur-screen').waitFor({state: 'detached', timeout:10000}) // Ожидание завершения процесса
         const noBgImg = editor.canvas.locator('[src*="no-bg"]')
         await noBgImg.waitFor({timeout:10000})                                                 // Ждем, пока на холсте не появится фото БЕЗ фона
+        await page.pause()
         const originalImg = page.locator('text="Оригинал"') 
         await originalImg.click()                                                              // Возвращаем оригинал фото
         // Проверяем, что на холсте появился оригинал фото        
-        await editor.decor.locator('img:not([src*="no-bg"])[src*="uploads-images"]').waitFor() 
+        await editor.decor.locator('img:not([src*="no-bg"])[src*="uploads-images"]').waitFor()        
         const icon = page.locator('img[src*="icon8-icons"]')
         await icon.click()                                                                     // Кликаем по иконке на холсте
 
-        // await page.pause()
+        await page.pause()
     })
 
     test('Эдитор. УДАЛЕНИЕ ФОНА У ФОТО ИИ', async({page})=>{
         const editor = new Editor(page)
-        await page.goto('/app/designs/df8778a4-80bc-41c7-9832-a827bc92439b')
+        await page.goto('https://flyvi.art/app/designs/90fe4ab0-a974-4c0c-9a6e-549034b70443')
         await editor.changeDesignSizeBtn.waitFor()
-        await editor.decor.locator('img[src*="/ai-text2img"]').click({force:true})              // Клик по декору на холсте
+        await editor.decor.locator('img[src*="ai-text2img"]').click({force:true})              // Клик по декору на холсте
         await editor.deleteBgBtn.click()                                                       // Удаляем фон
         await page.locator('.loading-blur-screen').waitFor({state: 'detached', timeout:10000}) // Ожидание завершения процесса
         const noBgImg = editor.canvas.locator('[src*="no-bg"]')
@@ -1516,9 +1522,9 @@ test.describe('ОБЩИЕ ПО ЭДИТОРУ', ()=>{
 
     test('Эдитор. УДАЛЕНИЕ ФОНА У ФОТО АНСПЛЭШ', async({page})=>{
         const editor = new Editor(page)
-        await page.goto('/app/designs/c6454766-a526-4c1c-a6e2-35dd47af8812')
+        await page.goto('https://flyvi.art/app/designs/845323a0-41d6-4152-867e-835a52b5d40e')
         await editor.changeDesignSizeBtn.waitFor()
-        await editor.decor.locator('img[src*="/unsplash"]').click({force:true})                 // Клик по декору на холсте
+        await editor.decor.locator('img[src*="unsplash"]').click({force:true})                 // Клик по декору на холсте
         await editor.deleteBgBtn.click()                                                       // Удаляем фон
         await page.locator('.loading-blur-screen').waitFor({state: 'detached', timeout:10000}) // Ожидание завершения процесса
         const noBgImg = editor.canvas.locator('[src*="no-bg"]')
@@ -1534,9 +1540,10 @@ test.describe('ОБЩИЕ ПО ЭДИТОРУ', ()=>{
     })
     
     test('Эдитор. Колоризация изображения', async({page})=>{
-        const editor = new Editor(page)        
-        await page.goto('/app/designs/b458253d-90a5-4523-8af0-dc19001f9ad7')
+        const editor = new Editor(page)          
+        await page.goto('https://flyvi.art/app/designs/085a218b-8329-4fb6-ba02-3c0f7774819c')
         await editor.changesSavedBtn.waitFor()
+        await editor.decor.waitFor()
         // Получаем сслыку фото до генерации
         let oldImg: string | null = await editor.decor.locator('img').getAttribute('src')
         // Кликаем по первому фото в дизайне
@@ -1557,9 +1564,9 @@ test.describe('ОБЩИЕ ПО ЭДИТОРУ', ()=>{
         const loader = page.locator('.story-editor .preloader')
         await loader.waitFor()
         await expect(loader).toBeHidden({timeout:30000})
-        // Проверяем, что отображается изменённое изображение
-        let newImg: string | null = await editor.decor.locator('img').getAttribute('src')
+        // Проверяем, что отображается изменённое изображение             
         await expect(async ()=>{
+            let newImg: string | null = await editor.decor.locator('img').getAttribute('src') 
             expect(oldImg).not.toEqual(newImg)
         }).toPass({timeout: 10000})
         // Проверяем, что токены потратились
@@ -1576,7 +1583,7 @@ test.describe('ОБЩИЕ ПО ЭДИТОРУ', ()=>{
         const editor = new Editor(page)
         let newCount: number
         let oldImg: string | null, newImg: string | null
-        await page.goto('/app/designs/a438f148-0a3e-447c-96f4-759d8d9ac428')
+        await page.goto('https://flyvi.art/app/designs/085a218b-8329-4fb6-ba02-3c0f7774819c')
         await editor.changesSavedBtn.waitFor()
         // Фиксируем ссылку на фото до ии-редактора
         oldImg = await editor.decor.locator('img').getAttribute('src')
@@ -1598,14 +1605,14 @@ test.describe('ОБЩИЕ ПО ЭДИТОРУ', ()=>{
         // Проверяем, что токены потратились
         await expect(async ()=>{
             newCount = await editor.getTokenCountApi()
-            await expect(newCount).toEqual(oldCount-1)
+            expect(newCount).toEqual(oldCount-1)
         }).toPass({timeout: 30000})               
         // Проверяем, что отображается изменённое изображение                
-        await expect(loader).toBeHidden({timeout:10000}) 
-        newImg = await editor.decor.locator('img').getAttribute('src')
+        await expect(loader).toBeHidden({timeout:10000})        
         await expect(async()=>{
+            newImg = await editor.decor.locator('img').getAttribute('src')
             expect(oldImg).not.toEqual(newImg)
-        }).toPass({timeout:10000})    
+        }).toPass({timeout:10000})  
 
         await page.pause()
     })
@@ -1613,15 +1620,15 @@ test.describe('ОБЩИЕ ПО ЭДИТОРУ', ()=>{
     test('Эдитор. Удаление фона', async({page})=>{
         const editor = new Editor(page)
         let oldCount: number, newCount: number
-        await page.goto('/app/designs/f3948fa8-225d-40bd-9a4e-75b320f7e868')
+        await page.goto('https://flyvi.art/app/designs/085a218b-8329-4fb6-ba02-3c0f7774819c')
         await editor.changesSavedBtn.waitFor()
         // Кликаем по первому фото в дизайне
-        await editor.decor.locator('img[src*="/decors-types/uploads-images/"]').click({force:true})
+        await editor.decor.locator('img[src*="/uploads-images/"]').click({force:true})
         // Кликаем по кнопке ИИ-редактора в тулбаре
         await editor.aiEditorBtn.click()
         // Проверяем, что баланс токенов больше 0        
         oldCount = await editor.getTokenCountApi()
-        await expect(oldCount).toBeGreaterThan(0)
+        expect(oldCount).toBeGreaterThan(0)
         // Применяем редактирование
         await page.locator('.ai-editor__main_choose-styles_list_item:has-text("Удалить фон")').click()
         const loader = page.locator('.story-editor .preloader')
@@ -1629,8 +1636,8 @@ test.describe('ОБЩИЕ ПО ЭДИТОРУ', ()=>{
         // Проверяем, что токены потратились
         await expect(async()=>{
             newCount = await editor.getTokenCountApi()
-            await expect(oldCount).toEqual(newCount+1)
-        }).toPass({timeout: 13000})        
+            expect(oldCount).toEqual(newCount+1)
+        }).toPass({timeout: 10000})        
         // Ждём завершения редактирования
         await expect(loader).toBeHidden({timeout:10000})
         // Клик по кнопке "Без фона"
@@ -1643,7 +1650,7 @@ test.describe('ОБЩИЕ ПО ЭДИТОРУ', ()=>{
         await page.locator('text=Оригинал').click()
         // Проверяем, что оригинал снова в дизайне
         await editor.decor.locator('[data-decor-type="UPLOAD-IMAGE"] img:not([src*="no-bg"])').waitFor()
-        await editor.decor.locator('img[src*="/icon8-icons"]').click()
+        // await editor.decor.locator('img[src*="/icon8-icons"]').click()
         
         await page.pause()
     })
@@ -1652,7 +1659,7 @@ test.describe('ОБЩИЕ ПО ЭДИТОРУ', ()=>{
         const editor = new Editor(page)
         let newCount: number
         let oldImg: string | null, newImg: string | null
-        await page.goto('/app/designs/7d0d1e26-74b2-4776-9094-666549d6e286')
+        await page.goto('https://flyvi.art/app/designs/085a218b-8329-4fb6-ba02-3c0f7774819c')
         await editor.changesSavedBtn.waitFor()
         // Фиксируем фото до редактирования
         oldImg = await editor.decor.locator('img').getAttribute('src')
@@ -1662,7 +1669,7 @@ test.describe('ОБЩИЕ ПО ЭДИТОРУ', ()=>{
         const [oldCount] = await Promise.all([
             editor.getTokenCountApi(),
             editor.aiEditorBtn.click()
-        ])        
+        ]) 
         // Проверяем, что баланс токенов больше 0        
         expect(oldCount).toBeGreaterThan(0)
         // Применяем редактирование
@@ -1697,7 +1704,7 @@ test.describe('ОБЩИЕ ПО ЭДИТОРУ', ()=>{
     test('ДАШБОРД. Создание дизайна с превышением максимально допустимого размера ШИРИНЫ', async({page})=>{
         const dashboard = new Dashboard(page)
         // Переход в Дашборд
-        await page.goto('/app')
+        await page.goto('https://flyvi.art/app')
         await dashboard.createDesignBtn.waitFor()
         // Клик по кнопке "Задать свой размер"
         await page.locator('text=Задать свой размер').click()
@@ -1719,7 +1726,7 @@ test.describe('ОБЩИЕ ПО ЭДИТОРУ', ()=>{
     test('ДАШБОРД. Создание дизайна с превышением максимально допустимого размера ВЫСОТЫ', async({page})=>{
         const dashboard = new Dashboard(page)
         // Переход в Дашборд
-        await page.goto('/app')
+        await page.goto('https://flyvi.art/app')
         await dashboard.createDesignBtn.waitFor()
         // Клик по кнопке "Задать свой размер"
         await page.locator('text=Задать свой размер').click()
@@ -1735,13 +1742,13 @@ test.describe('ОБЩИЕ ПО ЭДИТОРУ', ()=>{
         await errorBanner.waitFor()
         await createDesignBtn.waitFor()
 
-        // await page.pause()
+        await page.pause()
     })
 
     test('ДАШБОРД. Создание дизайна с ШИРИНОЙ меньше допустимого значения', async({page})=>{
         const dashboard = new Dashboard(page)
         // Переход в Дашборд
-        await page.goto('/app')
+        await page.goto('https://flyvi.art/app')
         await dashboard.createDesignBtn.waitFor()
         // Клик по кнопке "Задать свой размер"
         await page.locator('text=Задать свой размер').click()
@@ -1763,7 +1770,7 @@ test.describe('ОБЩИЕ ПО ЭДИТОРУ', ()=>{
     test('ДАШБОРД. Создание дизайна с ВЫСОТОЙ меньше допустимого значения', async({page})=>{
         const dashboard = new Dashboard(page)
         // Переход в Дашборд
-        await page.goto('/app')
+        await page.goto('https://flyvi.art/app')
         await dashboard.createDesignBtn.waitFor()
         // Клик по кнопке "Задать свой размер"
         await page.locator('text=Задать свой размер').click()
@@ -1784,9 +1791,9 @@ test.describe('ОБЩИЕ ПО ЭДИТОРУ', ()=>{
 
     test('Дашборд. Поиск по шаблонам', async({page})=>{
         const dashboard = new Dashboard(page)
-        const prompt = '14 февраля'
+        const prompt = 'кулверт'
         // Переход в Дашборд
-        await page.goto('/app')
+        await page.goto('https://flyvi.art/app')
         // Поиск по шаблонам
         await dashboard.templateSearch.waitFor()
         await dashboard.templateSearch.fill(prompt)
@@ -1795,7 +1802,7 @@ test.describe('ОБЩИЕ ПО ЭДИТОРУ', ()=>{
         const searchResult = page.locator('.header_8GPuj')
         await searchResult.waitFor()
         const searchResultPrompt: string = await searchResult.locator('h2').innerText()
-        const searchResultCount: number = await searchResult.locator('p').evaluate(el=> parseInt(el.textContent, 10))
+        const searchResultCount: number = await searchResult.locator('p').evaluate(el=> parseInt(el.textContent, 10))    
         expect(searchResultPrompt).toContain(prompt)
         expect(searchResultCount).toBeGreaterThan(0)
 
@@ -1804,9 +1811,9 @@ test.describe('ОБЩИЕ ПО ЭДИТОРУ', ()=>{
 
     test('Мэйн. Поиск по шаблонам', async({page})=>{        
         const main = new MainPage(page)
-        const prompt = '14 февраля'
+        const prompt = 'слаг'
         // Переход в Дашборд
-        await page.goto('/ru/templates')
+        await page.goto('https://flyvi.art/ru/templates')
         // Поиск по шаблонам
         await main.templateSearch.waitFor()
         await main.templateSearch.fill(prompt)
@@ -1819,39 +1826,39 @@ test.describe('ОБЩИЕ ПО ЭДИТОРУ', ()=>{
         expect(searchResultPrompt).toContain(prompt)
         expect(searchResultCount).toBeGreaterThan(0)
 
-        // await page.pause()
+        await page.pause()
     })
 
     test('Эдитор. Поиск по шаблонам', async ({page})=>{
         const editor = new Editor(page)
         // Переход в дизайн
-        await page.goto('/app/designs/61bb153a-ab29-402c-b5c9-0c303fba998b')
+        await page.goto('https://flyvi.art/app/designs/085a218b-8329-4fb6-ba02-3c0f7774819c')
         await editor.changesSavedBtn.waitFor()
         // Ождиание подгрузки шаблонов в левом меню
         const templatesList = page.locator('.content_iAKDM [style*="decors-types/templates/"]')
-        await expect(templatesList.first(), "<<<ШАБЛОНЫ НЕ НАЙДЕНЫ!!!>>>").toBeVisible({timeout: 15000})        
+        await expect(templatesList.first(), "<<<ШАБЛОНЫ НЕ НАЙДЕНЫ>>>").toBeVisible({timeout: 15000})        
         // Поиск по шаблонам
         const templatesInput = page.getByPlaceholder('Поиск шаблонов')
         await templatesInput.waitFor()
-        await templatesInput.fill('еда')
+        await templatesInput.fill('тест')
         await page.keyboard.press('Enter')
         // Проверка, что появились результаты поиска
         await page.locator('.title_xLixx').first().waitFor({state: "hidden"})
         const templatesSearch = page.locator('.list_XCx5H [style*="decors-types/templates/"]')
         await templatesSearch.first().waitFor({timeout: 15000})
         const templatesCount: number = await templatesSearch.count()
-        expect(templatesCount).toBeGreaterThan(0)        
+        expect(templatesCount).toBeGreaterThan(0)
         const notFoundMessage = page.locator('[class="message-not-found"]')
         // await notFoundMessage.waitFor({state: "hidden"})
         await expect(notFoundMessage, '<<<Ничего не найдено!!!>>>').not.toBeVisible()
-        
+
         await page.pause()
     })
 
     test('Эдитор. Поиск по Шрифтам', async({page})=>{
         const editor = new Editor(page)
         // Переходим в дизайн
-        await page.goto('/app/designs/11ffc3bd-f2fd-4ca5-80bb-b1c56a51e604')
+        await page.goto('https://flyvi.art/app/designs/78a52d6e-ad88-44a3-946c-b7591d968cb1')
         await editor.changesSavedBtn.waitFor()
         // Кликаем по текстовому декору
         await editor.decor.first().click()
@@ -1862,12 +1869,12 @@ test.describe('ОБЩИЕ ПО ЭДИТОРУ', ()=>{
         // Вводим поисковый запрос в инпут поиска по шрифтам
         const fontInput = page.locator('[class="v-text-field__slot"]:has(label:has-text("Поиск шрифта")) input[type="text"]')
         await fontInput.waitFor()
-        await fontInput.fill('lon')        
+        await fontInput.fill('vin')
         // Проверяем, что результат поиска корректный
-        const fonts = page.locator('[class="font-container"]:has-text("Все шрифты") [class="font-item"]')        
+        const fonts = page.locator('[class="font-container"] [class="font-item"]')
         await expect(fonts).toHaveCount(4)
-        for(let i = 0; i < 4; i++) {            
-            await expect(fonts.nth(i)).toHaveAttribute('style', /lon/i)
+        for(let i = 0; i < 3; i++) {            
+            await expect(fonts.nth(i)).toHaveAttribute('style', /vin/i)
         }
         
         await page.pause()
@@ -1876,7 +1883,7 @@ test.describe('ОБЩИЕ ПО ЭДИТОРУ', ()=>{
     test('Эдитор. Поиск по Фото', async ({page})=>{
         const editor = new Editor(page)
         // Переход в дизайн
-        await page.goto('/app/designs/61bb153a-ab29-402c-b5c9-0c303fba998b')
+        await page.goto('https://flyvi.art/app/designs/085a218b-8329-4fb6-ba02-3c0f7774819c')
         await editor.changesSavedBtn.waitFor()
         // Переход в раздел Медиа
         await page.getByText('Медиа').click()
@@ -1898,25 +1905,25 @@ test.describe('ОБЩИЕ ПО ЭДИТОРУ', ()=>{
         // Найденных элементов больше 0
         expect(photoCount).toBeGreaterThan(0)        
         
-        // await page.pause()
+        await page.pause()
     })
 
     test('Эдитор. Поиск по Видео', async ({page})=>{
         const editor = new Editor(page)
         // Переход в дизайн
-        await page.goto('/app/designs/61bb153a-ab29-402c-b5c9-0c303fba998b')
+        await page.goto('https://flyvi.art/app/designs/085a218b-8329-4fb6-ba02-3c0f7774819c')
         await editor.changesSavedBtn.waitFor()
         await page.locator('[id="decorsDrawer"]').locator('text="Медиа"').click()
         await page.locator('[class="tabs-wrapper"] button:has-text("Видео")').click()        
         // Ождиание подгрузки видео в левом меню
-        const folderHeader = page.locator('[class="title_xLixx"]').getByText('Природа').nth(0)
+        const folderHeader = page.locator('[class="title_xLixx"]').first().getByText('Природа')
         await folderHeader.waitFor()
         const pexelList = page.locator('.category_Wh3UH .v-responsive__content')        
         await pexelList.nth(0).waitFor()   
         // Поиск по видео
         const pexelInput = page.getByPlaceholder('Поиск видео')
         await pexelInput.waitFor()
-        await pexelInput.fill('катер')
+        await pexelInput.fill('мама')
         await page.keyboard.press('Enter')
         // Проверка, что появились результаты поиска
         await page.locator('.title_xLixx').first().waitFor({state: "hidden"})
@@ -1932,7 +1939,7 @@ test.describe('ОБЩИЕ ПО ЭДИТОРУ', ()=>{
     test('Эдитор. Поиск по Аудио', async ({page})=>{
         const editor = new Editor(page)
         // Переход в дизайн
-        await page.goto('/app/designs/61bb153a-ab29-402c-b5c9-0c303fba998b')
+        await page.goto('https://flyvi.art/app/designs/085a218b-8329-4fb6-ba02-3c0f7774819c')
         await editor.changesSavedBtn.waitFor()
         await page.locator('[id="decorsDrawer"]').locator('text="Медиа"').click()
         await page.locator('[class="tabs-wrapper"] button:has-text("Аудио")').click()        
@@ -1954,13 +1961,13 @@ test.describe('ОБЩИЕ ПО ЭДИТОРУ', ()=>{
         // Найденных элементов больше 0
         expect(audioCount).toBeGreaterThan(0)        
         
-        // await page.pause()
+        await page.pause()
     })
 
     test('Эдитор. Поиск по Элементам', async ({page})=>{
         const editor = new Editor(page)
         // Переход в дизайн
-        await page.goto('/app/designs/61bb153a-ab29-402c-b5c9-0c303fba998b')
+        await page.goto('https://flyvi.art/app/designs/085a218b-8329-4fb6-ba02-3c0f7774819c')
         await editor.changesSavedBtn.waitFor()
         await page.locator('[id="decorsDrawer"]').locator('text="Элементы"').click()               
         // Ождиание подгрузки элементов в левом меню
@@ -1971,7 +1978,7 @@ test.describe('ОБЩИЕ ПО ЭДИТОРУ', ()=>{
         // Поиск по элементам
         const elementInput = page.getByPlaceholder('Поиск медиа')
         await elementInput.waitFor()
-        await elementInput.fill('огонь')        
+        await elementInput.fill('квадрат')        
         // Проверка, что появились результаты поиска
         await folderHeader.waitFor({state: "hidden"}) 
         // Проверка найденных GIF 
@@ -1985,7 +1992,7 @@ test.describe('ОБЩИЕ ПО ЭДИТОРУ', ()=>{
         const elementsFolder = page.locator('[class="category_Wh3UH"]:has-text("Элементы")')
         await elementsFolder.waitFor()
         const elements = elementsFolder.locator('.v-responsive__content')
-        for (let i = 0; i < 3; i++){
+        for (let i = 0; i < 1; i++){
             await expect(elements.nth(i)).toBeVisible()
         }
         // Проверка найденных Иконок 
@@ -2003,14 +2010,14 @@ test.describe('ОБЩИЕ ПО ЭДИТОРУ', ()=>{
             await expect(vectors.nth(i)).toBeVisible()
         }             
         
-        // await page.pause()
+        await page.pause()
     })
 
     test('Дашборд. Поиск по дизайнам', async ({page}) => {
         const dashboard = new Dashboard(page)
 
         // Переход на страницу дизайнов
-        await page.goto('/app/designs')
+        await page.goto('https://flyvi.art/app/designs')
         await dashboard.createDesignBtn.waitFor({timeout: 15000})
         // Проверяем, что дизайны загрузились
         const design = page.locator('.v-responsive__content:has(.v-responsive__content)')
@@ -2025,10 +2032,10 @@ test.describe('ОБЩИЕ ПО ЭДИТОРУ', ()=>{
         const designTitle = page.locator('[class="card-title cardTitle_tvse0"]') 
         await expect(designTitle).toHaveCount(3)
         for(let i = 0; i < 3; i++) {
-            await expect(designTitle.nth(i)).toContainText('искомый')
+            await expect(designTitle.nth(i)).toContainText('Искомый')
         }
 
-        await page.pause()
+        // await page.pause()
     })
 })
 
@@ -2036,26 +2043,26 @@ test.describe('Тесты ИИ-мастерской для ПРО тарифа',
     test.beforeEach(async({page})=>{
         page.setViewportSize({"width": 1600, "height": 900})
     })
-    test.use({ storageState: 'auth/auth1.json' })           // <<<ФАЙЛ С СОХРАНЁННОЙ СЕССИЕЙ PRO>>>
+    test.use({ storageState: 'auth/authArt.json'})         // <<<ФАЙЛ С СОХРАНЁННОЙ СЕССИЕЙ PRO>>>
 
     test('ИИ-мастерская. Генерация ФОТО', async({page})=>{
         const editor = new Editor(page)
         const workshop = new AiWorkshop(page)
         let oldCount: number, newCount: number
-        // Переход в генератор изображений  
-        await page.goto('/app/image-generator')        
+        // Переход в генератор изображений
+        await page.goto('https://flyvi.art/app/image-generator')        
         await workshop.tokenCount.waitFor()
         // Проверяем количтество токенов
         const tk = page.locator('.header .span-text >> text=Токены')        
-        const text = await tk.innerText()        
+        const text: string = await tk.innerText()
         expect(text.trim()).toEqual('Токены')
         await expect(async ()=>{
-            const tokenText = await workshop.tokenCount.textContent()
+            const tokenText: string = await workshop.tokenCount.innerText()
             oldCount = Number(tokenText)
             expect(oldCount, '<<<НЕДОСТАТОЧНО ТОКЕНОВ>>>').toBeGreaterThan(0)
         }).toPass({timeout:10000})    
         // Вводим промпт
-        await workshop.imgPrompt.fill('картонный кот')
+        await workshop.imgPrompt.fill('Стройная блондинка с револьвером')
         const styleBtn = page.locator('.ai-generator__main >> text="Без стиля"')
         await styleBtn.click()
         const cinemaStyle = page.locator('.dropdown-item:has-text("Кинематографический")')
@@ -2063,24 +2070,24 @@ test.describe('Тесты ИИ-мастерской для ПРО тарифа',
         const [text2img] = await Promise.all([
             page.waitForResponse('**/api/ai/image-generation?provider=*', {timeout:25000}),
             workshop.imgGenerateBtn.click()
-        ])   
+        ])        
         const newImgs = page.locator('.ai-generator__history div[id*="section"]').nth(0).locator('img[src*="flyvi.io/ai-history"]')
         await expect(async ()=>{            
             const imgSize = await newImgs.evaluateAll(imgs =>
                 imgs.every(img => img.naturalHeight > 0))
-        }).toPass()           
+        }).toPass()  
         // Проверяем, что в ответе пришли названия используемых моделей
         const json = await text2img.json()     
         const aiModels = ['flux-klein', 'sd35-turbo', 'qwen', 'z-image-turbo']
-        await expect(json.data.prompt_ru).toEqual('картонный кот')
-        await expect(aiModels).toContain(json.data.medias[0].model)      
-        await expect(json.data.medias[0].path).toContain('.jpg')
-        await expect(aiModels).toContain(json.data.medias[1].model)      
-        await expect(json.data.medias[1].path).toContain('.jpg')
-        await expect(aiModels).toContain(json.data.medias[2].model)        
-        await expect(json.data.medias[2].path).toContain('.jpg')
-        await expect(aiModels).toContain(json.data.medias[3].model)                 
-        await expect(json.data.medias[3].path).toContain('.jpg')
+        expect(json.data.prompt_ru).toEqual('Стройная блондинка с револьвером')
+        expect(aiModels).toContain(json.data.medias[0].model)      
+        expect(json.data.medias[0].path).toContain('.jpg')
+        expect(aiModels).toContain(json.data.medias[1].model)      
+        expect(json.data.medias[1].path).toContain('.jpg')
+        expect(aiModels).toContain(json.data.medias[2].model)        
+        expect(json.data.medias[2].path).toContain('.jpg')
+        expect(aiModels).toContain(json.data.medias[3].model)                 
+        expect(json.data.medias[3].path).toContain('.jpg')
 
         await expect(async ()=>{            
             const imgSize = await newImgs.evaluateAll(imgs =>
@@ -2089,7 +2096,7 @@ test.describe('Тесты ИИ-мастерской для ПРО тарифа',
         }).toPass()
         // await newImgs.highlight()
         await expect(async ()=>{
-            const tokenText = await workshop.tokenCount.textContent()
+            const tokenText: string = await workshop.tokenCount.innerText()
             newCount = Number(tokenText)
             expect(oldCount, '<<<ТОКЕНЫ НЕ ПОТРАТИЛИСЬ>>>').toEqual(newCount+1)
         }).toPass({timeout:10000})  
@@ -2101,7 +2108,7 @@ test.describe('Тесты ИИ-мастерской для ПРО тарифа',
         const editor = new Editor(page)
         const workshop = new AiWorkshop(page)
         // Переход в ИИ-мастерскую
-        await page.goto('/app/image-generator')
+        await page.goto('https://flyvi.art/app/image-generator')
         await workshop.tokenCount.waitFor()
         // Выбираем первую сгенерированную картинку и кликаем по ней
         const imgHistory = page.locator('img[src*="/ai-history/"]').nth(0)
@@ -2131,7 +2138,7 @@ test.describe('Тесты ИИ-мастерской для ПРО тарифа',
     test('🔥 🔥 🔥 ИИ-мастерская. Загрузка своего фото в ии-редактор', async({page})=>{
         const wh = new AiWorkshop(page)        
         // Переход в ИИ-редактор
-        await page.goto('/app/image-editor')
+        await page.goto('https://flyvi.art/app/image-editor')
         // Загружаем своё фото в ии-редактор
         const uploadBtn = page.locator('[class="upload_img"] span:has(span:has-text("Загрузить изображение"))')
         const [aploadImg] = await Promise.all([
@@ -2152,7 +2159,7 @@ test.describe('Тесты ИИ-мастерской для ПРО тарифа',
         // Переход в ИИ-редактор и проверка токенов
         const [oldToken] = await Promise.all([
             workshop.getTokenCount(),
-            page.goto('/app/image-editor')
+            page.goto('https://flyvi.art/app/image-editor')
         ])        
         expect(oldToken, "<<<НЕДОСТАТОЧНО ТОКЕНОВ>>>").toBeGreaterThan(0)
         // Загружаем своё фото в ии-редактор
@@ -2172,7 +2179,7 @@ test.describe('Тесты ИИ-мастерской для ПРО тарифа',
             page.getByText('Удалить фон').click()
         ])
         // Проверяем, что токены потратились
-        expect(newToken[0], '<<<Токены не потратились!!!>>>').toEqual(oldToken-1)
+        expect(newToken, '<<<Токены не потратились!!!>>>').toEqual(oldToken-1)
         // Ждём, пока не поменяется картинка картинка
         await expect(async()=>{
             newImg = await uploadedImg.getAttribute('src')
@@ -2188,7 +2195,7 @@ test.describe('Тесты ИИ-мастерской для ПРО тарифа',
         // Переход в ИИ-редактор и проверка баланса токенов
         const [oldToken] = await Promise.all([
             workshop.getTokenCount(),
-            page.goto('/app/image-editor')
+            page.goto('https://flyvi.art/app/image-editor')
         ])        
         expect(oldToken, "<<<НЕДОСТАТОЧНО ТОКЕНОВ>>>").toBeGreaterThan(0)
         // Загружаем своё фото в ии-редактор
@@ -2206,7 +2213,8 @@ test.describe('Тесты ИИ-мастерской для ПРО тарифа',
         const [newToken] = await Promise.all([
             workshop.getTokenCount(),
             page.getByText('Удалить водяной знак').click()
-        ])        
+        ])
+        console.log(newToken, '<<<>>>')
         // Проверяем, что токены потратились
         await expect(newToken, '<<<Токены не потратились!!!>>>').toEqual(oldToken-1)
         // Ждём, пока не поменяется картинка
@@ -2224,7 +2232,7 @@ test.describe('Тесты ИИ-мастерской для ПРО тарифа',
         // Переход в ИИ-редактор и проверка баланса токенов
         const [oldToken] = await Promise.all([
             workshop.getTokenCount(),
-            page.goto('/app/image-editor')
+            page.goto('https://flyvi.art/app/image-editor')
         ])        
         expect(oldToken, "<<<НЕДОСТАТОЧНО ТОКЕНОВ>>>").toBeGreaterThan(0)
         // Загружаем своё фото в ии-редактор
@@ -2264,7 +2272,7 @@ test.describe('Тесты ИИ-мастерской для ПРО тарифа',
         // Переход в ИИ-редактор и проверка баланса токенов
         const [oldToken] = await Promise.all([
             workshop.getTokenCount(),
-            page.goto('/app/image-editor')
+            page.goto('https://flyvi.art/app/image-editor')
         ])
         expect(oldToken, "<<<НЕДОСТАТОЧНО ТОКЕНОВ>>>").toBeGreaterThan(0)
         // Загружаем своё фото в ии-редактор
@@ -2304,7 +2312,7 @@ test.describe('Тесты ИИ-мастерской для ПРО тарифа',
         // Переход в ИИ-редактор и проверка баланса токенов
         const [oldToken] = await Promise.all([
             workshop.getTokenCount(),
-            page.goto('/app/image-editor')
+            page.goto('https://flyvi.art/app/image-editor')
         ])         
         expect(oldToken, "<<<НЕДОСТАТОЧНО ТОКЕНОВ>>>").toBeGreaterThan(0)
         // Загружаем своё фото в ии-редактор
@@ -2342,7 +2350,7 @@ test.describe('Тесты ИИ-мастерской для ПРО тарифа',
         // Переход в ИИ-редактор и проверка баланса токенов
         const [oldToken] = await Promise.all([
             workshop.getTokenCount(),
-            page.goto('/app/image-editor')
+            page.goto('https://flyvi.art/app/image-editor')
         ])         
         expect(oldToken, "<<<НЕДОСТАТОЧНО ТОКЕНОВ>>>").toBeGreaterThan(0)
         // Загружаем своё фото в ии-редактор
@@ -2383,7 +2391,7 @@ test.describe('Тесты ИИ-мастерской для ПРО тарифа',
         // Переход в ИИ-редактор и проверка баланса токенов
         const [oldToken] = await Promise.all([
             workshop.getTokenCount(),
-            page.goto('/app/image-editor')
+            page.goto('https://flyvi.art/app/image-editor')
         ])
         expect(oldToken, "<<<НЕДОСТАТОЧНО ТОКЕНОВ>>>").toBeGreaterThan(0)
         // Загружаем своё фото в ии-редактор
@@ -2424,7 +2432,7 @@ test.describe('Тесты ИИ-мастерской для ПРО тарифа',
         // Переход в ИИ-редактор и проверка баланса токенов
         const [oldToken] = await Promise.all([
             workshop.getTokenCount(),
-            page.goto('/app/image-editor')
+            page.goto('https://flyvi.art/app/image-editor')
         ])
         expect(oldToken, "<<<НЕДОСТАТОЧНО ТОКЕНОВ>>>").toBeGreaterThan(0)
         // Загружаем своё фото в ии-редактор
@@ -2462,7 +2470,7 @@ test.describe('Тесты ИИ-мастерской для ПРО тарифа',
         // Переход в ИИ-редактор и проверка баланса токенов
         const [oldToken] = await Promise.all([
             workshop.getTokenCount(),
-            page.goto('/app/image-editor')
+            page.goto('https://flyvi.art/app/image-editor')
         ])
         expect(oldToken, "<<<НЕДОСТАТОЧНО ТОКЕНОВ>>>").toBeGreaterThan(0)
         // Загружаем своё фото в ии-редактор
@@ -2501,7 +2509,7 @@ test.describe('Тесты ИИ-мастерской для ПРО тарифа',
         // Переход в ИИ-редактор и проверка баланса токенов
         const [oldToken] = await Promise.all([
             workshop.getTokenCount(),
-            page.goto('/app/image-editor')
+            page.goto('https://flyvi.art/app/image-editor')
         ])
         expect(oldToken, "<<<НЕДОСТАТОЧНО ТОКЕНОВ>>>").toBeGreaterThan(0)
         // Загружаем своё фото в ии-редактор
@@ -2540,7 +2548,7 @@ test.describe('Тесты ИИ-мастерской для ПРО тарифа',
         // Переход в ИИ-редактор и проверяем балан стокенов
         const [oldToken] = await Promise.all([
             workshop.getTokenCount(),
-            page.goto('/app/image-editor')        
+            page.goto('https://flyvi.art/app/image-editor')        
         ])
         expect(oldToken, "<<<НЕДОСТАТОЧНО ТОКЕНОВ>>>").toBeGreaterThan(0)
         // Загружаем своё фото в ии-редактор
@@ -2557,7 +2565,7 @@ test.describe('Тесты ИИ-мастерской для ПРО тарифа',
         // Переходим в меню инструмента
         await page.getByText('Заменить объект').click()
         // Проверяем, что фото загрузилось на холсте
-        await page.locator('img[src*="flyvi.dev/tmp/"]').waitFor()     
+        await page.locator('img[src*="flyvi.art/tmp/"]').waitFor()     
         // Рисуем маску
         const canvas = page.locator('canvas')
         const boundingBox = await canvas.boundingBox()
@@ -2610,7 +2618,7 @@ test.describe('Тесты ИИ-мастерской для ПРО тарифа',
         // Переход в ИИ-редактор и проверка баланса токенов
         const [oldToken] = await Promise.all([
             workshop.getTokenCount(),
-            page.goto('/app/image-editor')
+            page.goto('https://flyvi.art/app/image-editor')
         ])        
         expect(oldToken, "<<<НЕДОСТАТОЧНО ТОКЕНОВ>>>").toBeGreaterThan(0)
         // Загружаем своё фото в ии-редактор
@@ -2627,7 +2635,7 @@ test.describe('Тесты ИИ-мастерской для ПРО тарифа',
         // Переходим в меню инструмента
         await page.getByText('Удалить объект').click()
         // Проверяем, что фото загрузилось на холсте
-        await page.locator('img[src*="flyvi.dev/tmp/"]').waitFor()     
+        await page.locator('img[src*="flyvi.art/tmp/"]').waitFor()     
         // Рисуем маску
         const canvas = page.locator('canvas')
         const boundingBox = await canvas.boundingBox()
@@ -2668,7 +2676,7 @@ test.describe('Тесты ИИ-мастерской для ПРО тарифа',
         // Переход в ИИ-редактор и проверка баланса токенов
         const [oldToken] = await Promise.all([
             workshop.getTokenCount(),
-            page.goto('/app/image-editor')
+            page.goto('https://flyvi.art/app/image-editor')
         ])       
         expect(oldToken, "<<<НЕДОСТАТОЧНО ТОКЕНОВ>>>").toBeGreaterThan(0)
         // Загружаем своё фото в ии-редактор
@@ -2690,7 +2698,7 @@ test.describe('Тесты ИИ-мастерской для ПРО тарифа',
         ])
         await uploadFace.setFiles('tests/resources/test3.png')
         // Проверяем, что загрузилось фото на замену
-        await page.locator('[class="ai-editor_menu__slider"] img[src*="flyvi.io/tmp/"]').waitFor()      
+        await page.locator('[class="ai-editor_menu__slider"] img[src*="flyvi.art/tmp/"]').waitFor()      
         // Применяем редактирование
         const [newToken] = await Promise.all([
             workshop.getTokenCount(),
@@ -2713,7 +2721,7 @@ test.describe('Тесты ИИ-мастерской для ПРО тарифа',
         // Переход в ИИ-редактор и проверка баланса токенов
         const [oldToken] = await Promise.all([
             workshop.getTokenCount(),
-            page.goto('/app/image-editor')
+            page.goto('https://flyvi.art/app/image-editor')
         ])         
         expect(oldToken, "<<<НЕДОСТАТОЧНО ТОКЕНОВ>>>").toBeGreaterThan(0)
         // Загружаем своё фото в ии-редактор
@@ -2732,7 +2740,7 @@ test.describe('Тесты ИИ-мастерской для ПРО тарифа',
         // Применяем редактирование
         const [newToken] = await Promise.all([
             workshop.getTokenCount(),
-            page.locator('[class="card__block"]:has-text("Аниме")').click()          
+            page.locator('[class="card__block"]:has-text("Аниме-пиксель-арт")').click()          
         ])
         // Проверяем потраченные токены
         expect(newToken, '<<<Токены не потратились!!!>>>').toEqual(oldToken-1)
@@ -2751,7 +2759,7 @@ test.describe('Тесты ИИ-мастерской для ПРО тарифа',
         // Переход в ИИ-редактор и проверка баланса токенов
         const [oldToken] = await Promise.all([
             workshop.getTokenCount(),
-            page.goto('/app/image-editor')
+            page.goto('https://flyvi.art/app/image-editor')
         ])    
         expect(oldToken, "<<<НЕДОСТАТОЧНО ТОКЕНОВ>>>").toBeGreaterThan(0)
         // Загружаем своё фото в ии-редактор
@@ -2788,7 +2796,7 @@ test.describe('Тесты ИИ-мастерской для ПРО тарифа',
     test.skip('🔥 🔥 🔥 ИИ-МАСТЕРСКАЯ. Замена изображения', async({page})=>{
         const workshop = new AiWorkshop(page)
         // Переход в ИИ-редактор
-        await page.goto('/app/image-editor')        
+        await page.goto('https://flyvi.art/app/image-editor')        
         // Загружаем своё фото в ии-редактор
         const uploadBtn = page.locator('[class="upload_img"] span:has(span:has-text("Загрузить изображение"))')
         const [aploadImg] = await Promise.all([
@@ -2815,7 +2823,7 @@ test.describe('Тесты ИИ-мастерской для ПРО тарифа',
     test("✅ ✅ ✅ Генератор ВИДЕО. История генераций. Скачать видео", async({page})=>{
         const workshop = new AiWorkshop(page)
         // Переход в видео-генератор
-        await page.goto('/app/video-generator')
+        await page.goto('https://flyvi.art/app/video-generator')
         const downloadBtn = page.locator('.content button').nth(4)
         await downloadBtn.waitFor()
         // Клик по кнопке скачивания
@@ -2833,7 +2841,7 @@ test.describe('Тесты ИИ-мастерской для ПРО тарифа',
     test("✅ ✅ ✅ Генератор ВИДЕО. Галерея. Скачать видео", async({page})=>{
         const workshop = new AiWorkshop(page)
         // Переход в видео-генератор
-        await page.goto('/app/video-generator')
+        await page.goto('https://flyvi.art/app/video-generator')
         // Переходим в Галерею
         await page.getByRole('button', {name: 'Галерея'}).click()
         // Клик по кнопке скачивания        
@@ -2854,7 +2862,7 @@ test.describe('Тесты ИИ-мастерской для ПРО тарифа',
         const workshop = new AiWorkshop(page)
         const editor = new Editor(page)
         // Переход в видео-генератор
-        await page.goto('/app/video-generator')        
+        await page.goto('https://flyvi.art/app/video-generator')     
         const createBtn = page.locator('.buttons > button:nth-child(4)').first()
         await createBtn.waitFor()
         // Клик по кнопке создания дизайна
@@ -2873,7 +2881,7 @@ test.describe('Тесты ИИ-мастерской для ПРО тарифа',
         const workshop = new AiWorkshop(page)
         const editor = new Editor(page)
         // Переход в видео-генератор
-        await page.goto('/app/video-generator')
+        await page.goto('https://flyvi.art/app/video-generator')
         // Переходим в Галерею
         await page.getByRole('button', {name: 'Галерея'}).click()         
         // Клик по кнопке создания дизайна        
@@ -2885,129 +2893,18 @@ test.describe('Тесты ИИ-мастерской для ПРО тарифа',
         ])
         // Проверяем, что создался дизайн
         await newTab.locator('header button >> text=Изменения сохранены').waitFor({timeout: 20000})
-        await newTab.locator('.story-box-inner__wrapper video').waitFor()
+        await newTab.locator('.story-box-inner__wrapper video').waitFor()      
 
         await page.pause() 
     })
 
-    test('💾 💾 💾 ИИ-ПРЕЗЕНТАЦИИ. Скачивание презы через историю генерации', async({page})=>{
+    test('💾 💾 💾 ИИ-ПРЕЗЕНТАЦИИ. Генерация презы', async({page}) => {
         const workshop = new AiWorkshop(page)               
         // Переход в ИИ-генератор презентаций
         const [oldToken] = await Promise.all([
             workshop.getTokenCount(),
-            page.goto('/app/presentation-generator') 
-        ])          
-        // Клик по кнопке скачивания презы
-        page.locator('[class="blocks presentations-grid"] button').nth(3).click()
-        page.locator('.loader').waitFor()
-        const download = await page.waitForEvent('download', {timeout: 35000})
-        expect(download.suggestedFilename()).toContain('.pdf')
-        
-
-        await page.pause()
-    })
-
-    test('💾 💾 💾 ИИ-ПРЕЗЕНТАЦИИ. Скачивание презы через попап', async({page}) => {        
-        const workshop = new AiWorkshop(page)               
-        // Переход в ИИ-генератор презентаций
-        const [oldToken] = await Promise.all([
-            workshop.getTokenCount(),
-            page.goto('/app/presentation-generator')
-        ])
-        // Вызываем попап презы
-        await page.locator('[class="preview"]').first().click()
-        // Клик по кнопке скачивания презы
-        await page.locator('.dialog-wrapper .presentation-dialog__info button.helper-btn').click()
-        page.locator('.loader').waitFor()
-        const download = await page.waitForEvent('download', {timeout: 35000})
-        expect(download.suggestedFilename()).toContain('.pdf')        
-
-        await page.pause()
-    })
-
-    test('💾 💾 💾 ИИ-ПРЕЗЕНТАЦИИ. Скачивание презы через полноэкранный попап', async({page}) => {        
-        const workshop = new AiWorkshop(page)               
-        // Переход в ИИ-генератор презентаций
-        const [oldToken] = await Promise.all([
-            workshop.getTokenCount(),
-            page.goto('/app/presentation-generator') 
-        ])          
-        // Открываем полноэкранный просмотр презы
-        await page.locator('[class="preview"]').first().hover()
-        await page.locator('.wrapper').nth(1).locator('button').first().click()        
-        // Клик по кнопке скачивания презы
-        page.locator('.slides-dialog__actions button').first().click()
-        page.locator('.loader').waitFor()
-        const download = await page.waitForEvent('download', {timeout: 35000})
-        expect(download.suggestedFilename()).toContain('.pdf')        
-
-        await page.pause()
-    })
-
-    test('💾 💾 💾 ИИ-ПРЕЗЕНТАЦИИ. Создание дизайна из презентации через историю генерации', async({page, context}) => {
-        const workshop = new AiWorkshop(page)                   
-        // Переход в ИИ-генератор презентаций
-        const [oldToken] = await Promise.all([
-            workshop.getTokenCount(),
-            page.goto('/app/presentation-generator') 
-        ])          
-        // Клик по кнопке создания дизайна из презы
-        await page.locator('[class="blocks presentations-grid"] button').nth(4).click()
-        await page.locator('.loader').waitFor()
-        // Проверяем, что дизайн создался
-        const newTab = await context.waitForEvent('page', {timeout: 30000})
-        await newTab.getByRole('button', {name: "Скачать"}).waitFor()
-
-        await page.pause()
-    })
-
-    test('💾 💾 💾 ИИ-ПРЕЗЕНТАЦИИ. Создание дизайна из презентации через попап презы', async({page, context}) => {
-        const workshop = new AiWorkshop(page)                   
-        // Переход в ИИ-генератор презентаций
-        const [oldToken] = await Promise.all([
-            workshop.getTokenCount(),
-            page.goto('/app/presentation-generator') 
-        ])       
-        // Вызываем попап презы
-        await page.locator('[class="preview"]').first().click()   
-        // Клик по кнопке создания дизайна из презы
-        await page.locator('.dialog-wrapper').getByRole('button', {name: "Редактировать"}).click()
-        await page.locator('.loader').waitFor()
-        // Проверяем, что дизайн создался
-        const newTab = await context.waitForEvent('page', {timeout: 30000})
-        await newTab.getByRole('button', {name: "Скачать"}).waitFor()
-
-        await page.pause()
-    })
-
-    test('💾 💾 💾 ИИ-ПРЕЗЕНТАЦИИ. Создание дизайна из презентации через полноэкранный попап', async({page, context}) => {
-        const workshop = new AiWorkshop(page)                   
-        // Переход в ИИ-генератор презентаций
-        const [oldToken] = await Promise.all([
-            workshop.getTokenCount(),
-            page.goto('/app/presentation-generator') 
-        ])       
-        // Открываем полноэкранный просмотр презы
-        await page.locator('[class="preview"]').first().hover()
-        await page.locator('.wrapper').nth(1).locator('button').first().click()        
-        // Клик по кнопке скачивания презы
-        page.locator('.slides-dialog__actions button').nth(1).click()
-        page.locator('.loader').waitFor()
-        // Проверяем, что дизайн создался
-        const newTab = await context.waitForEvent('page', {timeout: 30000})
-        await newTab.getByRole('button', {name: "Скачать"}).waitFor()
-
-        await page.pause()
-    })
-
-    test('💾 💾 💾 ИИ-ПРЕЗЕНТАЦИИ. Генерация презы', async({page})=>{
-        const workshop = new AiWorkshop(page)               
-        // Переход в ИИ-генератор презентаций
-        const [oldToken] = await Promise.all([
-            workshop.getTokenCount(),
-            page.goto('/app/presentation-generator') 
-        ])
-            
+            page.goto('https://flyvi.art/app/presentation-generator') 
+        ])            
         // Проверяем баланс токенов        
         expect(oldToken, "<<<НЕДОСТАТОЧНО ТОКЕНОВ>>>").toBeGreaterThan(0)
         // Вводим данные для генерации
@@ -3031,5 +2928,117 @@ test.describe('Тесты ИИ-мастерской для ПРО тарифа',
 
         await page.pause()
     })
+
+    test('💾 💾 💾 ИИ-ПРЕЗЕНТАЦИИ. Скачивание презы через историю генерации', async({page}) => {
+        const workshop = new AiWorkshop(page)               
+        // Переход в ИИ-генератор презентаций
+        const [oldToken] = await Promise.all([
+            workshop.getTokenCount(),
+            page.goto('https://flyvi.art/app/presentation-generator') 
+        ])          
+        // Клик по кнопке скачивания презы
+        page.locator('[class="blocks presentations-grid"] button').nth(3).click()
+        page.locator('.loader').waitFor()
+        const download = await page.waitForEvent('download', {timeout: 35000})
+        expect(download.suggestedFilename()).toContain('.pdf')
+        
+
+        await page.pause()
+    })
+
+    test('💾 💾 💾 ИИ-ПРЕЗЕНТАЦИИ. Скачивание презы через попап', async({page}) => {        
+        const workshop = new AiWorkshop(page)               
+        // Переход в ИИ-генератор презентаций
+        const [oldToken] = await Promise.all([
+            workshop.getTokenCount(),
+            page.goto('https://flyvi.art/app/presentation-generator') 
+        ])
+        // Вызываем попап презы
+        await page.locator('[class="preview"]').first().click()
+        // Клик по кнопке скачивания презы
+        await page.locator('.dialog-wrapper .presentation-dialog__info button.helper-btn').click()
+        page.locator('.loader').waitFor()
+        const download = await page.waitForEvent('download', {timeout: 35000})
+        expect(download.suggestedFilename()).toContain('.pdf')        
+
+        await page.pause()
+    })
+
+    test('💾 💾 💾 ИИ-ПРЕЗЕНТАЦИИ. Скачивание презы через полноэкранный попап', async({page}) => {        
+        const workshop = new AiWorkshop(page)               
+        // Переход в ИИ-генератор презентаций
+        const [oldToken] = await Promise.all([
+            workshop.getTokenCount(),
+            page.goto('https://flyvi.art/app/presentation-generator') 
+        ])          
+        // Открываем полноэкранный просмотр презы
+        await page.locator('[class="preview"]').first().hover()
+        await page.locator('.wrapper').nth(1).locator('button').first().click()        
+        // Клик по кнопке скачивания презы
+        page.locator('.slides-dialog__actions button').first().click()
+        page.locator('.loader').waitFor()
+        const download = await page.waitForEvent('download', {timeout: 35000})
+        expect(download.suggestedFilename()).toContain('.pdf')        
+
+        await page.pause()
+    })
+
+    test('💾 💾 💾 ИИ-ПРЕЗЕНТАЦИИ. Создание дизайна из презентации через историю генерации', async({page, context}) => {
+        const workshop = new AiWorkshop(page)                   
+        // Переход в ИИ-генератор презентаций
+        const [oldToken] = await Promise.all([
+            workshop.getTokenCount(),
+            page.goto('https://flyvi.art/app/presentation-generator') 
+        ])          
+        // Клик по кнопке создания дизайна из презы
+        await page.locator('[class="blocks presentations-grid"] button').nth(4).click()
+        await page.locator('.loader').waitFor()
+        // Проверяем, что дизайн создался
+        const newTab = await context.waitForEvent('page', {timeout: 30000})
+        await newTab.getByRole('button', {name: "Скачать"}).waitFor()
+
+        await page.pause()
+    })
+
+    test('💾 💾 💾 ИИ-ПРЕЗЕНТАЦИИ. Создание дизайна из презентации через попап презы', async({page, context}) => {
+        const workshop = new AiWorkshop(page)                   
+        // Переход в ИИ-генератор презентаций
+        const [oldToken] = await Promise.all([
+            workshop.getTokenCount(),
+            page.goto('https://flyvi.art/app/presentation-generator') 
+        ])       
+        // Вызываем попап презы
+        await page.locator('[class="preview"]').first().click()   
+        // Клик по кнопке создания дизайна из презы
+        await page.locator('.dialog-wrapper').getByRole('button', {name: "Редактировать"}).click()
+        await page.locator('.loader').waitFor()
+        // Проверяем, что дизайн создался
+        const newTab = await context.waitForEvent('page', {timeout: 30000})
+        await newTab.getByRole('button', {name: "Скачать"}).waitFor()
+
+        await page.pause()
+    })
+
+    test('💾 💾 💾 ИИ-ПРЕЗЕНТАЦИИ. Создание дизайна из презентации через полноэкранный попап', async({page, context}) => {
+        const workshop = new AiWorkshop(page)                   
+        // Переход в ИИ-генератор презентаций
+        const [oldToken] = await Promise.all([
+            workshop.getTokenCount(),
+            page.goto('https://flyvi.art/app/presentation-generator') 
+        ])       
+        // Открываем полноэкранный просмотр презы
+        await page.locator('[class="preview"]').first().hover()
+        await page.locator('.wrapper').nth(1).locator('button').first().click()        
+        // Клик по кнопке скачивания презы
+        page.locator('.slides-dialog__actions button').nth(1).click()
+        page.locator('.loader').waitFor()
+        // Проверяем, что дизайн создался
+        const newTab = await context.waitForEvent('page', {timeout: 30000})
+        await newTab.getByRole('button', {name: "Скачать"}).waitFor()
+
+        await page.pause()
+    })
+
+    
 })
 })

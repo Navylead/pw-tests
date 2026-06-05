@@ -32,10 +32,8 @@ export class LoginPage {
     async login(email: string, password: string) {
         const dashboard = new Dashboard(this.page)
         const mainPage = new MainPage(this.page)
-        // Переход на Мейн
-        await this.page.goto('/ru')
-        // Клик по кнопке "Войти"
-        await mainPage.logInBtn.click()
+        // Переход на форму авторизации
+        await this.page.goto('/app/login')        
         // Заполнение полей авторизации
         await this.loginByPasswordBtn.waitFor({timeout: 30000})
         await this.loginByPasswordBtn.click()
@@ -58,10 +56,8 @@ export class LoginPage {
     async loginTest(email: string, password: string) {
         const dashboard = new Dashboard(this.page)
         const mainPage = new MainPage(this.page)
-        // Переход на Мейн
-        await this.page.goto('https://flyvi.dev/ru')
-        // Клик по кнопке "Войти"
-        await mainPage.logInBtn.click()
+        // Переход на форму авторизации
+        await this.page.goto('https://flyvi.dev/app/login')
         // Заполнение полей авторизации
         await this.loginByPasswordBtn.waitFor({timeout: 30000})
         await this.loginByPasswordBtn.click()
@@ -76,8 +72,32 @@ export class LoginPage {
         this.loginResponse = await responseLogin.json()
         this.meResponse = await responseMe.json()
         // Проверка отображения кнопки создания дизайна в Дашборде
-        await dashboard.createDesignBtn.waitFor({timeout:25000})
+        await dashboard.createDesignBtn.waitFor({timeout:30000})
         await this.page.waitForURL('https://flyvi.dev/app')
+        //await this.page.context().storageState({ path: 'auth.json' });
+    }
+
+    async loginArt(email: string, password: string) {
+        const dashboard = new Dashboard(this.page)
+        const mainPage = new MainPage(this.page)
+        // Переход на форму авторизации
+        await this.page.goto('https://flyvi.art/app/login')
+        // Заполнение полей авторизации
+        await this.loginByPasswordBtn.waitFor({timeout: 30000})
+        await this.loginByPasswordBtn.click()
+        await this.emailInput.fill(email)
+        await this.passwordInput.fill(password)
+        // Перехват ответов АПИ "login" и "me"
+        const [responseLogin, responseMe] = await Promise.all([
+            this.page.waitForResponse('**/api/auth/login'),
+            this.page.waitForResponse('**/api/auth/me'),
+            this.submitBtn.click()
+        ])
+        this.loginResponse = await responseLogin.json()
+        this.meResponse = await responseMe.json()
+        // Проверка отображения кнопки создания дизайна в Дашборде
+        await dashboard.createDesignBtn.waitFor({timeout:30000})
+        await this.page.waitForURL('https://flyvi.art/app')
         //await this.page.context().storageState({ path: 'auth.json' });
     }
 }

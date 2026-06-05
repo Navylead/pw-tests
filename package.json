@@ -13,8 +13,12 @@
     "test3hl": "npx playwright test --project=chromium --workers=1 tests/3_releaseTestDev.spec.ts",
     "test5": "npx playwright test --project=chromium  tests/5_apiTest.spec.ts",
     "test6": "npx playwright test --project=chromium --workers=1 --headed tests/6_e2e.spec.ts",
+    "test7": "npx playwright test --project=chromium --workers=1 --headed tests/7_TEST.spec.ts",
+    "test8": "npx playwright test --project=chromium --workers=1 --headed tests/8_releaseTestArt.spec.ts",
+    "test8hl": "npx playwright test --project=chromium --workers=1 tests/8_releaseTestArt.spec.ts", 
     "session": "npx playwright test tests/0_createSession.spec.ts --project=chromium --workers=4",
-    "sessionTest": "npx playwright test tests/0_createSessionTest.spec.ts --project=chromium --workers=4"
+    "sessionTest": "npx playwright test tests/0_createSessionTest.spec.ts --project=chromium --workers=4",
+    "sessionArt": "npx playwright test tests/0_createSessionArt.spec.ts --project=chromium --workers=4"
   },
   "keywords": [],
   "author": "K.D.",

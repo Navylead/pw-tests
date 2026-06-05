@@ -30,8 +30,9 @@ export class RegistrationPage {
     async register(name: string, email: string, password: string) {
         const mainPage = new MainPage(this.page)
         const dashboard = new Dashboard(this.page)
-        await this.page.goto('/ru')
-        await mainPage.registerBtn.click()
+        await this.page.goto('/app/login?mode=signIn')
+        await this.page.locator('a:has-text("Зарегистрируйтесь")').click()
+        // await mainPage.registerBtn.click()
         await this.registrationByPasswordBtn.waitFor()
         await this.registrationByPasswordBtn.click()
         await this.nameInput.fill(name)
@@ -45,8 +46,9 @@ export class RegistrationPage {
     async registerTest(name: string, email: string, password: string) {
         const mainPage = new MainPage(this.page)
         const dashboard = new Dashboard(this.page)
-        await this.page.goto('https://flyvi.dev/ru')
-        await mainPage.registerBtn.click()
+        await this.page.goto('https://flyvi.dev/app/login?mode=signIn')
+        await this.page.locator('a:has-text("Зарегистрируйтесь")').click()
+        // await mainPage.registerBtn.click()
         await this.registrationByPasswordBtn.waitFor()
         await this.registrationByPasswordBtn.click()
         await this.nameInput.fill(name)

@@ -2,19 +2,22 @@ import { Page, Locator } from '@playwright/test';
 
 export class AiWorkshop {
     readonly page: Page
-    readonly imgPrompt: Locator
-    readonly imgGenerateBtn: Locator
+    readonly imgPrompt: Locator    
     readonly aiImage: Locator
     readonly proBanner: Locator
     readonly tokenCount: Locator
+    readonly imgGenerateBtn: Locator
+    readonly generateBtn: Locator
 
     constructor(page: Page){
         this.page = page
-        this.imgPrompt = page.locator('.ai-generator__main textarea')                                        // Инпут генерации фото
-        this.imgGenerateBtn = page.locator('.ai-generator__main button >> text=Сгенерировать изображение')   // Кнопка генерации фото
-        this.tokenCount = page.locator('.header .tokens-count_container_count')                              // Счётчик токенов
-        this.aiImage = page.locator('[class="ai-generator__history"] img[src*="ai-history"]').first()        // Сгенерированное фото в ии-мастерской
-        this.proBanner = page.locator('.dialog-box')                                                         // Банер ПРО-подписки в ии-мастерской
+        this.imgPrompt = page.locator('.ai-generator__main textarea')                                   // Инпут генерации фото
+        this.imgGenerateBtn = page.locator('button:has-text("Сгенерировать изображение")')              // Кнопка генерации фото
+        this.generateBtn = page.locator('button:has-text("Сгенерировать")')                             // Кнопка генерации
+        this.tokenCount = page.locator('.header .tokens-count_container_count')                         // Счётчик токенов
+        this.aiImage = page.locator('[class="ai-generator__history"] img[src*="ai-history"]').first()   // Сгенерированное фото в ии-мастерской
+        this.proBanner = page.locator('.dialog-box')                                                    // Банер ПРО-подписки в ии-мастерской
+        
     }
 
     // Получение количества токенов через АПИ
