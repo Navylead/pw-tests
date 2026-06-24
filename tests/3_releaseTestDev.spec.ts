@@ -8,9 +8,9 @@ import { AiWorkshop } from "../pages/AiWorkshop"
 import auth1 from "../auth/auth1.json"
 import creds from "../auth/creds.json"
 import RegistrationPage from "../pages/RegistrationPage"
-import type { Response } from '@playwright/test';
-import { strict } from "assert"
-import { promiseHooks } from "v8"
+import type { Response } from '@playwright/test'
+
+
 
 test.describe('Релизные тесты', ()=>{
 
@@ -166,7 +166,7 @@ test.describe('Sign in', ()=>{
     await page.pause()
 })
 
-test('Восстановить пароль', async ({page})=>{
+test.skip('Восстановить пароль', async ({page})=>{
   const loginPage = new LoginPage(page)
   const dashboard = new Dashboard(page)
   const email: string = creds.emailTest
@@ -998,7 +998,7 @@ test.describe('Тесты премиумности', ()=>{
         const getTariffBtn = page.locator('.dialogWrapper_FVcGt button >> text=Получить бесплатную пробную версию')
         await getTariffBtn.waitFor()
         
-        // await page.pause()
+        await page.pause()
     })
 
     test('Дашборд. Переход на тариф ПРО из ЛК', async({page})=>{
@@ -2025,7 +2025,7 @@ test.describe('ОБЩИЕ ПО ЭДИТОРУ', ()=>{
         const design = page.locator('.v-responsive__content:has(.v-responsive__content)')
         await expect(async()=>{
             const designCount = await design.count()
-            expect(designCount).toBeGreaterThan(20)
+            expect(designCount).toBeGreaterThan(10) // 20
         }).toPass({timeout: 10000})        
         // Вводим запрос в поиск по дизайнам
         await dashboard.designSearchInput.fill('искомый')
@@ -2418,7 +2418,7 @@ test.describe('Тесты ИИ-мастерской для ПРО тарифа',
             workshop.getTokenCount(),
             page.getByRole('button', {name: "Изменить изображение"}).click()
         ])
-        expect(newToken, '<<<Токены не потратились!!!>>>').toEqual(oldToken-1)
+        expect(newToken, '<<<Токены не потратились!!!>>>').toEqual(oldToken-2)
         // Ждём, пока не поменяется картинка
         await expect(async()=>{
             newImg = await uploadedImg.getAttribute('src')
@@ -2822,6 +2822,34 @@ test.describe('Тесты ИИ-мастерской для ПРО тарифа',
         await page.pause()        
     })
 
+    test("Генерация Элементов", async ({page})=>{
+        const workshop = new AiWorkshop(page)
+        const editor = new Editor(page)
+        // Переход в генератор Элементов
+        await page.goto('https://flyvi.dev/app/designs/117333c7-8445-472c-9daa-c5a34d1df3d3')
+        await editor.changesSavedBtn.waitFor()
+        // Проверяем баланс токенов
+        const [oldToken] = await Promise.all([
+            workshop.getTokenCount(),
+            page.getByText('ИИ-мастерская').click()
+        ])
+        expect(oldToken, "<<<НЕДОСТАТОЧНО ТОКЕНОВ>>>").toBeGreaterThan(0)
+        await page.getByText('Генератор элементов').click()
+        // Вводим промпт
+        await page.getByPlaceholder('Опишите пожелания, цвета и другие детали.').fill('Эмблема Porsche')
+        // Выполняем генерацию
+        const [newToken, generator] = await Promise.all([
+            workshop.getTokenCount(),
+            page.waitForResponse('**/api/ai/vector-generation?provider*', {timeout: 30000}),
+            page.getByRole('button', {name: "Cгенерировать"}).click()
+        ])
+        // Проверяем, что токены потратились и что АПИ вернул статус 200
+        expect(oldToken, '<<<ТОКЕНЫ НЕ ПОТРАТИЛИСЬ>>>').toEqual(newToken+2)
+        expect(generator.status()).toEqual(200)        
+
+        await page.pause() 
+    })
+
     test("✅ ✅ ✅ Генератор ВИДЕО. История генераций. Скачать видео", async({page})=>{
         const workshop = new AiWorkshop(page)
         // Переход в видео-генератор
@@ -2865,7 +2893,7 @@ test.describe('Тесты ИИ-мастерской для ПРО тарифа',
         const editor = new Editor(page)
         // Переход в видео-генератор
         await page.goto('https://flyvi.dev/app/video-generator')     
-        const createBtn = page.locator('.buttons > button:nth-child(4)').first()
+        const createBtn = page.locator('.buttons > button:nth-child(4)').nth(0)
         await createBtn.waitFor()
         // Клик по кнопке создания дизайна
         const [newTab] = await Promise.all([

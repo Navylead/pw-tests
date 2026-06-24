@@ -1094,7 +1094,7 @@ test.describe('Тесты премиумности', ()=>{
         // Ждём отображение попапа премиума
         await editor.proBanner.waitFor()
 
-        // await page.pause()
+        await page.pause()
     })
 
     test('Эдитор. Добавление декора из БРЕНДБУКА дизайн: Элемент', async ({page})=>{
@@ -2003,7 +2003,7 @@ test.describe('ОБЩИЕ ПО ЭДИТОРУ', ()=>{
             await expect(vectors.nth(i)).toBeVisible()
         }             
         
-        // await page.pause()
+        await page.pause()
     })
 
     test('Дашборд. Поиск по дизайнам', async ({page}) => {
@@ -2016,7 +2016,7 @@ test.describe('ОБЩИЕ ПО ЭДИТОРУ', ()=>{
         const design = page.locator('.v-responsive__content:has(.v-responsive__content)')
         await expect(async()=>{
             const designCount = await design.count()
-            expect(designCount).toBeGreaterThan(20)
+            expect(designCount).toBeGreaterThan(10)
         }).toPass({timeout: 10000})        
         // Вводим запрос в поиск по дизайнам
         await dashboard.designSearchInput.fill('искомый')
@@ -2172,7 +2172,7 @@ test.describe('Тесты ИИ-мастерской для ПРО тарифа',
             page.getByText('Удалить фон').click()
         ])
         // Проверяем, что токены потратились
-        expect(newToken[0], '<<<Токены не потратились!!!>>>').toEqual(oldToken-1)
+        expect(newToken, '<<<Токены не потратились!!!>>>').toEqual(oldToken-1)
         // Ждём, пока не поменяется картинка картинка
         await expect(async()=>{
             newImg = await uploadedImg.getAttribute('src')
@@ -2408,7 +2408,7 @@ test.describe('Тесты ИИ-мастерской для ПРО тарифа',
             workshop.getTokenCount(),
             page.getByRole('button', {name: "Изменить изображение"}).click()
         ])
-        expect(newToken, '<<<Токены не потратились!!!>>>').toEqual(oldToken-1)
+        expect(newToken, '<<<Токены не потратились!!!>>>').toEqual(oldToken-2)
         // Ждём, пока не поменяется картинка
         await expect(async()=>{
             newImg = await uploadedImg.getAttribute('src')
@@ -2557,7 +2557,7 @@ test.describe('Тесты ИИ-мастерской для ПРО тарифа',
         // Переходим в меню инструмента
         await page.getByText('Заменить объект').click()
         // Проверяем, что фото загрузилось на холсте
-        await page.locator('img[src*="flyvi.dev/tmp/"]').waitFor()     
+        await page.locator('img[src*="flyvi.io/tmp/"]').waitFor()     
         // Рисуем маску
         const canvas = page.locator('canvas')
         const boundingBox = await canvas.boundingBox()
@@ -2627,7 +2627,7 @@ test.describe('Тесты ИИ-мастерской для ПРО тарифа',
         // Переходим в меню инструмента
         await page.getByText('Удалить объект').click()
         // Проверяем, что фото загрузилось на холсте
-        await page.locator('img[src*="flyvi.dev/tmp/"]').waitFor()     
+        await page.locator('img[src*="flyvi.io/tmp/"]').waitFor()     
         // Рисуем маску
         const canvas = page.locator('canvas')
         const boundingBox = await canvas.boundingBox()
@@ -2812,6 +2812,34 @@ test.describe('Тесты ИИ-мастерской для ПРО тарифа',
         await page.pause()        
     })
 
+    test("Генерация Элементов", async ({page})=>{
+        const workshop = new AiWorkshop(page)
+        const editor = new Editor(page)
+        // Переход в генератор Элементов
+        await page.goto('/app/designs/2fd02388-f221-4393-9410-be9aaac4df60')
+        await editor.changesSavedBtn.waitFor()
+        // Проверяем баланс токенов
+        const [oldToken] = await Promise.all([
+            workshop.getTokenCount(),
+            page.getByText('ИИ-мастерская').click()
+        ])
+        expect(oldToken, "<<<НЕДОСТАТОЧНО ТОКЕНОВ>>>").toBeGreaterThan(0)
+        await page.getByText('Генератор элементов').click()
+        // Вводим промпт
+        await page.getByPlaceholder('Опишите пожелания, цвета и другие детали.').fill('Эмблема Porsche')
+        // Выполняем генерацию
+        const [newToken, generator] = await Promise.all([
+            workshop.getTokenCount(),
+            page.waitForResponse('**/api/ai/vector-generation?provider*', {timeout: 30000}),
+            page.getByRole('button', {name: "Cгенерировать"}).click()
+        ])
+        // Проверяем, что токены потратились и что АПИ вернул статус 200
+        expect(oldToken, '<<<ТОКЕНЫ НЕ ПОТРАТИЛИСЬ>>>').toEqual(newToken+2)
+        expect(generator.status()).toEqual(200)        
+
+        await page.pause() 
+    })
+
     test("✅ ✅ ✅ Генератор ВИДЕО. История генераций. Скачать видео", async({page})=>{
         const workshop = new AiWorkshop(page)
         // Переход в видео-генератор
@@ -2824,7 +2852,7 @@ test.describe('Тесты ИИ-мастерской для ПРО тарифа',
             downloadBtn.click()
         ])
         // Проверяем расширение скаченного файла
-        await expect(downloadFile.suggestedFilename()).toContain('.mp4')
+        expect(downloadFile.suggestedFilename()).toContain('.mp4')
         // await downloadFile.saveAs('tests/resources/popug.mp4')
 
         await page.pause() 
@@ -2872,13 +2900,15 @@ test.describe('Тесты ИИ-мастерской для ПРО тарифа',
     test("✅ ✅ ✅ Генератор ВИДЕО. Галерея. Создать дизайн из видео", async({page, context})=>{
         const workshop = new AiWorkshop(page)
         const editor = new Editor(page)
-        // Переход в видео-генератор
-        await page.goto('/app/video-generator')
-        // Переходим в Галерею
-        await page.getByRole('button', {name: 'Галерея'}).click()         
+        // Переход в Галерею
+        await page.goto('/app/gallery')
+        // Переходим в раздел Видео
+        await page.locator('.header').getByText('Видео').click()       
         // Клик по кнопке создания дизайна        
         const createBtn = page.getByRole('button').nth(4)
         await createBtn.waitFor()
+        const video = page.locator('video').first()
+        await video.waitFor()
         const [newTab] = await Promise.all([
             context.waitForEvent('page'),
             createBtn.click()

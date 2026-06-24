@@ -51,15 +51,15 @@ module.exports = defineConfig({
        },
     },
 
-    /*{
+    {
       name: 'firefox',
       use: { ...devices['Desktop Firefox'] },
     },
 
-    {
-      name: 'webkit',
-      use: { ...devices['Desktop Safari'] },
-    },*/
+    // {
+    //   name: 'webkit',
+    //   use: { ...devices['Desktop Safari'] },
+    // },
 
     /* Test against mobile viewports. */
     // {
@@ -72,10 +72,10 @@ module.exports = defineConfig({
     // },
 
     /* Test against branded browsers. */
-    // {
-    //   name: 'Microsoft Edge',
-    //   use: { ...devices['Desktop Edge'], channel: 'msedge' },
-    // },
+    {
+       name: 'EDGE',
+       use: { ...devices['Desktop Edge'], channel: 'msedge' },
+    },
     // {
     //   name: 'Google Chrome',
     //   use: { ...devices['Desktop Chrome'], channel: 'chrome' },
