@@ -9,7 +9,6 @@ export class Editor {
     readonly changesSavedBtn: Locator
     readonly continueBtn: Locator
     readonly changeDesignSizeBtn: Locator
-    readonly randomTemplateBtn: Locator
     readonly deleteBgBtn: Locator
     readonly basketBtn: Locator
     readonly aiEditorBtn: Locator
@@ -17,6 +16,7 @@ export class Editor {
     readonly deformationBtn: Locator
     readonly eraserBtn: Locator
     readonly proBanner: Locator
+    readonly proBanner2: Locator
     readonly uploadMedia: Locator
 
     constructor(page: Page){
@@ -28,14 +28,14 @@ export class Editor {
         this.changesSavedBtn = page.locator('header button >> text=Изменения сохранены')    // Кнопка Изменения сохранены
         this.continueBtn = page.locator('.dialog-wrapper button >> text = Продолжить редактирование') // Кнопка Продолжить редактирование
         this.changeDesignSizeBtn = page.locator('#editorHeader button >> text=Изменить размер')       // Кнопка редактирования размера дизайна
-        this.randomTemplateBtn = page.getByRole('button', {name: "Случайный шаблон"})                 // Кнопка Случайного шаблона
         this.deleteBgBtn = page.locator('button >> text=Удалить фон')                                 // Кнопка Удалить Фон
         this.deformationBtn = page.locator('#editorToolbar button:has(g[mask="url(#mask0_17110_5152)"])') // Кнопка Деформации
         this.eraserBtn = page.locator('#editorToolbar button:has([d="M4.50001 8L11 14.5"])')              // Кнопка Ластика
         this.basketBtn = page.locator('#editorToolbar .defaultPanel_oVC9j button').nth(3)                 // Кнопка Корзина
         this.aiEditorBtn = page.locator('#editorToolbar button:has-text("Редактировать")')                // Кнопка ИИ-редактора
         this.tokensCountAiEditor = page.locator('.tokens .tokens-count_container_count')                  // Счётчик токенов в ИИ-редакторе
-        this.proBanner = page.locator('.dialogWrapper_FVcGt button:has-text("Получить бесплатную пробную версию")') // Баннер тарифа ПРО
+        this.proBanner = page.locator('.dialogWrapper_FVcGt button:has-text("Получить бесплатную пробную версию")')    // Баннер 1 тарифа ПРО
+        this.proBanner2 = page.locator('.dialogWrapper_FVcGt button:has-text("Получить 5 дней в подарок")')            // Баннер 2 тарифа ПРО
         this.uploadMedia = page.locator('button').getByText('Загрузить медиа')
 
     }

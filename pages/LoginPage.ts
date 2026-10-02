@@ -81,7 +81,7 @@ export class LoginPage {
         const dashboard = new Dashboard(this.page)
         const mainPage = new MainPage(this.page)
         // Переход на форму авторизации
-        await this.page.goto('https://flyvi.art/app/login')
+        await this.page.goto('https://flyvi.pro/app/login')
         // Заполнение полей авторизации
         await this.loginByPasswordBtn.waitFor({timeout: 30000})
         await this.loginByPasswordBtn.click()
@@ -97,7 +97,7 @@ export class LoginPage {
         this.meResponse = await responseMe.json()
         // Проверка отображения кнопки создания дизайна в Дашборде
         await dashboard.createDesignBtn.waitFor({timeout:30000})
-        await this.page.waitForURL('https://flyvi.art/app')
+        await this.page.waitForURL('https://flyvi.pro/app')
         //await this.page.context().storageState({ path: 'auth.json' });
     }
 }

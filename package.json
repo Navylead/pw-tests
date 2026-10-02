@@ -18,7 +18,7 @@
     "test8hl": "npx playwright test --project=chromium --workers=1 tests/8_releaseTestArt.spec.ts", 
     "session": "npx playwright test tests/0_createSession.spec.ts --project=chromium --workers=4",
     "sessionTest": "npx playwright test tests/0_createSessionTest.spec.ts --project=chromium --workers=4",
-    "sessionArt": "npx playwright test tests/0_createSessionArt.spec.ts --project=chromium --workers=4"
+    "sessionPro": "npx playwright test tests/0_createSessionPro.spec.ts --project=chromium --workers=4"
   },
   "keywords": [],
   "author": "K.D.",
