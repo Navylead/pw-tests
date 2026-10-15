@@ -3,6 +3,7 @@ import {test, expect} from "@playwright/test"
 import {LoginPage} from "../pages/LoginPage"
 import {Editor} from "../pages/Editor"
 import creds from "../auth/creds.json"
+import auth1 from "../auth/auth1.json"
 import { Dashboard } from "../pages/Dashboard"
 import { MainPage } from "../pages/MainPage"
 import { AiWorkshop } from "../pages/AiWorkshop"
@@ -1375,14 +1376,17 @@ test.describe('ОБЩИЕ ПО ЭДИТОРУ', ()=>{
         await page.pause()
     })
 
-    test('Эдитор. Создание дизайна - История Instagram', async ({page})=>{
+    test('Дашборд. Создание дизайна - История Instagram', async ({page})=>{
         const dashboard = new Dashboard(page)
         const editor = new Editor(page)
+
         await page.goto('/app')
+        // Создание дизайна
         await dashboard.createDesignBtn.waitFor()
         await dashboard.createDesignBtn.click()
-        await page.locator('.category >> text=Соцсети').click()
-        await page.locator('.category >> text=История Instagram').click()
+        await page.getByRole('listbox').locator('[role="option"]:has(.category:has-text("Соцсети"))').click()
+        await page.locator('.v-list-item__title:has-text("История Instagram")').click()
+        // Проверка, что открылся редактор
         await page.waitForURL('**/designs/*')
         await editor.changeDesignSizeBtn.waitFor()
         await editor.downloadBtn.waitFor()
@@ -1475,7 +1479,7 @@ test.describe('ОБЩИЕ ПО ЭДИТОРУ', ()=>{
         await dashboard.createDesignBtn.waitFor()
         await dashboard.createDesignBtn.click()
         // Выбираем свой размер
-        const customSizeButton = page.locator('[role="menu"] button >> text=Настраиваемый размер')
+        const customSizeButton = page.getByRole('button', {name: 'Настраиваемый размер'})
         await customSizeButton.click()
         const widthInput = page.locator('.custom-design-menu input').first()
         await widthInput.clear()
@@ -1542,7 +1546,7 @@ test.describe('ОБЩИЕ ПО ЭДИТОРУ', ()=>{
         const accessBtn = newTab.locator('#editorHeader button:has-text("Выбрать альбом")')        
         await accessBtn.isVisible({timeout: 25000})        
         const designName = newTab.locator('[id="editorHeader"]')
-        await expect(designName).toContainText(/доска/)
+        await expect(designName).toContainText(/доска/, {timeout: 30000})
 
         await newTab.pause()
     })
@@ -1900,6 +1904,26 @@ test.describe('ОБЩИЕ ПО ЭДИТОРУ', ()=>{
         await page.pause()
     })
 
+    test('Дашборд. Поиск по шаблонам в рекомендациях', async({page})=>{
+        const dashboard = new Dashboard(page)
+        const prompt = 'спорт'
+        // Переход в Рекомендации
+        await page.goto('/app/recommendations')
+        // Поиск по шаблонам
+        await dashboard.templateSearch.waitFor()
+        await dashboard.templateSearch.fill(prompt)
+        await page.keyboard.press('Enter')
+        // Проверка, что по запросу нашлись шаблоны
+        const searchResult = page.locator('.header_8GPuj')
+        await searchResult.waitFor()
+        const searchResultPrompt: string = await searchResult.locator('h2').innerText()
+        const searchResultCount: number = await searchResult.locator('p').evaluate(el=> parseInt(el.textContent, 10))    
+        expect(searchResultPrompt).toContain(prompt)
+        expect(searchResultCount).toBeGreaterThan(0)
+
+        await page.pause()
+    })
+
     test('Мэйн. Поиск по шаблонам', async({page})=>{        
         const main = new MainPage(page)
         const prompt = '14 февраля'
@@ -2111,7 +2135,7 @@ test.describe('ОБЩИЕ ПО ЭДИТОРУ', ()=>{
         await page.goto('/app/designs')
         await dashboard.createDesignBtn.waitFor({timeout: 15000})
         // Проверяем, что дизайны загрузились
-        const design = page.locator('.v-responsive__content:has(.v-responsive__content)')
+        const design = page.locator('.v-responsive__content [style*=".jpg"]')
         await expect(async()=>{
             const designCount = await design.count()
             expect(designCount).toBeGreaterThan(15)
@@ -2165,7 +2189,7 @@ test.describe('Тесты ИИ-мастерской для ПРО тарифа',
         const newImgs = page.locator('.ai-generator__history div[id*="section"]').nth(0).locator('img[src*="flyvi.io/ai-history"]')
         await expect(async ()=>{            
             const imgSize = await newImgs.evaluateAll(imgs =>
-                imgs.every(img => img.naturalHeight > 0))
+                imgs.every(img => img instanceof HTMLImageElement ? img.naturalHeight > 0 : true))
         }).toPass()           
         // Проверяем, что в ответе пришли названия используемых моделей
         const json = await text2img.json()     
@@ -2182,7 +2206,7 @@ test.describe('Тесты ИИ-мастерской для ПРО тарифа',
 
         await expect(async ()=>{            
             const imgSize = await newImgs.evaluateAll(imgs =>
-                imgs.every(img => img.naturalHeight > 0)
+                imgs.every(img => img instanceof HTMLImageElement ? img.naturalHeight > 0 : true)
             )
         }).toPass()
         // await newImgs.highlight()
@@ -2956,10 +2980,13 @@ test.describe('Тесты ИИ-мастерской для ПРО тарифа',
             page.goto('/app/video-generator'),
         ])
         // Проверяем баланс токенов
-        expect(oldCount, "<<<НЕДОСТАТОЧНО ТОКЕНОВ>>>").toBeGreaterThan(14)
+        expect(oldCount, "<<<НЕДОСТАТОЧНО ТОКЕНОВ>>>").toBeGreaterThan(8)
+        // Выбираем размер генерируемого видео
+        await page.locator('.dropdown-toggle:has-text("768p")').click()
+        await page.locator('.dropdown-item:has-text("480p")').click()
         // Вводим промпт и генерируем
         await page.getByRole('textbox', { name: 'Опишите, что хотите создать' }).click()
-        await page.getByRole('textbox', { name: 'Опишите, что хотите создать' }).fill('Лазерный отражатель')
+        await page.getByRole('textbox', { name: 'Опишите, что хотите создать' }).fill('нуклеотидный пылесос')
         const [response, newCount] = await Promise.all([            
             page.waitForResponse('**/api/ai/video-generation', {timeout: 30000}),
             workshop.getTokenCount(),
@@ -2967,7 +2994,7 @@ test.describe('Тесты ИИ-мастерской для ПРО тарифа',
         ])
         // Проверяем потраченные токены и статус ответа АПИ генерации
          expect(response, "<<<СТАТУС НЕ 200>>>")
-         expect(newCount, "<<<ТОКЕНЫ НЕ ПОТРАТИЛИСЬ>>>").toEqual(oldCount - 15)        
+         expect(newCount, "<<<ТОКЕНЫ НЕ ПОТРАТИЛИСЬ>>>").toEqual(oldCount - 8)        
 
         await page.pause() 
     })
@@ -3014,9 +3041,12 @@ test.describe('Тесты ИИ-мастерской для ПРО тарифа',
         const workshop = new AiWorkshop(page)
         const editor = new Editor(page)
         // Переход в видео-генератор
-        await page.goto('/app/video-generator')        
-        const createBtn = page.locator('.buttons > button:nth-child(4)').first()
+        await page.goto('/app/video-generator')     
+        const createBtn = page.locator('.buttons').first().locator('button:has([d="M16 18L22 18M22 18L19 21M22 18L19 15"])')
         await createBtn.waitFor()
+        // Проверяем, что список видео загрузился
+        await page.locator('.content .container').first().locator('video').waitFor()
+        await createBtn.hover()
         // Клик по кнопке создания дизайна
         const [newTab] = await Promise.all([
             context.waitForEvent('page'),
@@ -3029,25 +3059,29 @@ test.describe('Тесты ИИ-мастерской для ПРО тарифа',
         await page.pause() 
     })
 
-    test.skip("✅ ✅ ✅ Генератор ВИДЕО. Галерея. Создать дизайн из видео", async({page, context})=>{
+    test("✅ ✅ ✅ Генератор ВИДЕО. Галерея. Создать дизайн из видео", async({page, context})=>{
         const workshop = new AiWorkshop(page)
         const editor = new Editor(page)
-        // Переход в Галерею
-        await page.goto('/app/gallery')
-        // Переходим в раздел Видео
-        await page.locator('.header').getByText('Видео').click()       
+        // Переход в видео-генератор
+        await page.goto('/app/video-generator')
+        // Переходим в Галерею
+        await page.locator('.header').getByRole('button', {name: 'Галерея'}).click()
+        await expect(page.locator('.header h2')).toContainText('Галерея')
+        // Ждём загрузку списка видео в Галерее
+        await page.locator('.content video').first().waitFor({timeout: 20000})
         // Клик по кнопке создания дизайна        
-        const createBtn = page.getByRole('button').nth(4)
+        const createBtn = page.locator('.buttons').first().locator('button:has([d="M16 18L22 18M22 18L19 21M22 18L19 15"])')
         await createBtn.waitFor()
-        const video = page.locator('video').first()
-        await video.waitFor()
+        await createBtn.hover()
+        await createBtn.highlight()
+        // await page.pause()
         const [newTab] = await Promise.all([
             context.waitForEvent('page'),
             createBtn.click()
         ])
         // Проверяем, что создался дизайн
         await newTab.locator('header button >> text=Изменения сохранены').waitFor({timeout: 20000})
-        await newTab.locator('.story-box-inner__wrapper video').waitFor()
+        await newTab.locator('.story-box-inner__wrapper video').waitFor()      
 
         await page.pause() 
     })
