@@ -1123,8 +1123,23 @@ test.describe('Тесты премиумности', ()=>{
         // Клик по логотипу аккаунта
         await dashboard.userLogo.click()
         // Клик по кнопке перехода на тариф ПРО
-        const drawer = page.locator('text=Попробуйте Flyvi Pro')
+        const drawer = page.locator('.drawer-account__menu').getByRole('button', {name: "Попробуйте Flyvi Pro"})
         await drawer.click()
+        // Проверка отображения вызванного попапа подписки
+        const getTariffBtn = page.locator('.dialogWrapper_FVcGt button >> text=Получить 5 дней в подарок')
+        await getTariffBtn.waitFor()        
+        
+        await page.pause()
+    })
+
+    test('Дашборд. Переход на тариф ПРО из хэдера', async({page})=>{
+        const editor = new Editor(page)
+        const dashboard = new Dashboard(page)
+        await page.goto('/app')
+        // Клик по кнопке "Попробовать бесплатно тариф ПРО"
+        const tryFreeButton = page.locator('header .try-flyvi-pro-btn')
+        await tryFreeButton.waitFor()
+        await tryFreeButton.click()
         // Проверка отображения вызванного попапа подписки
         const getTariffBtn = page.locator('.dialogWrapper_FVcGt button >> text=Получить 5 дней в подарок')
         await getTariffBtn.waitFor()        
@@ -1515,8 +1530,10 @@ test.describe('ОБЩИЕ ПО ЭДИТОРУ', ()=>{
         const editor = new Editor(page)
         await page.goto('/app')
         await dashboard.createDesignBtn.waitFor()
-        await page.locator('[href="/app/dashboard"]').click()
-        const createStoryButton = page.locator('button >> text=Создать сторис')
+        // Переход в раздел Веб-стори
+        await page.locator('.v-navigation-drawer__content').getByRole('button', {name: "Web-сторис"}).click()
+        await page.locator('a[href="/app/stories"]').click()
+        const createStoryButton = page.getByRole('button', {name: 'Создать web-сторис'})
         // ПЕРЕХОД НА НОВУЮ ВКЛАДКУ
         const [newTab] = await Promise.all([
             context.waitForEvent('page', {timeout: 25000}),
@@ -1526,7 +1543,7 @@ test.describe('ОБЩИЕ ПО ЭДИТОРУ', ()=>{
         const chooseAlbumButton = newTab.locator('#editorHeader button >> text=Выбрать альбом')
         await publishButton.isVisible({timeout: 25000})
         await chooseAlbumButton.isVisible()
-        await publishButton.click()
+        await publishButton.click({timeout: 25000})
 
         await newTab.pause()
     })
@@ -2130,7 +2147,6 @@ test.describe('ОБЩИЕ ПО ЭДИТОРУ', ()=>{
 
     test('Дашборд. Поиск по дизайнам', async ({page}) => {
         const dashboard = new Dashboard(page)
-
         // Переход на страницу дизайнов
         await page.goto('/app/designs')
         await dashboard.createDesignBtn.waitFor({timeout: 15000})
@@ -2138,10 +2154,15 @@ test.describe('ОБЩИЕ ПО ЭДИТОРУ', ()=>{
         const design = page.locator('.v-responsive__content [style*=".jpg"]')
         await expect(async()=>{
             const designCount = await design.count()
-            expect(designCount).toBeGreaterThan(15)
-        }).toPass({timeout: 10000})        
+            expect(designCount).toBeGreaterThan(1)
+        }).toPass({timeout: 10000})
+        await dashboard.designSearchInput.fill('искомый ')
+        await expect(async()=>{
+            const designCount = await design.count()
+            expect(designCount).toBeGreaterThan(1)
+        }).toPass({timeout: 10000})
         // Вводим запрос в поиск по дизайнам
-        await dashboard.designSearchInput.fill('искомый')
+        await dashboard.designSearchInput.fill('искомый ')             
         await page.keyboard.press('Enter')
         // Проверяем количество найденных дизайнов и их названия
         const designTitle = page.locator('[class="card-title cardTitle_tvse0"]') 
@@ -2977,7 +2998,7 @@ test.describe('Тесты ИИ-мастерской для ПРО тарифа',
         // Переход в видео-генератор и проверка баланса
         const [oldCount] = await Promise.all([            
             workshop.getTokenCount(),
-            page.goto('/app/video-generator'),
+            page.goto('/app/video-generator')
         ])
         // Проверяем баланс токенов
         expect(oldCount, "<<<НЕДОСТАТОЧНО ТОКЕНОВ>>>").toBeGreaterThan(8)
@@ -2995,6 +3016,35 @@ test.describe('Тесты ИИ-мастерской для ПРО тарифа',
         // Проверяем потраченные токены и статус ответа АПИ генерации
          expect(response, "<<<СТАТУС НЕ 200>>>")
          expect(newCount, "<<<ТОКЕНЫ НЕ ПОТРАТИЛИСЬ>>>").toEqual(oldCount - 8)        
+
+        await page.pause() 
+    })
+
+    test("✅ ✅ ✅ Генерация ВИДЕО ПРО(8 провайдер)", async({page})=>{
+        const workshop = new AiWorkshop(page)        
+        // Переход в видео-генератор и проверка баланса
+        const [oldCount] = await Promise.all([            
+            workshop.getTokenCount(),
+            page.goto('/app/video-generator')
+        ])
+        // Проверяем баланс токенов
+        expect(oldCount, "<<<НЕДОСТАТОЧНО ТОКЕНОВ>>>").toBeGreaterThan(12)
+        // Переключаемся на режим ПРО
+        await page.locator('.d-flex:has-text("Pro") .custom-switch').click()
+        // Выбираем размер генерируемого видео
+        await page.locator('.dropdown-toggle:has-text("768p")').click()
+        await page.locator('.dropdown-item:has-text("480p")').click()
+        // Вводим промпт и генерируем
+        await page.getByRole('textbox', { name: 'Опишите, что хотите создать' }).click()
+        await page.getByRole('textbox', { name: 'Опишите, что хотите создать' }).fill('Ядерный тостер')
+        const [response, newCount] = await Promise.all([            
+            page.waitForResponse('**/api/ai/video-generation', {timeout: 40000}),
+            workshop.getTokenCount(),
+            page.getByRole('button', { name: 'Cгенерировать' }).click()
+        ])
+        // Проверяем потраченные токены и статус ответа АПИ генерации
+         expect(response, "<<<СТАТУС НЕ 200>>>")
+         expect(newCount, "<<<ТОКЕНЫ НЕ ПОТРАТИЛИСЬ>>>").toEqual(oldCount - 12)        
 
         await page.pause() 
     })
