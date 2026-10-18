@@ -20,7 +20,7 @@ export class RegistrationPage {
         this.passwordInput = page.locator('[placeholder="Создайте пароль"]')                        // Инпут пароля
         this.beginWorkBtn = page.locator('button >> text=Начать работу')                            // Кнопка НАЧАТЬ РАБОТУ
         this.nameInput = page.locator('input#name')                                                 // Инпут имени
-        this.checkBoxTermOfUse = page.locator('.dialog-form div.v-input--selection-controls__ripple').first() // Чекбокс №1
+        this.checkBoxTermOfUse = page.locator('.v-input--selection-controls__input:has([type="checkbox"])') // Чекбокс при регистрации
         this.registrationBtn = page.locator('button:has-text("Зарегистрироваться")')                // Кнопка регистрации
         this.registrationByPasswordBtn = page.getByRole('button', {name: 'Регистрация по паролю'})  // Кнопка регистрации по ПАРОЛЮ
         this.registrationByCodeBtn = page.getByRole('button', {name: 'Получить код подтверждения'}) // Кнопка регистрации по КОДУ
@@ -46,7 +46,7 @@ export class RegistrationPage {
     async registerTest(name: string, email: string, password: string) {
         const mainPage = new MainPage(this.page)
         const dashboard = new Dashboard(this.page)
-        await this.page.goto('https://flyvi.dev/app/login?mode=signIn')
+        await this.page.goto('https://flyvi.dev/app/login?devmode=true')
         await this.page.locator('a:has-text("Зарегистрируйтесь")').click()
         // await mainPage.registerBtn.click()
         await this.registrationByPasswordBtn.waitFor()

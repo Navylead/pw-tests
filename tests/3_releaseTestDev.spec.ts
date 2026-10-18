@@ -96,7 +96,7 @@ test.describe('Registration', ()=>{
     await page.pause()
   })
 
-  test.skip('Регистрация пользователя', async({page})=>{ // ПРИДУМАТЬ, КАК РЕГИТЬСЯ НА ТЕСТЕ
+  test('Регистрация пользователя', async({page})=>{
     const register = new RegistrationPage(page)
     const randomNumber = Math.floor(Math.random() * 100)
     const name: string = 'testdelete'
@@ -109,8 +109,9 @@ test.describe('Registration', ()=>{
     ])
     // Проверка запроса
     const reqBody = await JSON.parse(request.postData() ?? '{}')
-    expect(reqBody.email).toEqual(email)
-    expect(reqBody.password).toEqual(password)
+    expect(reqBody.email).toEqual(email)        // Проверка почты в запросе
+    expect(reqBody.password).toEqual(password)  // Проверка пароля в запросе
+    expect(reqBody.subscribed).toBe(true)       // Проверка чекбока подписки на рассылку в запросе
     // Проверка ответа
     const respPromise = page.waitForResponse('https://api.flyvi.dev/api/auth/register')
     const resp = await respPromise					

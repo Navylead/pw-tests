@@ -94,30 +94,31 @@ test.describe('Registration', ()=>{
     await page.pause()
   })
 
-  test.skip('Регистрация пользователя', async({page})=>{ // ПРИДУМАТЬ, КАК РЕГИТЬСЯ НА ТЕСТЕ
-    const register = new RegistrationPage(page)
-    const randomNumber = Math.floor(Math.random() * 100)
-    const name: string = 'testdelete'
-    const email: string = `testdelete${randomNumber}@gmail.com`
-    const password: string = '8888888888'     
-    // Регистрация
-    const [request] = await Promise.all([
-        page.waitForRequest('https://api.flyvi.pro/api/auth/register', {timeout:25000}),
-        register.registerTest(name, email, password)
-    ])
-    // Проверка запроса
-    const reqBody = await JSON.parse(request.postData() ?? '{}')
-    expect(reqBody.email).toEqual(email)
-    expect(reqBody.password).toEqual(password)
-    // Проверка ответа
-    const respPromise = page.waitForResponse('https://api.flyvi.pro/api/auth/register')
-    const resp = await respPromise					
-    const respBody = await resp.json()
-    expect(respBody.message).toEqual("Ваш аккаунт был создан.")
-    await page.locator('[class="dialog-wrapper dialog-wrapper__success"] h2 >> text=Ещё немного!').isVisible()
-    await page.locator('[class="dialog-wrapper dialog-wrapper__success"] button >> text=Хорошо').isVisible()
-
-    await page.pause()
+  test('Регистрация пользователя', async({page})=>{
+      const register = new RegistrationPage(page)
+      const randomNumber = Math.floor(Math.random() * 100)
+      const name: string = 'testdelete'
+      const email: string = `testdelete${randomNumber}@gmail.com`
+      const password: string = '8888888888'     
+      // Регистрация
+      const [request] = await Promise.all([
+          page.waitForRequest('https://api.flyvi.dev/api/auth/register', {timeout:25000}),
+          register.registerTest(name, email, password)
+      ])
+      // Проверка запроса
+      const reqBody = await JSON.parse(request.postData() ?? '{}')
+      expect(reqBody.email).toEqual(email)        // Проверка почты в запросе
+      expect(reqBody.password).toEqual(password)  // Проверка пароля в запросе
+      expect(reqBody.subscribed).toBe(true)       // Проверка чекбока подписки на рассылку в запросе
+      // Проверка ответа
+      const respPromise = page.waitForResponse('https://api.flyvi.dev/api/auth/register')
+      const resp = await respPromise					
+      const respBody = await resp.json()
+      expect(respBody.message).toEqual("Ваш аккаунт был создан.")
+      await page.locator('[class="dialog-wrapper dialog-wrapper__success"] h2 >> text=Ещё немного!').isVisible()
+      await page.locator('[class="dialog-wrapper dialog-wrapper__success"] button >> text=Хорошо').isVisible()
+  
+      await page.pause()
   })
 
   test('Регистрация использующимся EMAIL', async ({page})=>{
@@ -135,7 +136,7 @@ test.describe('Registration', ()=>{
 
     await page.pause()
   })
-})
+ })
 
 test.describe('Sign in', ()=>{
 

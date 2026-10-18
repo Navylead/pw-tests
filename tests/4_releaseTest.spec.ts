@@ -108,8 +108,9 @@ test.describe('Registration', ()=>{
     ])
     // Проверка данных в ЗАПРОСЕ
     const reqBody = await JSON.parse(request.postData() ?? '{}')
-    expect(reqBody.email).toEqual(email)
-    expect(reqBody.password).toEqual(password)
+    expect(reqBody.email).toEqual(email)       // Проверка почты в запросе
+    expect(reqBody.password).toEqual(password) // Проверка пароля в запросе
+    expect(reqBody.subscribed).toBe(true)      // Проверка чекбока подписки на рассылку в запросе
     // Проверка данных в ОТВЕТЕ
     const respPromise = page.waitForResponse('https://api.flyvi.io/api/auth/register')
     const resp = await respPromise					
