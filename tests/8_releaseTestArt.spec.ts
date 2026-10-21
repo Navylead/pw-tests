@@ -1508,6 +1508,29 @@ test.describe('ОБЩИЕ ПО ЭДИТОРУ', ()=>{
         await page.pause()
     })
 
+    test("Дашборд. Конвертация PPTX в эдитор", async({page, context})=>{
+        const dashboard = new Dashboard(page)
+        const editor = new Editor(page)
+        // Переход на Дашборд
+        await page.goto('https://flyvi.dev/app')
+        // Клик по кнопке конвертации презы и выбираем сам файл
+        const pptxImport = page.locator('.db-design.upload:has(img[src="/app/_nuxt/img/29e6e5b.svg"])')
+        await pptxImport.waitFor()
+        const [uploadFile] = await Promise.all([
+            page.waitForEvent('filechooser'),
+            pptxImport.click()
+        ])
+        // Проверяем, что открывается Редактор
+        await Promise.all([
+            editor.downloadBtn.waitFor({timeout: 45000}),
+            uploadFile.setFiles('tests/resources/HHH.pptx')
+        ])
+        // Проверка отображения картинки в созданном дизайне
+        await editor.decor.locator('img[src*="/brands-custom/"]').waitFor()
+        
+        await page.pause()
+    })
+
     test('Мэйн. Создание дизайна из шаблона', async({page, context})=>{
         const main = new MainPage(page)
         // Переход на Мэйн
@@ -1794,6 +1817,8 @@ test.describe('ОБЩИЕ ПО ЭДИТОРУ', ()=>{
         ]) 
         // Проверяем, что баланс токенов больше 0        
         expect(oldCount).toBeGreaterThan(0)
+        // Раскрываем меню ИИ-инструментов
+        await page.locator('.small-title.mt-6.ml-5 span:has-text("Показать все")').click()
         // Применяем редактирование
         await page.locator('.ai-editor__main_choose-styles_list_item:has-text("Дорисовать изображение")').click()
         // Выбираем формат дорисовки 16:9
@@ -2178,7 +2203,7 @@ test.describe('ОБЩИЕ ПО ЭДИТОРУ', ()=>{
         const designTitle = page.locator('[class="card-title cardTitle_tvse0"]') 
         await expect(designTitle).toHaveCount(3)
         for(let i = 0; i < 3; i++) {
-            await expect(designTitle.nth(i)).toContainText('искомый')
+            await expect(designTitle.nth(i)).toContainText('Искомый')
         }
 
         await page.pause()
@@ -2555,6 +2580,9 @@ test.describe('Тесты ИИ-мастерской для ПРО тарифа',
         await page.getByText('Nano Banana').click()
         // Включить режим ПРО
         await page.locator('[class="custom-switch"]').click()
+        // Выбираем формат фото
+        await page.locator('.dropdown-toggle').first().click()
+        await page.locator('.dropdown-item:has-text("21:9")').click()
         // Ввод промпта
         await page.locator('.ai-editor_menu.custom__menu textarea').fill('Добавь солнечные очки')
         // Применяем редактирование
@@ -2578,7 +2606,7 @@ test.describe('Тесты ИИ-мастерской для ПРО тарифа',
         // Переход в ИИ-редактор и проверка баланса токенов
         const [oldToken] = await Promise.all([
             workshop.getTokenCount(),
-            page.goto('https://flyvi.pro/app/image-editor')
+            page.goto('https://flyvi.dev/app/image-editor')
         ])
         expect(oldToken, "<<<НЕДОСТАТОЧНО ТОКЕНОВ>>>").toBeGreaterThan(0)
         // Загружаем своё фото в ии-редактор
@@ -2594,7 +2622,11 @@ test.describe('Тесты ИИ-мастерской для ПРО тарифа',
         oldImg = await uploadedImg.getAttribute('src')
         // Переходим в меню инструмента
         await page.getByText('Nano Banana').click()
+        // Вводим промпт
         await page.locator('.ai-editor_menu.custom__menu textarea').fill('Добавь солнечные очки')
+        // Выбираем формат фото
+        await page.locator('.dropdown-toggle').click()
+        await page.locator('.dropdown-item:has-text("21:9")').click()
         // Применяем редактирование
         const [newToken] = await Promise.all([
             workshop.getTokenCount(),
