@@ -1078,6 +1078,7 @@ test.describe('Тесты премиумности', ()=>{
         // Кликаем по декору
         await editor.decor.click()
         // Кликаем по кнопке Деформации
+        await page.locator('.toolbarMenu').click()
         await editor.deformationBtn.waitFor()        
         await editor.deformationBtn.click()
         // Ждём отображения попапа преиум-подписки        
@@ -1431,18 +1432,15 @@ test.describe('ОБЩИЕ ПО ЭДИТОРУ', ()=>{
         // await page.pause()
     })
 
-    test('Дашборд. Создание дизайна из загруженного фото', async({page, context})=>{
+    test('Дашборд. Создание дизайна из загруженного фото', async({page})=>{
         const dashboard = new Dashboard(page)
         const editor = new Editor(page)
         // Переход в Дашборд
         await page.goto('/app')
-        // Открываем меню создания дизайнов
-        await dashboard.createDesignBtn.waitFor()
-        await dashboard.createDesignBtn.click()
         // Клик по кнопке "Редактировать фото" и загрузка своего фото
         const [fileChooser] = await Promise.all([
             page.waitForEvent('filechooser'),            
-            page.getByRole('button', {name: "Редактировать фото"}).click()
+            page.locator('.db-design__content').getByText("Загрузить фото").click()
         ])        
         await fileChooser.setFiles('tests/resources/test2.jpg')
         // Проверка, что открылся дизайн
@@ -1509,30 +1507,24 @@ test.describe('ОБЩИЕ ПО ЭДИТОРУ', ()=>{
     test('Дашборд. Создание дизайна по своим размерам', async ({page})=>{
         const dashboard = new Dashboard(page)
         const editor = new Editor(page)
+        // Переход на Дашборд
         await page.goto('/app')
-        // Ожидание загрузки страницы
         const designList = page.locator('.stories-list .v-responsive__content').first()
-        await designList.waitFor({timeout: 15000})
-        await dashboard.templateSearch.waitFor()
-        // Клик по кнопке создания дизайна
-        await dashboard.createDesignBtn.waitFor()
-        await dashboard.createDesignBtn.click()
-        // Выбираем свой размер
-        const customSizeButton = page.getByRole('button', {name: 'Настраиваемый размер'})
+        await designList.waitFor()
+        // Клик по созданию дизайна по своим размерам
+        const customSizeButton = page.locator('.db-design__resize-img')
         await customSizeButton.click()
+        // Вводим размеры
         const widthInput = page.locator('.custom-design-menu input').first()
         await widthInput.clear()
         await widthInput.fill('2222')
         const height = page.locator('.custom-design-menu input').nth(1)
         await height.clear()
         await height.fill('2222')
-        // Создаём дизайн
+        // Создание дизайна
         const createCustomDesignButton = page.locator('.custom-design-menu button >> text=Создать дизайн')
         await createCustomDesignButton.click()
-        if(await page.locator('div').getByText('BACKGROUND').isVisible()) {
-            await page.waitForTimeout(5000) // Убрать явное ожидание
-            await createCustomDesignButton.click()
-        }
+        // Проверка, что открылся редактор
         await page.waitForURL('**/designs/*')
         await editor.changeDesignSizeBtn.waitFor()
         await editor.downloadBtn.waitFor()

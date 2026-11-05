@@ -1076,10 +1076,11 @@ test.describe('Тесты премиумности', ()=>{
         const editor = new Editor(page)
         await page.goto('https://flyvi.pro/app/designs/d4e2daaf-67ef-485f-b782-cf0f2c09bdf6')
         // Ждём загрузку дизайна
-        await editor.changesSavedBtn.waitFor()
+        await editor.changesSavedBtn.waitFor({timeout: 15000})
         // Кликаем по декору
         await editor.decor.click()
         // Кликаем по кнопке Деформации
+        await page.locator('.toolbarMenu').click()
         await editor.deformationBtn.waitFor()        
         await editor.deformationBtn.click()
         // Ждём отображения попапа преиум-подписки        
@@ -1415,13 +1416,14 @@ test.describe('ОБЩИЕ ПО ЭДИТОРУ', ()=>{
     test('Дашборд. Создание дизайна - История Instagram', async ({page})=>{
         const dashboard = new Dashboard(page)
         const editor = new Editor(page)
-
         await page.goto('https://flyvi.dev/app')
         // Создание дизайна
         await dashboard.createDesignBtn.waitFor()
         await dashboard.createDesignBtn.click()
-        await page.getByRole('listbox').locator('[role="option"]:has(.category:has-text("Соцсети"))').click()
-        await page.locator('.v-list-item__title:has-text("История Instagram")').click()
+        //
+        await page.locator('#dbTags').getByText('Instagram').click()
+        // 
+        await page.locator('.design-types-cards .design-types-card').getByText('История Instagram').click()
         // Проверка, что открылся редактор
         await page.waitForURL('**/designs/*')
         await editor.changeDesignSizeBtn.waitFor()
@@ -1454,26 +1456,27 @@ test.describe('ОБЩИЕ ПО ЭДИТОРУ', ()=>{
     test('Дашборд. Создание дизайна по своим размерам', async ({page})=>{
         const dashboard = new Dashboard(page)
         const editor = new Editor(page)
-
-        await page.goto('https://flyvi.pro/app')
+        // Переход на Дашборд
+        await page.goto('https://flyvi.dev/app')
         const designList = page.locator('.stories-list .v-responsive__content').first()
         await designList.waitFor()
-        await dashboard.createDesignBtn.waitFor()
-        await dashboard.createDesignBtn.click()
-        const customSizeButton = page.getByRole('button', {name: 'Настраиваемый размер'})
+        // Клик по созданию дизайна по своим размерам
+        const customSizeButton = page.locator('.db-design__resize-img')
         await customSizeButton.click()
+        // Вводим размеры
         const widthInput = page.locator('.custom-design-menu input').first()
         await widthInput.clear()
         await widthInput.fill('2222')
         const height = page.locator('.custom-design-menu input').nth(1)
         await height.clear()
         await height.fill('2222')
+        // Создание дизайна
         const createCustomDesignButton = page.locator('.custom-design-menu button >> text=Создать дизайн')
         await createCustomDesignButton.click()
+        // Проверка, что открылся редактор
         await page.waitForURL('**/designs/*')
         await editor.changeDesignSizeBtn.waitFor()
         await editor.downloadBtn.waitFor()
-
         await editor.canvas.isVisible()
         const designSize = await editor.canvas.evaluate(el=>{
             return {
@@ -1486,18 +1489,15 @@ test.describe('ОБЩИЕ ПО ЭДИТОРУ', ()=>{
         await page.pause()
     })
 
-    test('Дашборд. Создание дизайна из загруженного фото', async({page, context})=>{
+    test('Дашборд. Создание дизайна из загруженного фото', async({page})=>{
         const dashboard = new Dashboard(page)
         const editor = new Editor(page)
         // Переход в Дашборд
-        await page.goto('https://flyvi.pro/app')
-        // Открываем меню создания дизайнов
-        await dashboard.createDesignBtn.waitFor()
-        await dashboard.createDesignBtn.click()
+        await page.goto('https://flyvi.dev/app')
         // Клик по кнопке "Редактировать фото" и загрузка своего фото
         const [fileChooser] = await Promise.all([
             page.waitForEvent('filechooser'),            
-            page.getByRole('button', {name: "Редактировать фото"}).click()
+            page.locator('.db-design__content').getByText("Загрузить фото").click()
         ])        
         await fileChooser.setFiles('tests/resources/test2.jpg')
         // Проверка, что открылся дизайн
@@ -2998,7 +2998,7 @@ test.describe('Тесты ИИ-мастерской для ПРО тарифа',
             page.locator('.ai-editor_menu__slider img').first().click()
         ])
         // Проверяем, что токены потратились
-        expect(newToken, '<<<Токены не потратились!!!>>>').toEqual(oldToken-1)
+        expect(newToken, '<<<Токены не потратились!!!>>>').toEqual(oldToken-2)
         // Ждём, пока не поменяется картинка
         await expect(async()=>{
             newImg = await uploadedImg.getAttribute('src')

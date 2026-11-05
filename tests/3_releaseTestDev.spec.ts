@@ -1077,17 +1077,18 @@ test.describe('Тесты премиумности', ()=>{
         const editor = new Editor(page)
         await page.goto('https://flyvi.dev/app/designs/d4e2daaf-67ef-485f-b782-cf0f2c09bdf6')
         // Ждём загрузку дизайна
-        await editor.changesSavedBtn.waitFor()
+        await editor.changesSavedBtn.waitFor({timeout: 15000})
         // Кликаем по декору
         await editor.decor.click()
         // Кликаем по кнопке Деформации
+        await page.locator('.toolbarMenu').click()
         await editor.deformationBtn.waitFor()        
         await editor.deformationBtn.click()
         // Ждём отображения попапа преиум-подписки        
         const getTariffBtn = page.locator('.dialogWrapper_FVcGt button >> text=Получить 5 дней в подарок')
         await getTariffBtn.waitFor()
         
-        // await page.pause()
+        await page.pause()
     })
 
     test('Эдитор. Премиум-функция: УДАЛИТЬ ФОН ДЛЯ ФОТО', async({page})=>{
@@ -1100,7 +1101,7 @@ test.describe('Тесты премиумности', ()=>{
         const getTariffBtn = page.locator('.dialogWrapper_FVcGt button >> text=Получить 5 дней в подарок')
         await getTariffBtn.waitFor()
         
-        //await page.pause()
+        await page.pause()
     })
 
     test('Эдитор. Премиум-функция: ЛАСТИК ДЛЯ ФОТО', async({page})=>{
@@ -1416,13 +1417,14 @@ test.describe('ОБЩИЕ ПО ЭДИТОРУ', ()=>{
     test('Дашборд. Создание дизайна - История Instagram', async ({page})=>{
         const dashboard = new Dashboard(page)
         const editor = new Editor(page)
-
         await page.goto('https://flyvi.dev/app')
         // Создание дизайна
         await dashboard.createDesignBtn.waitFor()
         await dashboard.createDesignBtn.click()
-        await page.getByRole('listbox').locator('[role="option"]:has(.category:has-text("Соцсети"))').click()
-        await page.locator('.v-list-item__title:has-text("История Instagram")').click()
+        // Выбираем раздел
+        await page.locator('#dbTags').getByText('Instagram').click()
+        // Выбираем дизайн-тайп для создания
+        await page.locator('.design-types-cards .design-types-card').getByText('История Instagram').click()
         // Проверка, что открылся редактор
         await page.waitForURL('**/designs/*')
         await editor.changeDesignSizeBtn.waitFor()
@@ -1455,26 +1457,27 @@ test.describe('ОБЩИЕ ПО ЭДИТОРУ', ()=>{
     test('Дашборд. Создание дизайна по своим размерам', async ({page})=>{
         const dashboard = new Dashboard(page)
         const editor = new Editor(page)
-
+        // Переход на Дашборд
         await page.goto('https://flyvi.dev/app')
         const designList = page.locator('.stories-list .v-responsive__content').first()
         await designList.waitFor()
-        await dashboard.createDesignBtn.waitFor()
-        await dashboard.createDesignBtn.click()
-        const customSizeButton = page.getByRole('button', {name: 'Настраиваемый размер'})
+        // Клик по созданию дизайна по своим размерам
+        const customSizeButton = page.locator('.db-design__resize-img')
         await customSizeButton.click()
+        // Вводим размеры
         const widthInput = page.locator('.custom-design-menu input').first()
         await widthInput.clear()
         await widthInput.fill('2222')
         const height = page.locator('.custom-design-menu input').nth(1)
         await height.clear()
         await height.fill('2222')
+        // Создание дизайна
         const createCustomDesignButton = page.locator('.custom-design-menu button >> text=Создать дизайн')
         await createCustomDesignButton.click()
+        // Проверка, что открылся редактор
         await page.waitForURL('**/designs/*')
         await editor.changeDesignSizeBtn.waitFor()
         await editor.downloadBtn.waitFor()
-
         await editor.canvas.isVisible()
         const designSize = await editor.canvas.evaluate(el=>{
             return {
@@ -1492,13 +1495,10 @@ test.describe('ОБЩИЕ ПО ЭДИТОРУ', ()=>{
         const editor = new Editor(page)
         // Переход в Дашборд
         await page.goto('https://flyvi.dev/app')
-        // Открываем меню создания дизайнов
-        await dashboard.createDesignBtn.waitFor()
-        await dashboard.createDesignBtn.click()
         // Клик по кнопке "Редактировать фото" и загрузка своего фото
         const [fileChooser] = await Promise.all([
             page.waitForEvent('filechooser'),            
-            page.getByRole('button', {name: "Редактировать фото"}).click()
+            page.locator('.db-design__content').getByText("Загрузить фото").click()
         ])        
         await fileChooser.setFiles('tests/resources/test2.jpg')
         // Проверка, что открылся дизайн
@@ -1636,7 +1636,7 @@ test.describe('ОБЩИЕ ПО ЭДИТОРУ', ()=>{
         await page.locator('.loading-blur-screen').waitFor({state: 'detached', timeout:10000}) // Ожидание завершения процесса
         const noBgImg = editor.canvas.locator('[src*="no-bg"]')
         await noBgImg.waitFor({timeout:10000})                                                 // Ждем, пока на холсте не появится фото БЕЗ фона
-        await page.pause()
+        // await page.pause()
         const originalImg = page.locator('text="Оригинал"') 
         await originalImg.click()                                                              // Возвращаем оригинал фото
         // Проверяем, что на холсте появился оригинал фото        
@@ -1663,7 +1663,7 @@ test.describe('ОБЩИЕ ПО ЭДИТОРУ', ()=>{
         const icon = page.locator('img[src*="icon8-icons"]')
         await icon.click()                                                                     // Кликаем по иконке на холсте
 
-        // await page.pause()
+        await page.pause()
     })
 
     test('Эдитор. УДАЛЕНИЕ ФОНА У ФОТО АНСПЛЭШ', async({page})=>{
@@ -3017,7 +3017,7 @@ test.describe('Тесты ИИ-мастерской для ПРО тарифа',
             page.locator('.ai-editor_menu__slider img').first().click()
         ])
         // Проверяем, что токены потратились
-        expect(newToken, '<<<Токены не потратились!!!>>>').toEqual(oldToken-1)
+        expect(newToken, '<<<Токены не потратились!!!>>>').toEqual(oldToken-2)
         // Ждём, пока не поменяется картинка
         await expect(async()=>{
             newImg = await uploadedImg.getAttribute('src')
