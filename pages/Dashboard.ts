@@ -12,11 +12,13 @@ export class Dashboard {
     readonly proBanner: Locator
     readonly templateSearch: Locator
     readonly designSearchInput: Locator
+    readonly createDesignDialog: Locator
 
     constructor(page: Page){
         this.page = page
         this.userLogo = page.locator('.drawer-account__user')                                   // Лого юзера
         this.createDesignBtn = page.getByRole('button', {name: "Создать дизайн"})               // Кнопка Создать Дизайн
+        this.createDesignDialog = page.locator('.create-design-dialog')                         // Попап Создать Дизайн
         this.tokenCount = page.locator('.header .tokens-count_container_count')                 // Счётчик токенов
         this.imgPrompt = page.locator('.ai-generator__main textarea')                                         // Инпут генерации фото
         this.imgGenerateBtn = page.locator('.ai-generator__main button >> text=Сгенерировать изображение')    // Кнопка генерации фото

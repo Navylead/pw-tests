@@ -125,7 +125,7 @@ test.describe('Registration', ()=>{
   test('Регистрация использующимся EMAIL', async ({page})=>{
     const register = new RegistrationPage(page)
     const name: string = 'testdelete'
-    const email: string = creds.email1
+    const email: string = creds.prodTempEmail
     const password: string = '8888888888'  
     // Регистрация
     await register.register(name, email, password)
@@ -133,6 +133,22 @@ test.describe('Registration', ()=>{
     const jsonResponse = await response.json()
     expect(jsonResponse.errors.email[0]).toEqual('Данный email уже зарегистрирован')
     const errorMessage = page.getByText('Данный email уже зарегистрирован')
+    await errorMessage.waitFor()
+
+    await page.pause()
+  })
+
+  test('Регистрация через временный EMAIL', async ({page})=>{
+    const register = new RegistrationPage(page)
+    const name: string = 'testdelete'
+    const email: string = creds.email1
+    const password: string = '8888888888'  
+    // Регистрация
+    await register.registerTest(name, email, password)
+    const response = await page.waitForResponse('**/api/auth/register')
+    const jsonResponse = await response.json()
+    expect(jsonResponse.errors.email[0]).toEqual('Регистрация с данного email невозможна. Попробуйте другой email')
+    const errorMessage = page.getByText('Регистрация с данного email невозможна. Попробуйте другой email')
     await errorMessage.waitFor()
 
     await page.pause()
@@ -1396,13 +1412,14 @@ test.describe('ОБЩИЕ ПО ЭДИТОРУ', ()=>{
     test('Дашборд. Создание дизайна - История Instagram', async ({page})=>{
         const dashboard = new Dashboard(page)
         const editor = new Editor(page)
-
         await page.goto('/app')
         // Создание дизайна
         await dashboard.createDesignBtn.waitFor()
         await dashboard.createDesignBtn.click()
-        await page.getByRole('listbox').locator('[role="option"]:has(.category:has-text("Соцсети"))').click()
-        await page.locator('.v-list-item__title:has-text("История Instagram")').click()
+        // Выбираем раздел
+        // await page.locator('#dbTags').getByText('Instagram').click()
+        // Выбираем дизайн-тайп для создания
+        await page.locator('.design-types-cards .design-types-card').getByText('История Instagram').click()
         // Проверка, что открылся редактор
         await page.waitForURL('**/designs/*')
         await editor.changeDesignSizeBtn.waitFor()
@@ -1529,6 +1546,43 @@ test.describe('ОБЩИЕ ПО ЭДИТОРУ', ()=>{
         await editor.changeDesignSizeBtn.waitFor()
         await editor.downloadBtn.waitFor()
 
+        await editor.canvas.isVisible()
+        const designSize = await editor.canvas.evaluate(el=>{
+            return {
+                height: el.clientHeight,
+                width: el.clientWidth}
+        })
+        expect(designSize.height).toEqual(2222)
+        expect(designSize.width).toEqual(2222)        
+
+        await page.pause()
+    })
+
+    test('Дашборд. Создание дизайна по своим размерам через попап', async ({page})=>{
+        const dashboard = new Dashboard(page)
+        const editor = new Editor(page)
+        // Переход на Дашборд
+        await page.goto('/app')
+        const designList = page.locator('.stories-list .v-responsive__content').first()
+        await designList.waitFor()
+        // Вызов попапа создания дизайна
+        await dashboard.createDesignBtn.click()
+        // Клик по кнопке создания дизайна по своим размерам
+        await page.locator('.design-types-card:has-text("Свой размер") .design-types-card__icon').click()        
+        // Вводим размеры
+        const widthInput = dashboard.createDesignDialog.locator('input').first()
+        await widthInput.clear()
+        await widthInput.fill('2222')
+        const height = dashboard.createDesignDialog.locator('input').nth(1)
+        await height.clear()
+        await height.fill('2222')
+        // Создание дизайна
+        const createCustomDesignButton = dashboard.createDesignDialog.getByRole('button', {name: "Создать дизайн"})
+        await createCustomDesignButton.click()
+        // Проверка, что открылся редактор
+        await page.waitForURL('**/designs/*')
+        await editor.changeDesignSizeBtn.waitFor()
+        await editor.downloadBtn.waitFor()
         await editor.canvas.isVisible()
         const designSize = await editor.canvas.evaluate(el=>{
             return {
